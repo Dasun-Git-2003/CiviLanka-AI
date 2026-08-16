@@ -1,0 +1,44 @@
+name: civilanka_app
+description: CivitaGuard AI — Citizen Hazard Reporting App (Member 1)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP client with interceptors
+  dio: ^5.7.0
+
+  # Secure JWT storage (native Keychain/Keystore)
+  flutter_secure_storage: ^9.2.2
+
+  # State management
+  provider: ^6.1.2
+
+  # GPS / Location
+  geolocator: ^13.0.1
+  permission_handler: ^11.3.1
+
+  # Image picker (camera + gallery)
+  image_picker: ^1.1.2
+
+  # UI
+  cached_network_image: ^3.4.1
+  intl: ^0.19.0
+  flutter_spinkit: ^5.2.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

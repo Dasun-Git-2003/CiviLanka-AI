@@ -130,3 +130,4 @@ E:\My Web Project\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\refint\CiviLanka.A
 E:\My Web Project\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\CiviLanka.API.pdb
 E:\My Web Project\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\CiviLanka.API.genruntimeconfig.cache
 E:\My Web Project\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\ref\CiviLanka.API.dll
+E:\My Web Project\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\CiviLanka.API.sourcelink.json
