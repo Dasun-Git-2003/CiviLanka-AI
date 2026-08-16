@@ -1,0 +1,6 @@
+@CiviLanka.API_HostAddress = http://localhost:5136
+
+GET {{CiviLanka.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
