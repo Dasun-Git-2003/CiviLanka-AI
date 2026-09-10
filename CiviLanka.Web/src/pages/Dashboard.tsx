@@ -193,9 +193,18 @@ export default function Dashboard() {
     { id: 1, lat: 6.9271, lng: 79.8612, title: 'Main St Water Pipe',    condition: 'poor' },
     { id: 2, lat: 6.9310, lng: 79.8450, title: 'Oak Ave Streetlight',   condition: 'good' },
     { id: 3, lat: 6.9050, lng: 79.8510, title: 'Central Park Pathway',  condition: 'fair' },
+    { id: 4, lat: 6.9180, lng: 79.8580, title: 'Galle Rd Bridge',       condition: 'poor' },
+    { id: 5, lat: 6.9400, lng: 79.8530, title: 'Negombo Rd Drain',      condition: 'fair' },
   ];
 
+  // Map filter
+  const [activeFilter, setActiveFilter] = useState<'all' | 'poor' | 'fair' | 'good'>('all');
+  const filteredAssets = activeFilter === 'all'
+    ? assets
+    : assets.filter((a) => a.condition === activeFilter);
+
   const mapApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
 
   // Live location
   const [liveLocation, setLiveLocation] = useState<LiveLocation>(null);
@@ -292,16 +301,47 @@ export default function Dashboard() {
 
       {/* Map card */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-slate-500" />
-          Asset GIS Map
-          <span className="ml-auto flex items-center gap-4 text-xs font-normal text-slate-500">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow inline-block" />Your Location</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />Poor</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />Fair</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />Good</span>
-          </span>
-        </h2>
+        {/* Map title + filter chips */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-slate-500" />
+            Asset GIS Map
+          </h2>
+
+          {/* Filter chips */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {([
+              { key: 'all',  label: 'All Assets',       dot: 'bg-slate-400',    active: 'bg-slate-700 text-white border-slate-700',   idle: 'bg-white text-slate-600 border-slate-300 hover:border-slate-400' },
+              { key: 'poor', label: 'Repair Needed',    dot: 'bg-red-500',      active: 'bg-red-600 text-white border-red-600',        idle: 'bg-white text-slate-600 border-slate-300 hover:border-red-300'   },
+              { key: 'fair', label: 'Moderate',         dot: 'bg-amber-400',    active: 'bg-amber-500 text-white border-amber-500',    idle: 'bg-white text-slate-600 border-slate-300 hover:border-amber-300' },
+              { key: 'good', label: 'Good Condition',   dot: 'bg-emerald-500',  active: 'bg-emerald-600 text-white border-emerald-600',idle: 'bg-white text-slate-600 border-slate-300 hover:border-emerald-300'},
+            ] as const).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                  activeFilter === f.key ? f.active : f.idle
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${activeFilter === f.key ? 'bg-white' : f.dot}`} />
+                {f.label}
+                <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                  activeFilter === f.key ? 'bg-white/20' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {f.key === 'all' ? assets.length : assets.filter((a) => a.condition === f.key).length}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Active filter banner */}
+        {activeFilter === 'poor' && (
+          <div className="mb-3 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            Showing <strong>{filteredAssets.length} repair site{filteredAssets.length !== 1 ? 's' : ''}</strong> — assets with Poor condition that require urgent attention.
+          </div>
+        )}
 
         <div className="flex gap-4">
           {/* Map */}
@@ -309,7 +349,7 @@ export default function Dashboard() {
             {mapApiKey ? (
               <APIProvider apiKey={mapApiKey}>
                 <MapInner
-                  assets={assets}
+                  assets={filteredAssets}
                   liveLocation={liveLocation}
                   locationError={locationError}
                   onAssetSelect={handleAssetSelect}
