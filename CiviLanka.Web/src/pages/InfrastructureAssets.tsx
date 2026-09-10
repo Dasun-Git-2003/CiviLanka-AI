@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Plus, Search, Filter, X, Building2, ClipboardCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Plus, Search, Filter, X, Building2,
+  ClipboardCheck, ChevronDown, ChevronUp,
+} from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +44,38 @@ type InspectionFormData = {
   notes: string;
 };
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const ASSET_FORM_INIT: AssetFormData = {
+  name: '',
+  type: 'Water',
+  status: 'Active',
+  location: '',
+  installationDate: '',
+  description: '',
+  latitude: '',
+  longitude: '',
+};
+
+const INSPECTION_INIT: InspectionFormData = {
+  date: new Date().toISOString().split('T')[0],
+  condition: 'Good',
+  issues: '',
+  notes: '',
+};
+
+const CONDITIONS: InspectionFormData['condition'][] = ['Good', 'Moderate', 'Poor', 'Critical'];
+
+const CONDITION_META: Record<
+  InspectionFormData['condition'],
+  { ring: string; text: string; dot: string; desc: string }
+> = {
+  Good:     { ring: 'ring-emerald-400 bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', desc: 'Asset is fully operational.' },
+  Moderate: { ring: 'ring-amber-400 bg-amber-50',     text: 'text-amber-700',   dot: 'bg-amber-400',   desc: 'Minor issues; monitoring needed.' },
+  Poor:     { ring: 'ring-red-400 bg-red-50',         text: 'text-red-700',     dot: 'bg-red-500',     desc: 'Significant deterioration; repair required.' },
+  Critical: { ring: 'ring-red-600 bg-red-100',        text: 'text-red-800',     dot: 'bg-red-700',     desc: 'Immediate action required.' },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function conditionBadge(condition: string) {
@@ -59,17 +94,6 @@ function latestCondition(asset: Asset) {
 }
 
 // ─── Register Asset Modal ─────────────────────────────────────────────────────
-
-const ASSET_FORM_INIT: AssetFormData = {
-  name: '',
-  type: 'Water',
-  status: 'Active',
-  location: '',
-  installationDate: '',
-  description: '',
-  latitude: '',
-  longitude: '',
-};
 
 function RegisterAssetModal({
   onClose,
@@ -104,12 +128,10 @@ function RegisterAssetModal({
     onClose();
   };
 
-  const labelCls = 'block text-sm font-medium text-slate-700 mb-1';
-  const inputCls = (err?: string) =>
-    `w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 ${
-      err ? 'border-red-400 bg-red-50' : 'border-slate-300'
-    }`;
-  const selectCls = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white';
+  const lbl = 'block text-sm font-medium text-slate-700 mb-1';
+  const inp = (err?: string) =>
+    `w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 ${err ? 'border-red-400 bg-red-50' : 'border-slate-300'}`;
+  const sel = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -125,7 +147,10 @@ function RegisterAssetModal({
               <p className="text-xs text-slate-500">Add basic information about the asset.</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 transition-colors">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -134,16 +159,26 @@ function RegisterAssetModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* Asset Name */}
           <div>
-            <label className={labelCls}>Asset Name <span className="text-red-500">*</span></label>
-            <input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Main St Water Pipe" className={inputCls(errors.name)} />
+            <label className={lbl}>
+              Asset Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="e.g. Main St Water Pipe"
+              className={inp(errors.name)}
+            />
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
           </div>
 
           {/* Type + Installation Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Asset Type <span className="text-red-500">*</span></label>
-              <select name="type" value={form.type} onChange={handleChange} className={selectCls}>
+              <label className={lbl}>
+                Asset Type <span className="text-red-500">*</span>
+              </label>
+              <select name="type" value={form.type} onChange={handleChange} className={sel}>
                 <option>Water</option>
                 <option>Electrical</option>
                 <option>Civil</option>
@@ -153,34 +188,66 @@ function RegisterAssetModal({
               </select>
             </div>
             <div>
-              <label className={labelCls}>Installation Date</label>
-              <input name="installationDate" type="date" value={form.installationDate} onChange={handleChange} className={inputCls()} />
+              <label className={lbl}>Installation Date</label>
+              <input
+                name="installationDate"
+                type="date"
+                value={form.installationDate}
+                onChange={handleChange}
+                className={inp()}
+              />
             </div>
           </div>
 
           {/* Location */}
           <div>
-            <label className={labelCls}>Location / Area <span className="text-red-500">*</span></label>
-            <input name="location" value={form.location} onChange={handleChange} placeholder="e.g. Main Street, Colombo" className={inputCls(errors.location)} />
+            <label className={lbl}>
+              Location / Area <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              placeholder="e.g. Main Street, Colombo"
+              className={inp(errors.location)}
+            />
             {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
           </div>
 
           {/* GPS */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>Latitude</label>
-              <input name="latitude" type="number" step="any" value={form.latitude} onChange={handleChange} placeholder="e.g. 6.9271" className={inputCls()} />
+              <label className={lbl}>Latitude</label>
+              <input
+                name="latitude"
+                type="number"
+                step="any"
+                value={form.latitude}
+                onChange={handleChange}
+                placeholder="e.g. 6.9271"
+                className={inp()}
+              />
             </div>
             <div>
-              <label className={labelCls}>Longitude</label>
-              <input name="longitude" type="number" step="any" value={form.longitude} onChange={handleChange} placeholder="e.g. 79.8612" className={inputCls()} />
+              <label className={lbl}>Longitude</label>
+              <input
+                name="longitude"
+                type="number"
+                step="any"
+                value={form.longitude}
+                onChange={handleChange}
+                placeholder="e.g. 79.8612"
+                className={inp()}
+              />
             </div>
           </div>
 
           {/* Status */}
           <div>
-            <label className={labelCls}>Status <span className="text-red-500">*</span></label>
-            <select name="status" value={form.status} onChange={handleChange} className={selectCls}>
+            <label className={lbl}>
+              Status <span className="text-red-500">*</span>
+            </label>
+            <select name="status" value={form.status} onChange={handleChange} className={sel}>
               <option>Active</option>
               <option>Inactive</option>
               <option>Decommissioned</option>
@@ -190,16 +257,30 @@ function RegisterAssetModal({
 
           {/* Description */}
           <div>
-            <label className={labelCls}>Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} placeholder="Optional notes about the asset..." rows={3} className={`${inputCls()} resize-none`} />
+            <label className={lbl}>Description</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Optional notes about the asset..."
+              rows={3}
+              className={`${inp()} resize-none`}
+            />
           </div>
 
           {/* Footer */}
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
               Cancel
             </button>
-            <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors shadow-sm">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors shadow-sm"
+            >
               Register Asset
             </button>
           </div>
@@ -209,26 +290,7 @@ function RegisterAssetModal({
   );
 }
 
-// ─── Record Inspection Modal ──────────────────────────────────────────────────
-
-const INSPECTION_INIT: InspectionFormData = {
-  date: new Date().toISOString().split('T')[0],
-  condition: 'Good',
-  issues: '',
-  notes: '',
-};
-
-const CONDITIONS: InspectionFormData['condition'][] = ['Good', 'Moderate', 'Poor', 'Critical'];
-
-const CONDITION_META: Record<
-  InspectionFormData['condition'],
-  { ring: string; text: string; dot: string; desc: string }
-> = {
-  Good:     { ring: 'ring-emerald-400 bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', desc: 'Asset is in fully operational condition.' },
-  Moderate: { ring: 'ring-amber-400 bg-amber-50',     text: 'text-amber-700',   dot: 'bg-amber-400',   desc: 'Minor issues present; monitoring recommended.' },
-  Poor:     { ring: 'ring-red-400 bg-red-50',         text: 'text-red-700',     dot: 'bg-red-500',     desc: 'Significant deterioration; repair required soon.' },
-  Critical: { ring: 'ring-red-600 bg-red-100',        text: 'text-red-800',     dot: 'bg-red-700',     desc: 'Immediate action required; safety risk.' },
-};
+// ─── Inspection Modal ─────────────────────────────────────────────────────────
 
 function InspectionModal({
   asset,
@@ -249,10 +311,8 @@ function InspectionModal({
     onClose();
   };
 
-  const inputCls = (err?: string) =>
-    `w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 ${
-      err ? 'border-red-400 bg-red-50' : 'border-slate-300'
-    }`;
+  const inp = (err?: string) =>
+    `w-full px-3 py-2 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 ${err ? 'border-red-400 bg-red-50' : 'border-slate-300'}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -265,10 +325,15 @@ function InspectionModal({
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-900">Record Asset Inspection</h2>
-              <p className="text-xs text-slate-500">Asset: <span className="font-medium text-slate-700">{asset.name}</span></p>
+              <p className="text-xs text-slate-500">
+                Asset: <span className="font-medium text-slate-700">{asset.name}</span>
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 transition-colors">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -283,12 +348,12 @@ function InspectionModal({
               type="date"
               value={form.date}
               onChange={(e) => { setForm((p) => ({ ...p, date: e.target.value })); setErrors({}); }}
-              className={inputCls(errors.date)}
+              className={inp(errors.date)}
             />
             {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date}</p>}
           </div>
 
-          {/* Condition — radio cards */}
+          {/* Condition radio cards */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Condition <span className="text-red-500">*</span>
@@ -331,7 +396,7 @@ function InspectionModal({
               value={form.issues}
               onChange={(e) => setForm((p) => ({ ...p, issues: e.target.value }))}
               placeholder="e.g. Small leakage near junction"
-              className={inputCls()}
+              className={inp()}
             />
           </div>
 
@@ -343,16 +408,23 @@ function InspectionModal({
               onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
               placeholder="Detailed observations by the inspector..."
               rows={3}
-              className={`${inputCls()} resize-none`}
+              className={`${inp()} resize-none`}
             />
           </div>
 
           {/* Footer */}
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
               Cancel
             </button>
-            <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors shadow-sm">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors shadow-sm"
+            >
               Save Inspection
             </button>
           </div>
@@ -383,7 +455,10 @@ function InspectionHistoryRow({ asset }: { asset: Asset }) {
         {open && (
           <div className="mt-2 space-y-2">
             {sorted.map((ins, i) => (
-              <div key={i} className="bg-white rounded-lg border border-slate-200 p-3 text-xs text-slate-600 grid grid-cols-4 gap-3">
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-slate-200 p-3 text-xs text-slate-600 grid grid-cols-4 gap-3"
+              >
                 <div>
                   <div className="text-slate-400 mb-0.5">Date</div>
                   <div className="font-medium text-slate-800">{ins.date}</div>
@@ -411,35 +486,62 @@ function InspectionHistoryRow({ asset }: { asset: Asset }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Seed Data ────────────────────────────────────────────────────────────────
 
 const SEED_ASSETS: Asset[] = [
   {
-    id: 'AST-001', name: 'Main St Water Pipe', type: 'Water', status: 'Active',
-    location: 'Downtown, Colombo', installationDate: '2008-06-15',
+    id: 'AST-001',
+    name: 'Main St Water Pipe',
+    type: 'Water',
+    status: 'Active',
+    location: 'Downtown, Colombo',
+    installationDate: '2008-06-15',
     description: 'Primary water supply pipe running along Main Street.',
-    latitude: '6.9271', longitude: '79.8612',
+    latitude: '6.9271',
+    longitude: '79.8612',
     inspections: [
-      { date: '2026-08-10', condition: 'Poor', issues: 'Small leakage near junction', notes: 'Pipe shows corrosion on south end. Replacement recommended within 6 months.' },
+      {
+        date: '2026-08-10',
+        condition: 'Poor',
+        issues: 'Small leakage near junction',
+        notes: 'Pipe shows corrosion on south end. Replacement recommended within 6 months.',
+      },
     ],
   },
   {
-    id: 'AST-002', name: 'Oak Ave Streetlight', type: 'Electrical', status: 'Active',
-    location: 'Northside, Colombo', installationDate: '2015-03-22',
+    id: 'AST-002',
+    name: 'Oak Ave Streetlight',
+    type: 'Electrical',
+    status: 'Active',
+    location: 'Northside, Colombo',
+    installationDate: '2015-03-22',
     description: 'LED streetlight grid along Oak Avenue.',
-    latitude: '6.9310', longitude: '79.8450',
+    latitude: '6.9310',
+    longitude: '79.8450',
     inspections: [
-      { date: '2026-09-01', condition: 'Good', issues: '', notes: 'All lights operational. Firmware updated.' },
+      {
+        date: '2026-09-01',
+        condition: 'Good',
+        issues: '',
+        notes: 'All lights operational. Firmware updated.',
+      },
     ],
   },
   {
-    id: 'AST-003', name: 'Central Park Pathway', type: 'Civil', status: 'Active',
-    location: 'City Center, Colombo', installationDate: '2011-11-30',
+    id: 'AST-003',
+    name: 'Central Park Pathway',
+    type: 'Civil',
+    status: 'Active',
+    location: 'City Center, Colombo',
+    installationDate: '2011-11-30',
     description: 'Pedestrian pathway through Central Park.',
-    latitude: '6.9050', longitude: '79.8510',
+    latitude: '6.9050',
+    longitude: '79.8510',
     inspections: [],
   },
 ];
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function InfrastructureAssets() {
   const [assets, setAssets] = useState<Asset[]>(SEED_ASSETS);
@@ -454,9 +556,7 @@ export default function InfrastructureAssets() {
 
   const handleInspection = (assetId: string, data: InspectionFormData) => {
     setAssets((prev) =>
-      prev.map((a) =>
-        a.id === assetId ? { ...a, inspections: [...a.inspections, data] } : a
-      )
+      prev.map((a) => (a.id === assetId ? { ...a, inspections: [...a.inspections, data] } : a))
     );
   };
 
@@ -470,13 +570,16 @@ export default function InfrastructureAssets() {
   return (
     <div className="space-y-6">
       {showRegister && (
-        <RegisterAssetModal onClose={() => setShowRegister(false)} onSubmit={handleRegister} />
+        <RegisterAssetModal
+          onClose={() => setShowRegister(false)}
+          onSubmit={handleRegister}
+        />
       )}
       {inspectTarget && (
         <InspectionModal
           asset={inspectTarget}
           onClose={() => setInspectTarget(null)}
-          onSubmit={(data) => { handleInspection(inspectTarget.id, data); }}
+          onSubmit={(data) => handleInspection(inspectTarget.id, data)}
         />
       )}
 
@@ -550,9 +653,11 @@ export default function InfrastructureAssets() {
                         </td>
                         <td className="p-4">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            asset.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
-                            asset.status === 'Inactive' ? 'bg-slate-100 text-slate-600' :
-                            'bg-orange-100 text-orange-700'
+                            asset.status === 'Active'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : asset.status === 'Inactive'
+                              ? 'bg-slate-100 text-slate-600'
+                              : 'bg-orange-100 text-orange-700'
                           }`}>
                             {asset.status}
                           </span>
@@ -567,17 +672,19 @@ export default function InfrastructureAssets() {
                           )}
                         </td>
                         <td className="p-4 text-sm text-slate-600">{asset.location}</td>
-                        <td className="p-4 text-sm flex items-center gap-3">
-                          <button className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => setInspectTarget(asset)}
-                            className="flex items-center gap-1 text-violet-600 hover:text-violet-800 font-medium text-sm transition-colors"
-                          >
-                            <ClipboardCheck className="w-3.5 h-3.5" />
-                            Inspect
-                          </button>
+                        <td className="p-4 text-sm">
+                          <div className="flex items-center gap-3">
+                            <button className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => setInspectTarget(asset)}
+                              className="flex items-center gap-1 text-violet-600 hover:text-violet-800 font-medium text-sm transition-colors"
+                            >
+                              <ClipboardCheck className="w-3.5 h-3.5" />
+                              Inspect
+                            </button>
+                          </div>
                         </td>
                       </tr>
                       <InspectionHistoryRow key={`${asset.id}-history`} asset={asset} />
