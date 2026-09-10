@@ -1,8 +1,130 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
 import {
   Plus, Search, Filter, X, Building2,
-  ClipboardCheck, ChevronDown, ChevronUp,
+  ClipboardCheck, ChevronDown, ChevronUp, MapPin as MapPinIcon,
 } from 'lucide-react';
+import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
+
+
+// ─── Nominatim Autocomplete + Map Panner ──────────────────────────────────────
+
+type NominatimResult = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
+
+/** Dropdown search box — fetches suggestions from OpenStreetMap Nominatim */
+function LocationSearchBox({
+  value,
+  onChange,
+  onSelect,
+  error,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  onSelect: (displayName: string, lat: string, lng: string) => void;
+  error?: string;
+}) {
+  const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const search = async (q: string) => {
+    if (q.trim().length < 3) { setSuggestions([]); setOpen(false); return; }
+    setLoading(true);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=lk&addressdetails=1`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'CiviLanka-App' } });
+      const data: NominatimResult[] = await res.json();
+      setSuggestions(data);
+      setOpen(data.length > 0);
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    onChange(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => search(val), 400);
+  };
+
+  const handleSelect = (r: NominatimResult) => {
+    const shortName = r.display_name.split(',').slice(0, 3).join(', ');
+    onChange(shortName);
+    onSelect(shortName, r.lat, r.lon);
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  // Close on outside click
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  const bdr = error ? 'border-red-400 bg-red-50' : 'border-slate-300';
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <input
+          value={value}
+          onChange={handleInput}
+          onFocus={() => suggestions.length > 0 && setOpen(true)}
+          placeholder="Type a location to search…"
+          className={`w-full pl-9 pr-8 py-2 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 ${bdr}`}
+        />
+        {loading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-[200] mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto">
+          {suggestions.map((s) => (
+            <li key={s.place_id}>
+              <button
+                type="button"
+                onClick={() => handleSelect(s)}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 flex items-start gap-2 border-b border-slate-100 last:border-0 transition-colors"
+              >
+                <MapPinIcon className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <span className="text-slate-700 line-clamp-2">{s.display_name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+}
+
+/** Pans the Google Map to a target coordinate — must be inside <Map> */
+function MapPanner({ target }: { target: { lat: number; lng: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !target) return;
+    map.panTo(target);
+    map.setZoom(15);
+  }, [map, target]);
+  return null;
+}
+
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,6 +226,9 @@ function RegisterAssetModal({
 }) {
   const [form, setForm] = useState<AssetFormData>(ASSET_FORM_INIT);
   const [errors, setErrors] = useState<Partial<AssetFormData>>({});
+  // mapTarget drives the MapPanner — set when user selects a suggestion
+  const [mapTarget, setMapTarget] = useState<{ lat: number; lng: number } | null>(null);
+
 
   const validate = () => {
     const e: Partial<AssetFormData> = {};
@@ -199,22 +324,98 @@ function RegisterAssetModal({
             </div>
           </div>
 
-          {/* Location */}
+          {/* Location with autocomplete */}
           <div>
             <label className={lbl}>
               Location / Area <span className="text-red-500">*</span>
             </label>
-            <input
-              name="location"
+            <LocationSearchBox
               value={form.location}
-              onChange={handleChange}
-              placeholder="e.g. Main Street, Colombo"
-              className={inp(errors.location)}
+              onChange={(val) => {
+                setForm((p) => ({ ...p, location: val }));
+                setErrors((p) => ({ ...p, location: '' }));
+              }}
+              onSelect={(displayName, lat, lng) => {
+                setForm((p) => ({
+                  ...p,
+                  location: displayName,
+                  latitude: parseFloat(lat).toFixed(6),
+                  longitude: parseFloat(lng).toFixed(6),
+                }));
+                setMapTarget({ lat: parseFloat(lat), lng: parseFloat(lng) });
+                setErrors((p) => ({ ...p, location: '' }));
+              }}
+              error={errors.location}
             />
-            {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
           </div>
 
-          {/* GPS */}
+          {/* ── Map Location Picker ── */}
+          <div>
+            <label className={lbl}>
+              Pin Location on Map
+              <span className="ml-2 text-xs font-normal text-slate-400">Or click the map manually</span>
+            </label>
+            <div className="rounded-xl border border-slate-300 overflow-hidden" style={{ height: '220px' }}>
+              <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
+                <Map
+                  defaultZoom={12}
+                  defaultCenter={{ lat: 6.9271, lng: 79.8612 }}
+                  mapId="DEMO_MAP_ID"
+                  style={{ width: '100%', height: '100%' }}
+                  onClick={(e) => {
+                    const lat = e.detail.latLng?.lat;
+                    const lng = e.detail.latLng?.lng;
+                    if (lat !== undefined && lng !== undefined) {
+                      setForm((prev) => ({
+                        ...prev,
+                        latitude: lat.toFixed(6),
+                        longitude: lng.toFixed(6),
+                      }));
+                      setMapTarget(null); // manual click; MapPanner not needed
+                    }
+                  }}
+                >
+                  {/* Pan to selected suggestion */}
+                  <MapPanner target={mapTarget} />
+
+                  {form.latitude && form.longitude && (
+                    <AdvancedMarker
+                      position={{ lat: parseFloat(form.latitude), lng: parseFloat(form.longitude) }}
+                      title="Asset location"
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="w-5 h-5 bg-blue-600 border-2 border-white rounded-full shadow-lg" />
+                        <div className="w-0.5 h-3 bg-blue-600" />
+                      </div>
+                    </AdvancedMarker>
+                  )}
+                </Map>
+              </APIProvider>
+            </div>
+
+
+            {/* Coordinate readout */}
+            {form.latitude && form.longitude ? (
+              <div className="mt-2 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
+                <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>
+                  Pinned at <strong>{parseFloat(form.latitude).toFixed(5)}</strong>,{' '}
+                  <strong>{parseFloat(form.longitude).toFixed(5)}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, latitude: '', longitude: '' }))}
+                  className="ml-auto text-blue-400 hover:text-blue-700 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-slate-400">No location pinned — click anywhere on the map above.</p>
+            )}
+          </div>
+
+          {/* GPS manual override (collapsible) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={lbl}>Latitude</label>
