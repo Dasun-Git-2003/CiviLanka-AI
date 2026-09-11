@@ -1,8 +1,10 @@
 using CiviLanka.API.Agents;
 using CiviLanka.API.Data;
 using CiviLanka.API.Models;
+using CiviLanka.API.Models.Infrastructure;
 using CiviLanka.API.Repositories;
 using CiviLanka.API.Services;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -143,7 +145,11 @@ using (var scope = app.Services.CreateScope())
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
         }
+
+        // Seed Member 2: Infrastructure Assets & Contractors
+        await SeedMember2DataAsync(db);
     }
+
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -183,3 +189,177 @@ app.MapGet("/health", () => Results.Ok(new
 }));
 
 app.Run();
+
+// ── Member 2 Seeding Helper ──────────────────────────────────────────────────
+static async Task SeedMember2DataAsync(AppDbContext db)
+{
+    if (!await db.InfrastructureAssets.AnyAsync())
+    {
+        var assets = new List<InfrastructureAsset>
+        {
+            new InfrastructureAsset
+            {
+                Id = "AST-001",
+                Name = "Main St Water Pipe",
+                Type = "Water",
+                Status = "Active",
+                Location = "Downtown, Colombo",
+                InstallationDate = new DateTime(2008, 6, 15, 0, 0, 0, DateTimeKind.Utc),
+                Latitude = 6.9271,
+                Longitude = 79.8612,
+                Description = "Primary water supply pipe running along Main Street.",
+                CreatedAt = DateTime.UtcNow,
+                Inspections = new List<AssetInspection>
+                {
+                    new AssetInspection
+                    {
+                        InspectionDate = new DateTime(2026, 8, 10, 0, 0, 0, DateTimeKind.Utc),
+                        Condition = "Poor",
+                        IssuesFound = "Small leakage near junction",
+                        Notes = "Corrosion detected on south end. Replacement recommended within 6 months.",
+                        InspectorName = "Engineer Perera",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            },
+            new InfrastructureAsset
+            {
+                Id = "AST-002",
+                Name = "Oak Ave Streetlight",
+                Type = "Electrical",
+                Status = "Active",
+                Location = "Northside, Colombo",
+                InstallationDate = new DateTime(2015, 3, 22, 0, 0, 0, DateTimeKind.Utc),
+                Latitude = 6.9310,
+                Longitude = 79.8450,
+                Description = "LED streetlight grid along Oak Avenue.",
+                CreatedAt = DateTime.UtcNow,
+                Inspections = new List<AssetInspection>
+                {
+                    new AssetInspection
+                    {
+                        InspectionDate = new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc),
+                        Condition = "Good",
+                        IssuesFound = null,
+                        Notes = "All lights operational. Solar battery clean.",
+                        InspectorName = "Inspector Silva",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            },
+            new InfrastructureAsset
+            {
+                Id = "AST-003",
+                Name = "Central Park Pathway",
+                Type = "Civil",
+                Status = "Active",
+                Location = "City Center, Colombo",
+                InstallationDate = new DateTime(2011, 11, 30, 0, 0, 0, DateTimeKind.Utc),
+                Latitude = 6.9050,
+                Longitude = 79.8510,
+                Description = "Pedestrian pathway through Central Park.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new InfrastructureAsset
+            {
+                Id = "AST-004",
+                Name = "Galle Rd Bridge",
+                Type = "Roads & Bridges",
+                Status = "Active",
+                Location = "Colombo 03",
+                InstallationDate = new DateTime(2005, 1, 10, 0, 0, 0, DateTimeKind.Utc),
+                Latitude = 6.9180,
+                Longitude = 79.8580,
+                Description = "Major bridge over canal on Galle Road.",
+                CreatedAt = DateTime.UtcNow,
+                Inspections = new List<AssetInspection>
+                {
+                    new AssetInspection
+                    {
+                        InspectionDate = new DateTime(2026, 8, 25, 0, 0, 0, DateTimeKind.Utc),
+                        Condition = "Poor",
+                        IssuesFound = "Deck concrete spalling and barrier damage",
+                        Notes = "Requires structural resurfacing and barrier replacement.",
+                        InspectorName = "Lead Inspector Fernando",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            },
+            new InfrastructureAsset
+            {
+                Id = "AST-005",
+                Name = "Negombo Rd Drain",
+                Type = "Sanitation",
+                Status = "Active",
+                Location = "Wattala",
+                InstallationDate = new DateTime(2018, 5, 12, 0, 0, 0, DateTimeKind.Utc),
+                Latitude = 6.9400,
+                Longitude = 79.8530,
+                Description = "Stormwater culvert and canal drain.",
+                CreatedAt = DateTime.UtcNow,
+                Inspections = new List<AssetInspection>
+                {
+                    new AssetInspection
+                    {
+                        InspectionDate = new DateTime(2026, 9, 5, 0, 0, 0, DateTimeKind.Utc),
+                        Condition = "Moderate",
+                        IssuesFound = "Silt accumulation reducing flow capacity by 30%",
+                        Notes = "Routine dredging scheduled.",
+                        InspectorName = "Inspector Silva",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                }
+            }
+        };
+
+        db.InfrastructureAssets.AddRange(assets);
+        await db.SaveChangesAsync();
+    }
+
+    if (!await db.Contractors.AnyAsync())
+    {
+        var contractors = new List<Contractor>
+        {
+            new Contractor
+            {
+                Name = "Acme Civil Works",
+                Specialization = "Roads & Bridges",
+                Location = "City Center",
+                Phone = "011-234-5678",
+                Email = "info@acmecivil.lk",
+                Rating = 4.8,
+                IsAvailable = true,
+                JobCount = 24,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Contractor
+            {
+                Name = "ElectroFix Pro",
+                Specialization = "Electrical",
+                Location = "North District",
+                Phone = "011-987-6543",
+                Email = "work@electrofixpro.lk",
+                Rating = 4.5,
+                IsAvailable = false,
+                JobCount = 24,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Contractor
+            {
+                Name = "AquaFlow Utilities",
+                Specialization = "Water & Plumbing",
+                Location = "South District",
+                Phone = "011-555-1234",
+                Email = "ops@aquaflow.lk",
+                Rating = 4.9,
+                IsAvailable = true,
+                JobCount = 24,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        db.Contractors.AddRange(contractors);
+        await db.SaveChangesAsync();
+    }
+}
+
