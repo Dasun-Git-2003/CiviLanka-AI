@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "E:\\My Web Project\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj": {}
+    "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj": {}
   },
   "projects": {
-    "E:\\My Web Project\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj": {
+    "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\My Web Project\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
+        "projectUniqueName": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
         "projectName": "CiviLanka.API",
-        "projectPath": "E:\\My Web Project\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
-        "packagesPath": "C:\\Users\\nomad\\.nuget\\packages\\",
-        "outputPath": "E:\\My Web Project\\CiviLanka-AI\\CiviLanka.API\\obj\\",
+        "projectPath": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
+        "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
+        "outputPath": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\nomad\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config"
+          "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
