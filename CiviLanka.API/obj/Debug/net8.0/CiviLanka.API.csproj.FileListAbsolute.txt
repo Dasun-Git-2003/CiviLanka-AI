@@ -264,3 +264,4 @@ D:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLank
 D:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\CiviLanka.API.pdb
 D:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\CiviLanka.API.genruntimeconfig.cache
 D:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.API\obj\Debug\net8.0\ref\CiviLanka.API.dll
+D:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.API\bin\Debug\net8.0\appsettings.example.json

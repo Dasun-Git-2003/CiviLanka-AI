@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CiviLanka.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+83b629381f6367fef74b750769e5e3496eff71b4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+62f6ebb9a41a56b24586962658c3b64a156f5ea7")]
 [assembly: System.Reflection.AssemblyProductAttribute("CiviLanka.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CiviLanka.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

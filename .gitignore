@@ -1,41 +1,59 @@
-# =========================
-# Secrets & Credentials
-# =========================
+# =============================================================================
+# CivitaGuard AI — Master .gitignore
+# Strictly ignores all secret files, API keys, credentials, and build artifacts
+# =============================================================================
+
+# ── Environment & Secrets ────────────────────────────────────────────────────
 .env
 .env.*
-!.env.example
-!.env.template
+.env.local
+*.env
+*.env.local
+secrets.json
+connectionstrings.json
 
-# ASP.NET Core Secrets
+# ── ASP.NET Core Configuration Secrets ───────────────────────────────────────
 appsettings.json
 appsettings.*.json
 !appsettings.example.json
-!appsettings.template.json
-secrets.json
 
-# Keys and Certificates
-*.pem
+# ── Cloud, Google & Service Account Keys ─────────────────────────────────────
+*service-account*.json
+google-services.json
+GoogleService-Info.plist
+*.credentials.json
+client_secrets.json
+
+# ── Certificates, Private Keys & Keystores ───────────────────────────────────
 *.key
+*.pem
 *.cert
+*.crt
 *.pfx
 *.p12
 *.keystore
 *.jks
+*.pub
+id_rsa*
+id_ed25519*
 
-# =========================
-# .NET / C#
-# =========================
-[Bb]in/
-[Oo]bj/
-[Tt]est[Rr]esults/
+# ── IDE & Local Workspace Settings ───────────────────────────────────────────
+.vs/
+.vscode/
+.idea/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-# =========================
-# Node / React
-# =========================
+# ── .NET / C# Build Artifacts ────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+*.tmp
+*.log
+
+# ── Node.js / React Web Artifacts ────────────────────────────────────────────
 node_modules/
 dist/
 dist-ssr/
@@ -45,19 +63,14 @@ yarn-debug.log*
 yarn-error.log*
 .eslintcache
 
-# =========================
-# Flutter / Dart
-# =========================
+# ── Flutter / Mobile Build Artifacts ─────────────────────────────────────────
 .dart_tool/
 .packages
 .pub-cache/
 .pub/
-build/
 flutter_*.png
 
-# =========================
-# OS generated files
-# =========================
+# ── OS Generated Files ───────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -65,4 +78,3 @@ flutter_*.png
 .Trashes
 ehthumbs.db
 Thumbs.db
-
