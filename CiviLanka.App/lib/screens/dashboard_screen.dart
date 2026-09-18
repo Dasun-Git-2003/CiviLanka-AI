@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/hazard_service.dart';
 import 'my_reports_screen.dart';
 import 'report_hazard_screen.dart';
+import 'field_worker_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -224,6 +225,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   icon: const Icon(Icons.history),
                   label: const Text('View My Reports'),
                   style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // ── Member 4: Field Worker Mode ──────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FieldWorkerScreen()),
+                  ),
+                  icon: const Icon(Icons.handyman_outlined),
+                  label: const Text('Field Worker Execution Mode (M4)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
