@@ -1,4 +1,7 @@
 using CiviLanka.API.Agents;
+using CiviLanka.API.AI.Interfaces;
+using CiviLanka.API.AI.Models;
+using CiviLanka.API.AI.Services;
 using CiviLanka.API.Data;
 using CiviLanka.API.Models;
 using CiviLanka.API.Models.Infrastructure;
@@ -145,6 +148,27 @@ builder.Services.AddScoped<ICostEstimatorAgent, CostEstimatorAgent>();
 builder.Services.AddScoped<IMaintenanceRecordRepository, MaintenanceRecordRepository>();
 builder.Services.AddScoped<IMaintenanceRecordService, MaintenanceRecordService>();
 builder.Services.AddScoped<ISafetyComplianceAgent, SafetyComplianceAgent>();
+
+// ── AI Agent Layer Services ──────────────────────────────────────────────────
+builder.Services.Configure<AISettings>(builder.Configuration.GetSection(AISettings.SectionName));
+builder.Services.AddHttpClient<IAIService, GeminiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(35);
+});
+builder.Services.AddScoped<IAIResponseValidator, AIResponseValidator>();
+builder.Services.AddScoped<IAIConfidenceService, AIConfidenceService>();
+builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
+
+// Specialized Agents
+builder.Services.AddScoped<IAIAgent<HazardClassificationInput, HazardClassificationResult>, CiviLanka.API.AI.Agents.HazardClassificationAgent>();
+builder.Services.AddScoped<IAIAgent<AssetRiskInput, AssetRiskResult>, CiviLanka.API.AI.Agents.AssetRiskPredictionAgent>();
+builder.Services.AddScoped<IAIAgent<CostEstimateInput, CostEstimateResult>, CiviLanka.API.AI.Agents.CostMaterialEstimatorAgent>();
+builder.Services.AddScoped<IAIAgent<SafetyComplianceInput, SafetyComplianceResult>, CiviLanka.API.AI.Agents.SafetyComplianceAgent>();
+builder.Services.AddScoped<IAIAgent<DispatchPriorityInput, DispatchPriorityResult>, CiviLanka.API.AI.Agents.DispatchPriorityAgent>();
+builder.Services.AddScoped<IAIAgent<MunicipalSafetyAuditInput, MunicipalSafetyAuditResult>, CiviLanka.API.AI.Agents.MunicipalSafetyAuditAgent>();
+
+// Orchestrator
+builder.Services.AddScoped<IAIAgentOrchestrator, AIAgentOrchestrator>();
 
 // ── Controllers + Static Files ────────────────────────────────────────────────
 builder.Services.AddControllers();
