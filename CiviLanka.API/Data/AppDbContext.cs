@@ -21,6 +21,7 @@ namespace CiviLanka.API.Data
         // ── Member 2 – Infrastructure & Asset Registry ──────────────────────────
         public DbSet<InfrastructureAsset> InfrastructureAssets { get; set; }
         public DbSet<AssetInspection> AssetInspections { get; set; }
+        public DbSet<AssetRiskAnalysis> AssetRiskAnalyses { get; set; }
         public DbSet<Contractor> Contractors { get; set; }
         public DbSet<WorkAssignment> WorkAssignments { get; set; }
 
@@ -115,6 +116,25 @@ namespace CiviLanka.API.Data
                 entity.Property(i => i.Condition).IsRequired().HasMaxLength(30);
                 entity.Property(i => i.IssuesFound).HasMaxLength(500);
                 entity.Property(i => i.Notes).HasMaxLength(2000);
+            });
+
+            // ── Member 2: AssetRiskAnalysis ────────────────────────────────────
+            builder.Entity<AssetRiskAnalysis>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.HasIndex(r => r.AssetId);
+                entity.HasIndex(r => r.RiskLevel);
+                entity.Property(r => r.AssetId).IsRequired().HasMaxLength(20);
+                entity.Property(r => r.RiskLevel).IsRequired().HasMaxLength(20);
+                entity.Property(r => r.ConditionAssessment).HasMaxLength(50);
+                entity.Property(r => r.FailureLikelihood).HasMaxLength(30);
+                entity.Property(r => r.Urgency).HasMaxLength(30);
+                entity.Property(r => r.ModelName).HasMaxLength(100);
+
+                entity.HasOne(r => r.Asset)
+                      .WithMany()
+                      .HasForeignKey(r => r.AssetId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ── Member 2: Contractor ───────────────────────────────────────────

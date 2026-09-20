@@ -103,9 +103,96 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-ken-burns,
   .animate-slow-pan,
-  .animate-panorama-360 {
+  .animate-panorama-360,
+  .animate-float-3d,
+  .animate-laser-scan,
+  .animate-beacon-pulse {
     animation: none !important;
   }
+}
+
+/* ── 3D & Futuristic Holographic Animations ────────────────────────────── */
+@keyframes float3D {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.4deg);
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.2;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.1;
+  }
+}
+
+@keyframes beaconPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 179, 194, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 16px rgba(34, 179, 194, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 179, 194, 0);
+  }
+}
+
+@keyframes radarRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float-3d {
+  animation: float3D 6s ease-in-out infinite;
+}
+
+.animate-laser-scan {
+  animation: laserScan 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-beacon-pulse {
+  animation: beaconPulse 2.4s ease-out infinite;
+}
+
+.animate-radar-rotate {
+  animation: radarRotate 8s linear infinite;
+}
+
+/* 3D Glassmorphism & Depth Layers */
+.glass-hud {
+  background: rgba(11, 23, 48, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(34, 179, 194, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(7, 13, 26, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-hud-amber {
+  background: rgba(18, 14, 25, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 135, 30, 0.35);
+  box-shadow: 0 25px 50px -12px rgba(7, 13, 26, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 
