@@ -1,0 +1,48 @@
+# =============================================================================
+# CiviLanka.Agent — Secrets & Local Artifacts .gitignore
+# Strictly excludes API keys, environment files, local databases & virtualenvs
+# =============================================================================
+
+# ── API Keys & Environment Secrets ───────────────────────────────────────────
+.env
+.env.*
+*.env
+*.env.local
+secrets.json
+*.credentials.json
+*service-account*.json
+*.key
+*.pem
+
+# ── Python Virtual Environments ──────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ── Local Vector Database & Persistent Storage ───────────────────────────────
+chroma_db/
+*.sqlite3
+*.db
+
+# ── Python Cache & Bytecode ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# ── Jupyter Notebook Artifacts ───────────────────────────────────────────────
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ── Testing & Coverage Reports ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Log Files ────────────────────────────────────────────────────────────────
+*.log
+logs/
+

@@ -53,7 +53,33 @@ id_ed25519*
 *.tmp
 *.log
 
+# ── Python / Agent Artifacts ─────────────────────────────────────────────────
+# ── Python / Agent Artifacts (CiviLanka.Agent) ──────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.ipynb_checkpoints
+**/.ipynb_checkpoints/
+*-checkpoint.ipynb
+chroma_db/
+**/chroma_db/
+*.sqlite3
+.venv/
+**/.venv/
+venv/
+**/venv/
+.pytest_cache/
+htmlcov/
+CiviLanka.Agent/.env
+CiviLanka.Agent/.env.*
+CiviLanka.Agent/*.env
+CiviLanka.Agent/chroma_db/
+CiviLanka.Agent/.venv/
+
 # ── Node.js / React Web Artifacts ────────────────────────────────────────────
+
 node_modules/
 dist/
 dist-ssr/
