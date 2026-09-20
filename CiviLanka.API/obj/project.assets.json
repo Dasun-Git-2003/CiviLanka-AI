@@ -3924,19 +3924,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\USER\\.nuget\\packages\\": {}
+    "C:\\Users\\dasun\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
+      "projectUniqueName": "C:\\Users\\dasun\\OneDrive\\Documents\\GitHub\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
       "projectName": "CiviLanka.API",
-      "projectPath": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
-      "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-      "outputPath": "D:\\IT24103847_Infrastructure & Asset Registry\\CiviLanka-AI\\CiviLanka-AI\\CiviLanka.API\\obj\\",
+      "projectPath": "C:\\Users\\dasun\\OneDrive\\Documents\\GitHub\\CiviLanka-AI\\CiviLanka.API\\CiviLanka.API.csproj",
+      "packagesPath": "C:\\Users\\dasun\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\dasun\\OneDrive\\Documents\\GitHub\\CiviLanka-AI\\CiviLanka.API\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\dasun\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"

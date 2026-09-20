@@ -100,6 +100,63 @@ namespace CiviLanka.API.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("CiviLanka.API.Models.CostEstimate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<decimal>("EquipmentCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("EstimatedCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<double>("EstimatedDurationHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("EstimatedLabourHours")
+                        .HasColumnType("double precision");
+
+                    b.Property<decimal>("LabourCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("MaterialCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RecommendedCrewSize")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkOrderId");
+
+                    b.ToTable("CostEstimates");
+                });
+
             modelBuilder.Entity("CiviLanka.API.Models.Hazard", b =>
                 {
                     b.Property<Guid>("Id")
@@ -463,6 +520,432 @@ namespace CiviLanka.API.Migrations
                     b.ToTable("WorkAssignments");
                 });
 
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("MaintenanceRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NewStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PreviousStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaintenanceRecordId");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MaintenanceAuditLogs");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ActualCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AfterImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("AssetId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("BeforeImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("CompletionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("EquipmentUsed")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("LabourHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MaintenanceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("MaterialsUsed")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PerformedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SafetyChecklist")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("PENDING");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VerificationNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("NOT_SUBMITTED");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("WorkCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("WorkStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkerNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.HasIndex("PerformedBy");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("VerificationStatus");
+
+                    b.HasIndex("WorkOrderId");
+
+                    b.ToTable("MaintenanceRecords");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceSafetyAnalysis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AgentName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ComplianceStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IdentifiedRisksJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("MaintenanceRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("MissingRequirementsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Recommendation")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("RequiredSafetyActionsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SafetyRiskLevel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaintenanceRecordId");
+
+                    b.HasIndex("WorkOrderId");
+
+                    b.ToTable("MaintenanceSafetyAnalyses");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ActualCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("ApprovalRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("NOT_REQUIRED");
+
+                    b.Property<decimal?>("ApprovedBudget")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("AssetId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int?>("AssignedContractorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AssignedCrew")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("EstimatedCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("EstimatedDurationHours")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("HazardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int?>("RecommendedCrewSize")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ScheduledDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Severity")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("AI_GENERATED");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("WorkOrderNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.HasIndex("AssignedContractorId");
+
+                    b.HasIndex("HazardId");
+
+                    b.HasIndex("Priority");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WorkOrderNumber")
+                        .IsUnique();
+
+                    b.ToTable("WorkOrders");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrderAIAnalysis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AgentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<double>("Confidence")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("EstimatedCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Recommendation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkOrderId");
+
+                    b.ToTable("WorkOrderAIAnalyses");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("EstimatedTotalCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("EstimatedUnitCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<double>("Quantity")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkOrderId");
+
+                    b.ToTable("WorkOrderItems");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -595,6 +1078,17 @@ namespace CiviLanka.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("CiviLanka.API.Models.CostEstimate", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.WorkOrder", "WorkOrder")
+                        .WithMany("CostEstimates")
+                        .HasForeignKey("WorkOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkOrder");
+                });
+
             modelBuilder.Entity("CiviLanka.API.Models.Hazard", b =>
                 {
                     b.HasOne("CiviLanka.API.Models.ApplicationUser", "Citizen")
@@ -644,6 +1138,91 @@ namespace CiviLanka.API.Migrations
                     b.Navigation("Asset");
 
                     b.Navigation("Contractor");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceAuditLog", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.MaintenanceRecord", "MaintenanceRecord")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("MaintenanceRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaintenanceRecord");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceRecord", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.Infrastructure.InfrastructureAsset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CiviLanka.API.Models.WorkOrder", "WorkOrder")
+                        .WithMany()
+                        .HasForeignKey("WorkOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("WorkOrder");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceSafetyAnalysis", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.MaintenanceRecord", "MaintenanceRecord")
+                        .WithMany("SafetyAnalyses")
+                        .HasForeignKey("MaintenanceRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaintenanceRecord");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrder", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.Infrastructure.InfrastructureAsset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CiviLanka.API.Models.Infrastructure.Contractor", "AssignedContractor")
+                        .WithMany()
+                        .HasForeignKey("AssignedContractorId");
+
+                    b.HasOne("CiviLanka.API.Models.Hazard", "Hazard")
+                        .WithMany()
+                        .HasForeignKey("HazardId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("AssignedContractor");
+
+                    b.Navigation("Hazard");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrderAIAnalysis", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.WorkOrder", "WorkOrder")
+                        .WithMany("AIAnalyses")
+                        .HasForeignKey("WorkOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkOrder");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrderItem", b =>
+                {
+                    b.HasOne("CiviLanka.API.Models.WorkOrder", "WorkOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("WorkOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkOrder");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -717,6 +1296,22 @@ namespace CiviLanka.API.Migrations
                     b.Navigation("Inspections");
 
                     b.Navigation("WorkAssignments");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.MaintenanceRecord", b =>
+                {
+                    b.Navigation("AuditLogs");
+
+                    b.Navigation("SafetyAnalyses");
+                });
+
+            modelBuilder.Entity("CiviLanka.API.Models.WorkOrder", b =>
+                {
+                    b.Navigation("AIAnalyses");
+
+                    b.Navigation("CostEstimates");
+
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
