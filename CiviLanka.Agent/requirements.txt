@@ -1,0 +1,16 @@
+# CiviLanka.Agent — Sri Lanka Municipal Infrastructure Agentic RAG System
+# Stack: LangChain + LangGraph + ChromaDB + BM25 + Gemini API + FastAPI
+
+langchain>=1.0,<2.0
+langchain-google-genai>=4.0,<5.0
+langgraph>=1.0,<2.0
+langchain-chroma>=0.2
+chromadb>=1.0
+langchain-community>=0.4
+rank-bm25>=0.2
+python-dotenv>=1.0
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.0
+requests>=2.32
+
