@@ -13,6 +13,12 @@ secrets.json
 *service-account*.json
 *.key
 *.pem
+*.secret
+*.secrets
+*.token
+*.bak
+*.backup
+*.old
 
 # ── Python Virtual Environments ──────────────────────────────────────────────
 .venv/

@@ -18,5 +18,7 @@ namespace CiviLanka.API.DTOs.Auth
 
         [Phone]
         public string? Phone { get; set; }
+
+        public string? Role { get; set; }
     }
 }

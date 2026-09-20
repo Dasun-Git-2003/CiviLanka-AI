@@ -11,10 +11,18 @@
 *.env.local
 secrets.json
 connectionstrings.json
+*.secret
+*.secrets
+*.token
+*.bak
+*.backup
+*.old
 
 # ── ASP.NET Core Configuration Secrets ───────────────────────────────────────
 appsettings.json
 appsettings.*.json
+appsettings.local.json
+appsettings*.bak
 !appsettings.example.json
 
 # ── Cloud, Google & Service Account Keys ─────────────────────────────────────
