@@ -8,7 +8,7 @@ namespace CiviLanka.API.Services
 {
     public interface ITokenService
     {
-        string GenerateToken(ApplicationUser user);
+        string GenerateToken(ApplicationUser user, IList<string>? additionalRoles = null);
     }
 
     public class TokenService : ITokenService
@@ -20,15 +20,17 @@ namespace CiviLanka.API.Services
             _config = config;
         }
 
-        public string GenerateToken(ApplicationUser user)
+        public string GenerateToken(ApplicationUser user, IList<string>? additionalRoles = null)
         {
             var jwtSettings = _config.GetSection("JwtSettings");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("userId", user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Role, user.Role),
@@ -36,6 +38,17 @@ namespace CiviLanka.API.Services
                 new Claim("role", user.Role),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            if (additionalRoles != null)
+            {
+                foreach (var r in additionalRoles)
+                {
+                    if (!string.Equals(r, user.Role, StringComparison.OrdinalIgnoreCase))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, r));
+                    }
+                }
+            }
 
             var expiry = DateTime.UtcNow.AddHours(
                 double.Parse(jwtSettings["ExpiryHours"] ?? "24"));
