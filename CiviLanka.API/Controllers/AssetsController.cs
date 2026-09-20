@@ -1,6 +1,7 @@
 using CiviLanka.API.Data;
 using CiviLanka.API.DTOs.Infrastructure;
 using CiviLanka.API.Models.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ namespace CiviLanka.API.Controllers
     [ApiController]
     [Route("api/assets")]
     [Produces("application/json")]
+    [Authorize(Policy = "CanViewInfrastructure")]
     public class AssetsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -97,6 +99,7 @@ namespace CiviLanka.API.Controllers
         /// Register a new infrastructure asset.
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = "CanManageInfrastructure")]
         [ProducesResponseType(typeof(AssetResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateAsset([FromBody] CreateAssetDto dto)
@@ -150,6 +153,7 @@ namespace CiviLanka.API.Controllers
         /// Update an existing infrastructure asset.
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = "CanManageInfrastructure")]
         [ProducesResponseType(typeof(AssetResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -181,9 +185,10 @@ namespace CiviLanka.API.Controllers
         }
 
         /// <summary>
-        /// Delete an infrastructure asset.
+        /// Delete an infrastructure asset (PublicWorksDirector only).
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "PublicWorksDirector,Director")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAsset(string id)

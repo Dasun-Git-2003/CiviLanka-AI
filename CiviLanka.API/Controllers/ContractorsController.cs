@@ -1,6 +1,7 @@
 using CiviLanka.API.Data;
 using CiviLanka.API.DTOs.Infrastructure;
 using CiviLanka.API.Models.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +10,12 @@ namespace CiviLanka.API.Controllers
     /// <summary>
     /// Member 2: Contractor directory and management CRUD operations.
     /// Manages municipal repair contractors, specializations, ratings, and availability status.
+    /// Citizens and Field Workers are strictly denied access.
     /// </summary>
     [ApiController]
     [Route("api/contractors")]
     [Produces("application/json")]
+    [Authorize(Policy = "CanManageContractors")]
     public class ContractorsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -150,9 +153,10 @@ namespace CiviLanka.API.Controllers
         }
 
         /// <summary>
-        /// Delete a contractor from the registry.
+        /// Delete a contractor from the registry (PublicWorksDirector only).
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "PublicWorksDirector,Director")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteContractor(int id)

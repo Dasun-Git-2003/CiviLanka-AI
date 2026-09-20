@@ -13,7 +13,7 @@ namespace CiviLanka.API.Services
         Task<List<HazardResponseDto>> GetMyCitizenHazardsAsync(string citizenId);
         Task<List<HazardResponseDto>> GetAllHazardsAsync();
         Task<HazardResponseDto?> UpdateHazardAsync(Guid id, string citizenId, UpdateHazardDto dto);
-        Task<bool> CancelHazardAsync(Guid id, string citizenId);
+        Task<bool> CancelHazardAsync(Guid id, string citizenId, bool permanent = false);
         Task<HazardAIAnalysisResponseDto?> TriggerAnalysisAsync(Guid hazardId);
         Task<HazardAIAnalysisResponseDto?> GetLatestAnalysisAsync(Guid hazardId);
     }
@@ -24,17 +24,20 @@ namespace CiviLanka.API.Services
         private readonly IGeocodingService _geocoding;
         private readonly IHazardClassificationAgent _agent;
         private readonly ILogger<HazardService> _logger;
+        private readonly IServiceScopeFactory? _scopeFactory;
 
         public HazardService(
             IHazardRepository repo,
             IGeocodingService geocoding,
             IHazardClassificationAgent agent,
-            ILogger<HazardService> logger)
+            ILogger<HazardService> logger,
+            IServiceScopeFactory? scopeFactory = null)
         {
             _repo = repo;
             _geocoding = geocoding;
             _agent = agent;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task<HazardResponseDto> CreateHazardAsync(string citizenId, CreateHazardDto dto)
@@ -64,12 +67,31 @@ namespace CiviLanka.API.Services
             var created = await _repo.CreateAsync(hazard);
             _logger.LogInformation("Hazard {Ticket} created by citizen {CitizenId}", ticket, citizenId);
 
-            // Fire-and-forget AI analysis (runs in background)
-            _ = Task.Run(async () =>
+            // Fire-and-forget AI analysis (runs in isolated background scope)
+            if (_scopeFactory != null)
             {
-                try { await RunAnalysisAsync(created.Id); }
-                catch (Exception ex) { _logger.LogError(ex, "Background AI analysis failed for {HazardId}", created.Id); }
-            });
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        using var scope = _scopeFactory.CreateScope();
+                        var scopedService = scope.ServiceProvider.GetRequiredService<IHazardService>();
+                        await scopedService.TriggerAnalysisAsync(created.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Background AI analysis failed for {HazardId}", created.Id);
+                    }
+                });
+            }
+            else
+            {
+                _ = Task.Run(async () =>
+                {
+                    try { await RunAnalysisAsync(created.Id); }
+                    catch (Exception ex) { _logger.LogError(ex, "Background AI analysis failed for {HazardId}", created.Id); }
+                });
+            }
 
             return await MapToResponseAsync(created);
         }
@@ -120,33 +142,45 @@ namespace CiviLanka.API.Services
                 hazard.Category = dto.Category;
 
             if (dto.Description != null) hazard.Description = dto.Description;
+            if (dto.Address != null) hazard.Address = dto.Address;
             if (dto.Latitude.HasValue) hazard.Latitude = dto.Latitude;
             if (dto.Longitude.HasValue) hazard.Longitude = dto.Longitude;
             if (dto.ImageUrl != null) hazard.ImageUrl = dto.ImageUrl;
 
-            // Re-geocode if coordinates changed
+            // Re-geocode if coordinates changed and address wasn't explicitly supplied
             if ((dto.Latitude.HasValue || dto.Longitude.HasValue) &&
-                hazard.Latitude.HasValue && hazard.Longitude.HasValue)
+                hazard.Latitude.HasValue && hazard.Longitude.HasValue &&
+                string.IsNullOrWhiteSpace(dto.Address))
             {
                 hazard.Address = await _geocoding.ReverseGeocodeAsync(
                     hazard.Latitude.Value, hazard.Longitude.Value);
             }
 
+            hazard.UpdatedAt = DateTime.UtcNow;
             var updated = await _repo.UpdateAsync(hazard);
             return await MapToResponseAsync(updated);
         }
 
-        public async Task<bool> CancelHazardAsync(Guid id, string citizenId)
+        public async Task<bool> CancelHazardAsync(Guid id, string citizenId, bool permanent = false)
         {
             var hazard = await _repo.GetByIdAsync(id);
-            if (hazard == null || hazard.IsCancelled) return false;
+            if (hazard == null) return false;
             if (hazard.CitizenId != citizenId) return false;
 
-            // Only allow cancellation in early states
-            if (!HazardStatus.EditableStates.Contains(hazard.Status)) return false;
+            // Cannot cancel if in progress or resolved
+            if (hazard.Status == HazardStatus.InProgress || hazard.Status == HazardStatus.Resolved)
+                return false;
+
+            if (permanent)
+            {
+                var deleted = await _repo.DeleteAsync(id);
+                _logger.LogInformation("Hazard {Id} permanently deleted by citizen {CitizenId}", id, citizenId);
+                return deleted;
+            }
 
             hazard.IsCancelled = true;
             hazard.Status = HazardStatus.Cancelled;
+            hazard.UpdatedAt = DateTime.UtcNow;
             await _repo.UpdateAsync(hazard);
 
             _logger.LogInformation("Hazard {Id} soft-cancelled by citizen {CitizenId}", id, citizenId);

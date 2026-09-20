@@ -53,7 +53,56 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // 1. Citizen Hazard Policies
+    options.AddPolicy("CanReportHazard", policy =>
+        policy.RequireRole("Citizen"));
+    options.AddPolicy("CanManageHazards", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+
+    // 2. Infrastructure Policies
+    options.AddPolicy("CanViewInfrastructure", policy =>
+        policy.RequireRole("Citizen", "FieldWorker", "FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+    options.AddPolicy("CanManageInfrastructure", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+
+    // 3. Work Order Policies
+    options.AddPolicy("CanCreateWorkOrder", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+    options.AddPolicy("CanManageWorkOrders", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+    options.AddPolicy("CanApproveWorkOrder", policy =>
+        policy.RequireRole("PublicWorksDirector", "Director"));
+
+    // 4. Maintenance & Operations Policies
+    options.AddPolicy("CanManageMaintenance", policy =>
+        policy.RequireRole("FieldWorker", "FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+    options.AddPolicy("CanVerifyMaintenance", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+
+    // 5. AI Intelligence Policies
+    options.AddPolicy("CanViewAIAnalysis", policy =>
+        policy.RequireRole("FieldWorker", "FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
+
+    // 6. Contractor Policies
+    options.AddPolicy("CanManageContractors", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+
+    // 7. Budget Policies
+    options.AddPolicy("CanViewBudget", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+    options.AddPolicy("CanManageBudget", policy =>
+        policy.RequireRole("PublicWorksDirector", "Director"));
+
+    // 8. Audit & Administration Policies
+    options.AddPolicy("CanViewAuditLogs", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+    options.AddPolicy("CanManageUsers", policy =>
+        policy.RequireRole("PublicWorksDirector", "Director"));
+    options.AddPolicy("CanManageSettings", policy =>
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+});
 
 // ── CORS (for React dashboard from other members) ──────────────────────────────
 builder.Services.AddCors(options =>
@@ -86,6 +135,16 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IHazardRepository, HazardRepository>();
 builder.Services.AddScoped<IHazardService, HazardService>();
 builder.Services.AddScoped<IHazardClassificationAgent, HazardClassificationAgent>();
+
+// ── Application Services (Member 3 — Work Orders) ────────────────────────────
+builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
+builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
+builder.Services.AddScoped<ICostEstimatorAgent, CostEstimatorAgent>();
+
+// ── Application Services (Member 4 — Maintenance & Safety Compliance) ────────
+builder.Services.AddScoped<IMaintenanceRecordRepository, MaintenanceRecordRepository>();
+builder.Services.AddScoped<IMaintenanceRecordService, MaintenanceRecordService>();
+builder.Services.AddScoped<ISafetyComplianceAgent, SafetyComplianceAgent>();
 
 // ── Controllers + Static Files ────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -139,15 +198,22 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
 
         // Seed user roles
-        string[] roles = { "Citizen", "MunicipalStaff", "Director" };
+        string[] roles = { "Citizen", "MunicipalStaff", "Director", "PublicWorksDirector", "FieldMaintenanceSupervisor", "FieldWorker" };
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
         }
 
+        // Seed demo accounts for municipal roles
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        await SeedDemoUsersAsync(userManager);
+
         // Seed Member 2: Infrastructure Assets & Contractors
         await SeedMember2DataAsync(db);
+
+        // Seed Sample Hazards, Work Orders, Maintenance Records, and AI Analyses
+        await SampleDataSeeder.SeedAllSampleDataAsync(db, userManager);
     }
 
     catch (Exception ex)
@@ -360,6 +426,50 @@ static async Task SeedMember2DataAsync(AppDbContext db)
 
         db.Contractors.AddRange(contractors);
         await db.SaveChangesAsync();
+    }
+}
+
+// ── Seed Demo Accounts Helper ────────────────────────────────────────────────
+static async Task SeedDemoUsersAsync(UserManager<ApplicationUser> userManager)
+{
+    var demoUsers = new[]
+    {
+        (Email: "director@civilanka.gov.lk", Name: "Eng. Sunil Wickramasinghe", Role: "PublicWorksDirector", AdditionalRoles: new[] { "Director", "MunicipalStaff" }),
+        (Email: "supervisor@civilanka.gov.lk", Name: "Kavinda Bandara", Role: "FieldMaintenanceSupervisor", AdditionalRoles: new[] { "MunicipalStaff" }),
+        (Email: "staff@civilanka.gov.lk", Name: "Nimal Perera", Role: "MunicipalStaff", AdditionalRoles: Array.Empty<string>()),
+        (Email: "worker@civilanka.gov.lk", Name: "Ruwan Jayawardena", Role: "FieldWorker", AdditionalRoles: Array.Empty<string>()),
+        (Email: "citizen@civilanka.gov.lk", Name: "Anura Fernando", Role: "Citizen", AdditionalRoles: Array.Empty<string>()),
+
+        // Standard RBAC test accounts
+        (Email: "citizen@test.com", Name: "Test Citizen", Role: "Citizen", AdditionalRoles: Array.Empty<string>()),
+        (Email: "fieldworker@test.com", Name: "Test FieldWorker", Role: "FieldWorker", AdditionalRoles: Array.Empty<string>()),
+        (Email: "supervisor@test.com", Name: "Test Supervisor", Role: "FieldMaintenanceSupervisor", AdditionalRoles: new[] { "MunicipalStaff" }),
+        (Email: "director@test.com", Name: "Test Director", Role: "PublicWorksDirector", AdditionalRoles: new[] { "Director", "MunicipalStaff" })
+    };
+
+    foreach (var u in demoUsers)
+    {
+        var existing = await userManager.FindByEmailAsync(u.Email);
+        if (existing == null)
+        {
+            var user = new ApplicationUser
+            {
+                UserName = u.Email,
+                Email = u.Email,
+                FullName = u.Name,
+                Role = u.Role,
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(user, "Director123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user, u.Role);
+                foreach (var extraRole in u.AdditionalRoles)
+                {
+                    await userManager.AddToRoleAsync(user, extraRole);
+                }
+            }
+        }
     }
 }
 
