@@ -37,6 +37,7 @@ import Dashboard from './pages/Dashboard';
 import InfrastructureAssets from './pages/InfrastructureAssets';
 import Contractors from './pages/Contractors';
 import RepairHistory from './pages/RepairHistory';
+import AgentEstimatorPage from './pages/AgentEstimatorPage';
 
 // Member 3 Pages (Work Orders & AI Triage)
 import { WorkOrderDashboard } from './pages/WorkOrderDashboard';
@@ -129,6 +130,7 @@ function Sidebar() {
             { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
             { name: 'Contractors', path: '/contractors', icon: Users },
             { name: 'Repair History', path: '/repairs', icon: FileClock },
+            { name: 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
           ],
         },
         {
@@ -186,6 +188,7 @@ function Sidebar() {
           { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
           { name: 'Contractors', path: '/contractors', icon: Users },
           { name: 'Repair History', path: '/repairs', icon: FileClock },
+          { name: 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
         ],
       },
       {
@@ -383,6 +386,16 @@ function App() {
             <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
                 <RepairHistory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agent-estimator"
+          element={
+            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <AgentEstimatorPage />
               </Layout>
             </ProtectedRoute>
           }

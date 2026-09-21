@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Plus, Search, Filter, X, Building2,
-  ClipboardCheck, ChevronDown, ChevronUp, MapPin as MapPinIcon,
+  ClipboardCheck, ChevronDown, ChevronUp, MapPin as MapPinIcon, Sparkles,
 } from 'lucide-react';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 
@@ -745,6 +746,7 @@ const SEED_ASSETS: Asset[] = [
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function InfrastructureAssets() {
+  const navigate = useNavigate();
   const [assets, setAssets] = useState<Asset[]>(SEED_ASSETS);
   const [showRegister, setShowRegister] = useState(false);
   const [inspectTarget, setInspectTarget] = useState<Asset | null>(null);
@@ -874,16 +876,41 @@ export default function InfrastructureAssets() {
                         </td>
                         <td className="p-4 text-sm text-slate-600">{asset.location}</td>
                         <td className="p-4 text-sm">
-                          <div className="flex items-center gap-3">
-                            <button className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                          <div className="flex items-center gap-2">
+                            <button className="text-blue-600 hover:text-blue-800 font-medium text-xs transition-colors">
                               Edit
                             </button>
                             <button
                               onClick={() => setInspectTarget(asset)}
-                              className="flex items-center gap-1 text-violet-600 hover:text-violet-800 font-medium text-sm transition-colors"
+                              className="flex items-center gap-1 text-violet-600 hover:text-violet-800 font-medium text-xs transition-colors"
                             >
                               <ClipboardCheck className="w-3.5 h-3.5" />
                               Inspect
+                            </button>
+                            <button
+                              onClick={() => {
+                                const latest = asset.inspections?.[0];
+                                navigate('/agent-estimator', {
+                                  state: {
+                                    prefill: {
+                                      name: `${asset.name} (${asset.id})`,
+                                      type: asset.type,
+                                      location: asset.location,
+                                      severity: cond || 'Moderate',
+                                      hazard_type: latest?.issues || `${asset.type} Defect`,
+                                      description:
+                                        latest?.notes ||
+                                        asset.description ||
+                                        `Scheduled municipal rehabilitation for ${asset.name} at ${asset.location}.`,
+                                    },
+                                  },
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 text-cyan-700 hover:text-cyan-900 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 px-2 py-1 rounded-md text-xs font-bold transition-all shadow-2xs"
+                              title="Generate AI Repair Cost Estimate (CIDA/BSR rates)"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+                              <span>AI Estimate</span>
                             </button>
                           </div>
                         </td>
