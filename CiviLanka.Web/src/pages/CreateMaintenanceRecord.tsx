@@ -209,7 +209,7 @@ export const CreateMaintenanceRecord: React.FC = () => {
               </label>
               <input
                 type="number"
-                step="0.5"
+                step="any"
                 min="0"
                 value={formData.labourHours}
                 onChange={(e) => setFormData({ ...formData, labourHours: parseFloat(e.target.value) || 0 })}
@@ -223,7 +223,7 @@ export const CreateMaintenanceRecord: React.FC = () => {
               </label>
               <input
                 type="number"
-                step="100"
+                step="any"
                 min="0"
                 value={formData.actualCost}
                 onChange={(e) => setFormData({ ...formData, actualCost: parseFloat(e.target.value) || 0 })}

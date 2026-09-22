@@ -8,6 +8,11 @@ Run via:
 from ingest import ingest_documents
 from agent.retriever import format_docs, hybrid_search, search_formatted
 from agent.graph import create_cost_estimator_graph
+from agent.hazard_graph import run_hazard_agent
+from agent.dispatch_graph import run_dispatch_agent
+from agent.audit_graph import run_safety_audit_agent
+from agent.asset_risk_graph import run_asset_risk_agent
+
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -25,12 +30,15 @@ load_dotenv(AGENT_DIR.parent / ".env")
 
 
 app = FastAPI(
-    title="CiviLanka.Agent — Sri Lanka Municipal Cost Estimator API",
-    version="1.0.0",
+    title="CiviLanka.Agent — Unified Sri Lanka Municipal AI Agents API",
+    version="2.0.0",
     description=(
-        "Member 2: Agentic RAG System for Infrastructure Maintenance & Repair Estimation. "
-        "Powered by Chroma Vector Search + BM25 Hybrid Search (Reciprocal Rank Fusion) "
-        "grounded in authentic Sri Lankan CIDA/BSR construction rates in LKR."
+        "Production AI Agent Service for CiviLanka:\n"
+        "- Member 1: Citizen Hazard Classification & SLA Triage Agent\n"
+        "- Member 2: Infrastructure Cost Estimator & Asset Degradation Risk Agent\n"
+        "- Member 3: Dispatch & Priority Maintenance Route Clustering Agent\n"
+        "- Member 4: Municipal Safety & Regulatory Compliance Audit Agent\n"
+        "Powered by Chroma Vector Search + BM25 Hybrid RAG (Reciprocal Rank Fusion) and LangGraph."
     ),
 )
 
@@ -73,6 +81,30 @@ class AskRequest(BaseModel):
         default=None, description="Optional conversation thread ID")
 
 
+class HazardClassifyRequest(BaseModel):
+    title: str = Field(..., example="Deep pothole causing accidents near school", description="Report title")
+    description: str = Field(..., example="Severe crater-sized pothole on Galle Road outside St. Thomas College, breaking vehicle axles.", description="Detailed incident description")
+    location: str = Field(default="Colombo", example="Galle Road, Mount Lavinia", description="Reported location")
+    image_url: Optional[str] = Field(default=None, description="Citizen uploaded photo URL")
+    thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
+
+
+class DispatchOptimizeRequest(BaseModel):
+    hazards: List[Dict[str, Any]] = Field(..., description="Array of active hazards to prioritize and cluster")
+    contractors: Optional[List[Dict[str, Any]]] = Field(default=None, description="Optional fleet of registered contractors or municipal maintenance units")
+    thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
+
+
+class SafetyAuditRequest(BaseModel):
+    work_order: Dict[str, Any] = Field(..., description="Work order record to audit for fiscal, GPS, photo, and safety compliance")
+    thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
+
+
+class AssetRiskRequest(BaseModel):
+    asset: Dict[str, Any] = Field(..., description="Asset record with category, age, location, and condition parameters")
+    thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
+
+
 class SearchHitResponse(BaseModel):
     source: str
     content: str
@@ -83,17 +115,24 @@ class SearchHitResponse(BaseModel):
 @app.get("/health", tags=["Health"])
 def health_check():
     """Service health and environment status."""
-    api_key = os.getenv("GOOGLE_API_KEY", "") or os.getenv(
-        "GEMINI_API_KEY", "")
+    api_key = os.getenv("GOOGLE_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
     has_key = bool(api_key and "YOUR_" not in api_key)
     return {
         "status": "online",
-        "service": "CiviLanka.Agent (Member 2 — Infrastructure & Asset Registry)",
+        "service": "CiviLanka.Agent (Unified Municipal AI Agent Service)",
+        "modules": [
+            "Member 1: Citizen Hazard Classification & SLA Triage Agent",
+            "Member 2: Infrastructure Cost & Material Estimator Agent",
+            "Member 2 Companion: Asset Degradation & Predictive Risk Agent",
+            "Member 3: Dispatch & Route Clustering Agent",
+            "Member 4: Municipal Safety & Compliance Audit Agent",
+        ],
         "gemini_api_key_configured": has_key,
         "chat_model": os.getenv("CHAT_MODEL", "gemini-2.5-flash"),
         "embedding_model": os.getenv("EMBEDDING_MODEL", "gemini-embedding-001"),
         "retrieval_mode": "Hybrid (Chroma Vector + BM25 with Reciprocal Rank Fusion)" if has_key else "BM25 Keyword Search (Offline Mode)",
     }
+
 
 
 @app.get("/api/agent/search", response_model=List[SearchHitResponse], tags=["Retriever"])
@@ -210,6 +249,119 @@ def trigger_ingest():
     except Exception as ex:
         raise HTTPException(
             status_code=500, detail=f"Ingestion failed: {str(ex)}")
+
+
+@app.post("/api/agent/hazard/classify", tags=["Member 1: Citizen Hazard & SLA Triage"])
+def classify_hazard_endpoint(request: HazardClassifyRequest):
+    """
+    Member 1: Evaluates a citizen hazard report, classifies category and municipal department,
+    calibrates SLA resolution window, calculates urgency score, and flags environmental risks.
+    """
+    try:
+        res = run_hazard_agent(
+            title=request.title,
+            description=request.description,
+            location=request.location,
+            image_url=request.image_url,
+            thread_id=request.thread_id or str(uuid4()),
+        )
+        return res
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Hazard triage agent error: {str(ex)}")
+
+
+@app.post("/api/agent/dispatch/optimize", tags=["Member 3: Dispatch & Route Optimization"])
+def optimize_dispatch_endpoint(request: DispatchOptimizeRequest):
+    """
+    Member 3: Prioritizes active hazards, forms geographic route clusters along major corridors,
+    determines visit sequences, and matches contractor fleet/municipal crews.
+    """
+    try:
+        res = run_dispatch_agent(
+            hazards=request.hazards,
+            contractors=request.contractors,
+            thread_id=request.thread_id or str(uuid4()),
+        )
+        return res
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Dispatch optimization agent error: {str(ex)}")
+
+
+@app.post("/api/agent/safety/audit", tags=["Member 4: Safety & Regulatory Compliance Audit"])
+def audit_work_order_endpoint(request: SafetyAuditRequest):
+    """
+    Member 4: Audits completed work orders against municipal fiscal thresholds (CIDA/CMC),
+    mandatory before/after photo evidence, 150m GPS geofencing, and safety protocols.
+    """
+    try:
+        res = run_safety_audit_agent(
+            work_order=request.work_order,
+            thread_id=request.thread_id or str(uuid4()),
+        )
+        return res
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Safety audit agent error: {str(ex)}")
+
+
+@app.post("/api/agent/asset/analyze-risk", tags=["Member 2 Companion: Asset Degradation & Risk"])
+def analyze_asset_risk_endpoint(request: AssetRiskRequest):
+    """
+    Member 2 Companion: Calculates structural health index (0-100), condition tier (1-4),
+    Colombo environmental degradation multipliers (coastal salinity, monsoon waterlogging),
+    and remaining useful life (RUL) with 72-hour emergency inspection triggers.
+    """
+    try:
+        res = run_asset_risk_agent(
+            asset=request.asset,
+            thread_id=request.thread_id or str(uuid4()),
+        )
+        return res
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Asset risk agent error: {str(ex)}")
+
+
+@app.get("/api/agent/agents", tags=["Agent Registry"])
+def get_available_agents():
+    """Returns the catalog of all specialized municipal AI agents running in CiviLanka."""
+    return {
+        "agents": [
+            {
+                "id": "member-1-hazard-triage",
+                "name": "Citizen Hazard Classification & SLA Triage Agent",
+                "member": "Member 1",
+                "endpoint": "/api/agent/hazard/classify",
+                "description": "Categorizes municipal defects, assigns CMC/RDA/NWSDB authority, calibrates SLA (2h-168h), and scores urgency.",
+            },
+            {
+                "id": "member-2-cost-estimator",
+                "name": "Infrastructure Asset Registry & Cost Estimator Agent",
+                "member": "Member 2",
+                "endpoint": "/api/agent/estimate",
+                "description": "Calculates itemized BSR material quantities, equipment days, labor mandays, and total LKR repair budget.",
+            },
+            {
+                "id": "member-2-asset-degradation",
+                "name": "Infrastructure Degradation & Predictive Risk Agent",
+                "member": "Member 2 Companion",
+                "endpoint": "/api/agent/asset/analyze-risk",
+                "description": "Models structural health index, environmental degradation multipliers, remaining useful life, and 72-hour inspection alerts.",
+            },
+            {
+                "id": "member-3-dispatch-clustering",
+                "name": "Dispatch & Priority Maintenance Route Clustering Agent",
+                "member": "Member 3",
+                "endpoint": "/api/agent/dispatch/optimize",
+                "description": "Prioritizes hazards, groups nearby sites into corridor routes, sequences stops, and matches contractor trades.",
+            },
+            {
+                "id": "member-4-safety-audit",
+                "name": "Municipal Safety & Regulatory Compliance Audit Agent",
+                "member": "Member 4",
+                "endpoint": "/api/agent/safety/audit",
+                "description": "Enforces fiscal spending thresholds, validates before/after photos, checks 150m GPS tolerance, and verifies safety protocols.",
+            },
+        ]
+    }
 
 
 if __name__ == "__main__":

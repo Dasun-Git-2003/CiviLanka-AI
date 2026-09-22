@@ -220,7 +220,7 @@ export const BudgetManagementPage: React.FC = () => {
                     </label>
                     <input
                       type="number"
-                      step={50000}
+                      step="any"
                       value={newThreshold}
                       onChange={(e) => setNewThreshold(Number(e.target.value))}
                       className="w-48 p-2.5 rounded-xl border border-slate-300 bg-white font-mono font-bold text-sm text-slate-900 focus:ring-2 focus:ring-purple-500"

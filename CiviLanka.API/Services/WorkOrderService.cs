@@ -22,6 +22,9 @@ namespace CiviLanka.API.Services
         Task<WorkOrderResponseDto?> ApproveAsync(Guid id, string approvedByUserId, string? notes);
         Task<WorkOrderResponseDto?> RejectAsync(Guid id, string rejectedByUserId, string? notes);
         Task<CostEstimateResponseDto?> GetLatestEstimateAsync(Guid workOrderId);
+        Task<CostEstimatePreviewResponseDto?> PreviewEstimateAsync(CostEstimateRequestDto input);
+        Task<CostEstimatePreviewResponseDto?> PreviewEstimateForWorkOrderAsync(Guid workOrderId, CostEstimateRequestDto? overrideDto = null);
+        Task<WorkOrderResponseDto?> SaveCustomEstimateAsync(Guid workOrderId, SaveWorkOrderEstimateDto dto);
     }
 
     public class WorkOrderService : IWorkOrderService
@@ -50,9 +53,16 @@ namespace CiviLanka.API.Services
 
         public async Task<WorkOrderResponseDto> CreateAsync(CreateWorkOrderDto dto, string createdByUserId)
         {
-            // Generate ticket number WO-YYYY-NNNNN
+            // Generate ticket number WO-YYYY-NNNNN with collision guard
             var seq = await _repo.GetNextSequenceAsync();
             var number = $"WO-{DateTime.UtcNow.Year}-{seq:D5}";
+
+            int attempts = 0;
+            while (await _repo.ExistsWorkOrderNumberAsync(number))
+            {
+                attempts++;
+                number = $"WO-{DateTime.UtcNow.Year}-{(seq + attempts):D5}";
+            }
 
             // Pull severity from the linked hazard's AI analysis
             string? severity = null;
@@ -74,6 +84,8 @@ namespace CiviLanka.API.Services
                 Priority        = dto.Priority.ToUpperInvariant(),
                 Severity        = severity,
                 EstimatedCost   = dto.EstimatedCost,
+                EstimatedDurationHours = dto.EstimatedDurationHours.HasValue ? (int)dto.EstimatedDurationHours.Value : null,
+                RecommendedCrewSize    = dto.RecommendedCrewSize,
                 Status          = WorkOrderStatus.AiGenerated,
                 ApprovalStatus  = Models.ApprovalStatus.NotRequired,
                 CreatedBy       = createdByUserId,
@@ -89,6 +101,43 @@ namespace CiviLanka.API.Services
             }
 
             var created = await _repo.CreateAsync(workOrder);
+
+            if (dto.Items != null && dto.Items.Count > 0)
+            {
+                var workOrderItems = dto.Items.Select(m => new WorkOrderItem
+                {
+                    WorkOrderId        = created.Id,
+                    ItemType           = string.IsNullOrWhiteSpace(m.ItemType) ? WorkOrderItemType.Material : m.ItemType,
+                    ItemName           = m.ItemName,
+                    Quantity           = m.Quantity,
+                    Unit               = m.Unit,
+                    EstimatedUnitCost  = m.EstimatedUnitCost,
+                    EstimatedTotalCost = m.EstimatedTotalCost > 0 ? m.EstimatedTotalCost : (m.EstimatedUnitCost * (decimal)m.Quantity),
+                }).ToList();
+                await _repo.AddItemsAsync(workOrderItems);
+            }
+
+            if (dto.EstimatedCost.HasValue || (dto.Items != null && dto.Items.Count > 0))
+            {
+                var materialSum = dto.MaterialCost ?? (dto.Items != null ? dto.Items.Where(i => i.ItemType == WorkOrderItemType.Material || string.IsNullOrEmpty(i.ItemType)).Sum(i => i.EstimatedTotalCost > 0 ? i.EstimatedTotalCost : (i.EstimatedUnitCost * (decimal)i.Quantity)) : 0);
+                var estimate = new CostEstimate
+                {
+                    WorkOrderId            = created.Id,
+                    EstimatedCost          = dto.EstimatedCost ?? (materialSum + (dto.LabourCost ?? 0) + (dto.EquipmentCost ?? 0)),
+                    Currency               = "LKR",
+                    MaterialCost           = materialSum,
+                    LabourCost             = dto.LabourCost ?? 0,
+                    EquipmentCost          = dto.EquipmentCost ?? 0,
+                    EstimatedLabourHours   = dto.EstimatedLabourHours ?? 0,
+                    RecommendedCrewSize    = dto.RecommendedCrewSize ?? 1,
+                    EstimatedDurationHours = dto.EstimatedDurationHours ?? 0,
+                    Confidence             = 0.95,
+                    Reason                 = dto.EstimateReason ?? "Customized estimate during work order creation",
+                    ModelName              = "Custom / AI Assisted",
+                };
+                await _repo.AddCostEstimateAsync(estimate);
+            }
+
             return await MapToResponseDtoAsync(created.Id);
         }
 
@@ -320,6 +369,185 @@ namespace CiviLanka.API.Services
             // Check approval threshold
             var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
             if (result.EstimatedCost > threshold)
+            {
+                wo.ApprovalRequired = true;
+                wo.ApprovalStatus   = Models.ApprovalStatus.Pending;
+                wo.Status           = WorkOrderStatus.PendingApproval;
+            }
+
+            await _repo.UpdateAsync(wo);
+            return await MapToResponseDtoAsync(workOrderId);
+        }
+
+        public async Task<CostEstimatePreviewResponseDto?> PreviewEstimateAsync(CostEstimateRequestDto inputDto)
+        {
+            var input = new CostEstimationInput
+            {
+                Category       = inputDto.Category ?? "General Infrastructure Repair",
+                Description    = inputDto.Description ?? string.Empty,
+                Severity       = inputDto.Severity ?? "MEDIUM",
+                Priority       = inputDto.Priority ?? "NORMAL",
+                AssetId        = inputDto.AssetId,
+            };
+
+            if (inputDto.HazardId.HasValue)
+            {
+                var hazard = await _db.Hazards
+                    .Include(h => h.AIAnalyses.OrderByDescending(a => a.CreatedAt).Take(1))
+                    .FirstOrDefaultAsync(h => h.Id == inputDto.HazardId.Value);
+                if (hazard != null)
+                {
+                    input.Category    = string.IsNullOrWhiteSpace(inputDto.Category) ? hazard.Category : inputDto.Category;
+                    input.Description = string.IsNullOrWhiteSpace(inputDto.Description) ? hazard.Description : inputDto.Description;
+                    input.Severity    = string.IsNullOrWhiteSpace(inputDto.Severity) ? (hazard.Severity ?? hazard.AIAnalyses.FirstOrDefault()?.Severity ?? "MEDIUM") : inputDto.Severity;
+                    input.Priority    = string.IsNullOrWhiteSpace(inputDto.Priority) ? (hazard.Priority ?? "NORMAL") : inputDto.Priority;
+                    input.Location    = hazard.Address;
+                    input.RiskLevel   = hazard.RiskLevel;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(inputDto.AssetId))
+            {
+                var asset = await _db.InfrastructureAssets
+                    .Include(a => a.Inspections.OrderByDescending(i => i.InspectionDate).Take(1))
+                    .FirstOrDefaultAsync(a => a.Id == inputDto.AssetId);
+                if (asset != null)
+                {
+                    input.AssetType = asset.Type;
+                    input.AssetCondition = asset.Inspections.FirstOrDefault()?.Condition;
+                    input.AssetAgeYears = asset.InstallationDate.HasValue
+                        ? (int)((DateTime.UtcNow - asset.InstallationDate.Value).TotalDays / 365)
+                        : null;
+                }
+            }
+
+            var result = await _agent.EstimateAsync(input);
+            if (result == null) return null;
+
+            return BuildPreviewDto(result);
+        }
+
+        public async Task<CostEstimatePreviewResponseDto?> PreviewEstimateForWorkOrderAsync(Guid workOrderId, CostEstimateRequestDto? overrideDto = null)
+        {
+            var wo = await _repo.GetByIdWithDetailsAsync(workOrderId);
+            if (wo == null) return null;
+
+            var hazard = wo.Hazard;
+            var asset  = wo.Asset;
+
+            var input = new CostEstimationInput
+            {
+                Category       = overrideDto?.Category ?? hazard?.Category ?? wo.Title,
+                Description    = overrideDto?.Description ?? hazard?.Description ?? wo.Description,
+                Severity       = overrideDto?.Severity ?? hazard?.Severity ?? wo.Severity,
+                RiskLevel      = hazard?.RiskLevel,
+                Priority       = overrideDto?.Priority ?? hazard?.Priority ?? wo.Priority,
+                Location       = hazard?.Address,
+                AssetId        = overrideDto?.AssetId ?? wo.AssetId,
+                AssetType      = asset?.Type,
+                AssetCondition = asset?.Inspections
+                    .OrderByDescending(i => i.InspectionDate).FirstOrDefault()?.Condition,
+                AssetAgeYears  = asset?.InstallationDate.HasValue == true
+                    ? (int)((DateTime.UtcNow - asset.InstallationDate.Value).TotalDays / 365)
+                    : null
+            };
+
+            var result = await _agent.EstimateAsync(input);
+            if (result == null) return null;
+
+            return BuildPreviewDto(result);
+        }
+
+        private static CostEstimatePreviewResponseDto BuildPreviewDto(CostEstimationResult result)
+        {
+            var items = result.Materials.Select(m => new WorkOrderItemResponseDto
+            {
+                Id                 = Guid.NewGuid(),
+                ItemType           = WorkOrderItemType.Material,
+                ItemName           = m.Name,
+                Quantity           = m.Quantity,
+                Unit               = m.Unit,
+                EstimatedUnitCost  = m.UnitCost,
+                EstimatedTotalCost = m.UnitCost * (decimal)m.Quantity,
+            }).ToList();
+
+            items.AddRange(result.Equipment.Select(e => new WorkOrderItemResponseDto
+            {
+                Id                 = Guid.NewGuid(),
+                ItemType           = WorkOrderItemType.Equipment,
+                ItemName           = e,
+                Quantity           = 1,
+                Unit               = "unit",
+                EstimatedUnitCost  = result.EquipmentCost / Math.Max(result.Equipment.Count, 1),
+                EstimatedTotalCost = result.EquipmentCost / Math.Max(result.Equipment.Count, 1),
+            }));
+
+            return new CostEstimatePreviewResponseDto
+            {
+                EstimatedCost          = Math.Max(0, result.EstimatedCost),
+                Currency               = result.Currency,
+                MaterialCost           = Math.Max(0, result.MaterialCost),
+                LabourCost             = Math.Max(0, result.LabourCost),
+                EquipmentCost          = Math.Max(0, result.EquipmentCost),
+                EstimatedLabourHours   = result.EstimatedLabourHours,
+                RecommendedCrewSize    = Math.Max(1, result.RecommendedCrewSize),
+                EstimatedDurationHours = Math.Max(0, result.EstimatedDurationHours),
+                Confidence             = Math.Clamp(result.Confidence, 0.0, 1.0),
+                Reason                 = result.Reason,
+                ModelName              = result.ModelName,
+                Items                  = items,
+            };
+        }
+
+        public async Task<WorkOrderResponseDto?> SaveCustomEstimateAsync(Guid workOrderId, SaveWorkOrderEstimateDto dto)
+        {
+            var wo = await _repo.GetByIdAsync(workOrderId);
+            if (wo == null || wo.IsCancelled) return null;
+
+            // Update WorkOrder items (replace existing)
+            await _repo.RemoveItemsAsync(workOrderId);
+            var items = dto.Items.Select(i => new WorkOrderItem
+            {
+                WorkOrderId        = workOrderId,
+                ItemType           = string.IsNullOrWhiteSpace(i.ItemType) ? WorkOrderItemType.Material : i.ItemType,
+                ItemName           = i.ItemName,
+                Quantity           = i.Quantity,
+                Unit               = i.Unit,
+                EstimatedUnitCost  = i.EstimatedUnitCost,
+                EstimatedTotalCost = i.EstimatedTotalCost > 0 ? i.EstimatedTotalCost : (i.EstimatedUnitCost * (decimal)i.Quantity),
+            }).ToList();
+            await _repo.AddItemsAsync(items);
+
+            var materialSum = dto.MaterialCost ?? items.Where(x => x.ItemType == WorkOrderItemType.Material).Sum(x => x.EstimatedTotalCost);
+
+            // Persist CostEstimate
+            var estimate = new CostEstimate
+            {
+                WorkOrderId            = workOrderId,
+                EstimatedCost          = dto.EstimatedCost,
+                Currency               = "LKR",
+                MaterialCost           = materialSum,
+                LabourCost             = dto.LabourCost ?? 0,
+                EquipmentCost          = dto.EquipmentCost ?? 0,
+                EstimatedLabourHours   = dto.EstimatedLabourHours ?? 0,
+                RecommendedCrewSize    = dto.RecommendedCrewSize ?? 1,
+                EstimatedDurationHours = dto.EstimatedDurationHours ?? 0,
+                Confidence             = 0.98,
+                Reason                 = dto.Reason ?? "Supervisor reviewed and customized estimate & materials.",
+                ModelName              = "Supervisor Customized",
+            };
+            await _repo.AddCostEstimateAsync(estimate);
+
+            // Update WorkOrder summary fields
+            wo.EstimatedCost = dto.EstimatedCost;
+            if (dto.EstimatedDurationHours.HasValue)
+                wo.EstimatedDurationHours = (int)dto.EstimatedDurationHours.Value;
+            if (dto.RecommendedCrewSize.HasValue)
+                wo.RecommendedCrewSize = dto.RecommendedCrewSize.Value;
+
+            // Check approval threshold
+            var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
+            if (dto.EstimatedCost > threshold)
             {
                 wo.ApprovalRequired = true;
                 wo.ApprovalStatus   = Models.ApprovalStatus.Pending;

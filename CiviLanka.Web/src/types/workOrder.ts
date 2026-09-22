@@ -102,6 +102,13 @@ export interface CreateWorkOrderInput {
   description: string;
   priority: string;
   estimatedCost?: number;
+  materialCost?: number;
+  labourCost?: number;
+  equipmentCost?: number;
+  estimatedDurationHours?: number;
+  recommendedCrewSize?: number;
+  estimateReason?: string;
+  items?: SaveWorkOrderItemDto[];
 }
 
 export interface UpdateWorkOrderInput {
@@ -125,4 +132,41 @@ export interface CostEstimateInput {
   description?: string;
   severity?: string;
   priority?: string;
+}
+
+export interface SaveWorkOrderItemDto {
+  id?: string;
+  itemType: 'Material' | 'Labour' | 'Equipment';
+  itemName: string;
+  quantity: number;
+  unit: string;
+  estimatedUnitCost: number;
+  estimatedTotalCost: number;
+}
+
+export interface SaveWorkOrderEstimateDto {
+  estimatedCost: number;
+  materialCost?: number;
+  labourCost?: number;
+  equipmentCost?: number;
+  estimatedLabourHours?: number;
+  recommendedCrewSize?: number;
+  estimatedDurationHours?: number;
+  reason?: string;
+  items: SaveWorkOrderItemDto[];
+}
+
+export interface CostEstimatePreviewResponse {
+  estimatedCost: number;
+  currency: string;
+  materialCost: number;
+  labourCost: number;
+  equipmentCost: number;
+  estimatedLabourHours: number;
+  recommendedCrewSize: number;
+  estimatedDurationHours: number;
+  confidence: number;
+  reason: string;
+  modelName: string;
+  items: WorkOrderItem[];
 }

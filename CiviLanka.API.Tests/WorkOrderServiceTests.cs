@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CiviLanka.API.Agents;
@@ -216,6 +216,108 @@ namespace CiviLanka.API.Tests
             Assert.Equal(WorkOrderStatus.Rejected, rejected.Status);
             Assert.Equal(ApprovalStatus.Rejected, rejected.ApprovalStatus);
             Assert.Contains("REJECTED by director-uuid", rejected.Notes);
+        }
+
+        [Fact]
+        public async Task PreviewEstimateAsync_ReturnsPreviewWithoutSavingToDb()
+        {
+            using var db = CreateDbContext();
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+
+            mockAgent.Setup(a => a.EstimateAsync(It.IsAny<CostEstimationInput>()))
+                .ReturnsAsync(new CostEstimationResult
+                {
+                    EstimatedCost = 85000m,
+                    Currency = "LKR",
+                    MaterialCost = 50000m,
+                    LabourCost = 25000m,
+                    EquipmentCost = 10000m,
+                    EstimatedLabourHours = 16,
+                    RecommendedCrewSize = 3,
+                    EstimatedDurationHours = 8,
+                    Confidence = 0.92,
+                    Reason = "Standard asphalt patch repair",
+                    ModelName = "gemini-2.0-flash",
+                    Materials = new List<RawMaterial>
+                    {
+                        new() { Name = "Asphalt Aggregate", Quantity = 2, Unit = "tons", UnitCost = 20000m },
+                        new() { Name = "Bitumen Emulsion", Quantity = 10, Unit = "liters", UnitCost = 1000m },
+                    },
+                    Equipment = new List<string> { "Plate Compactor" }
+                });
+
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var preview = await service.PreviewEstimateAsync(new CostEstimateRequestDto
+            {
+                Category = "Pothole",
+                Description = "2m road crater",
+                Severity = "HIGH"
+            });
+
+            Assert.NotNull(preview);
+            Assert.Equal(85000m, preview.EstimatedCost);
+            Assert.Equal(3, preview.Items.Count); // 2 materials + 1 equipment
+            Assert.Contains(preview.Items, i => i.ItemName == "Asphalt Aggregate");
+            Assert.Contains(preview.Items, i => i.ItemName == "Plate Compactor");
+
+            // Verify no cost estimate or work order was saved in DB
+            Assert.Empty(await db.WorkOrders.ToListAsync());
+            Assert.Empty(await db.CostEstimates.ToListAsync());
+            Assert.Empty(await db.WorkOrderItems.ToListAsync());
+        }
+
+        [Fact]
+        public async Task SaveCustomEstimateAsync_UpdatesCostAndItemsSuccessfully()
+        {
+            using var db = CreateDbContext();
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var created = await service.CreateAsync(new CreateWorkOrderDto
+            {
+                Title = "Burst Water Pipe",
+                Description = "Underground main pipe crack",
+                Priority = "HIGH",
+                EstimatedCost = 50000m
+            }, "staff-user-1");
+
+            var customDto = new SaveWorkOrderEstimateDto
+            {
+                EstimatedCost = 125000m, // Over 100k threshold -> triggers approval
+                MaterialCost = 80000m,
+                LabourCost = 35000m,
+                EquipmentCost = 10000m,
+                EstimatedDurationHours = 12,
+                RecommendedCrewSize = 4,
+                Reason = "Supervisor adjusted materials and added backhoe requirement",
+                Items = new List<SaveWorkOrderItemDto>
+                {
+                    new() { ItemType = "Material", ItemName = "uPVC Pipe 160mm", Quantity = 2, Unit = "lengths", EstimatedUnitCost = 30000m, EstimatedTotalCost = 60000m },
+                    new() { ItemType = "Material", ItemName = "Couplings & Sealant", Quantity = 4, Unit = "units", EstimatedUnitCost = 5000m, EstimatedTotalCost = 20000m },
+                    new() { ItemType = "Equipment", ItemName = "Mini Excavator", Quantity = 1, Unit = "day", EstimatedUnitCost = 10000m, EstimatedTotalCost = 10000m }
+                }
+            };
+
+            var updated = await service.SaveCustomEstimateAsync(created.Id, customDto);
+
+            Assert.NotNull(updated);
+            Assert.Equal(125000m, updated.EstimatedCost);
+            Assert.Equal(3, updated.Items.Count);
+            Assert.True(updated.ApprovalRequired);
+            Assert.Equal(WorkOrderStatus.PendingApproval, updated.Status);
+            Assert.Equal(ApprovalStatus.Pending, updated.ApprovalStatus);
+
+            // Verify items in DB
+            var dbItems = await db.WorkOrderItems.Where(i => i.WorkOrderId == created.Id).ToListAsync();
+            Assert.Equal(3, dbItems.Count);
+            Assert.Contains(dbItems, i => i.ItemName == "uPVC Pipe 160mm" && i.Quantity == 2);
         }
     }
 }
