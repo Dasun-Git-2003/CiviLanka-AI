@@ -233,6 +233,48 @@ namespace CiviLanka.API.Controllers
             return result == null ? NotFound(new { message = "Work order not found or AI estimation failed." }) : Ok(result);
         }
 
+        /// <summary>
+        /// Preview an AI cost and materials estimate without saving to DB.
+        /// Allows the user to inspect, edit costs, and add/remove materials before committing.
+        /// </summary>
+        [HttpPost("preview-estimate")]
+        [Authorize(Roles = "MunicipalStaff,FieldMaintenanceSupervisor,PublicWorksDirector,Director")]
+        [ProducesResponseType(typeof(CostEstimatePreviewResponseDto), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> PreviewEstimate([FromBody] CostEstimateRequestDto dto)
+        {
+            var result = await _service.PreviewEstimateAsync(dto);
+            return result == null ? BadRequest(new { message = "Unable to generate estimate preview." }) : Ok(result);
+        }
+
+        /// <summary>
+        /// Preview an AI cost and materials estimate for an existing work order without saving to DB.
+        /// </summary>
+        [HttpPost("{id:guid}/preview-estimate")]
+        [Authorize(Roles = "MunicipalStaff,FieldMaintenanceSupervisor,PublicWorksDirector,Director")]
+        [ProducesResponseType(typeof(CostEstimatePreviewResponseDto), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> PreviewEstimateForWorkOrder(Guid id, [FromBody] CostEstimateRequestDto? dto = null)
+        {
+            var result = await _service.PreviewEstimateForWorkOrderAsync(id, dto);
+            return result == null ? NotFound(new { message = "Work order not found or estimation failed." }) : Ok(result);
+        }
+
+        /// <summary>
+        /// Save a customized / user-edited cost estimate and material items for a work order.
+        /// </summary>
+        [HttpPut("{id:guid}/estimate")]
+        [Authorize(Roles = "MunicipalStaff,FieldMaintenanceSupervisor,PublicWorksDirector,Director")]
+        [ProducesResponseType(typeof(WorkOrderResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> SaveCustomEstimate(Guid id, [FromBody] SaveWorkOrderEstimateDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _service.SaveCustomEstimateAsync(id, dto);
+            return result == null ? NotFound(new { message = "Work order not found." }) : Ok(result);
+        }
+
         /// <summary>Get the latest saved cost estimate for a work order.</summary>
         [HttpGet("{id:guid}/estimate")]
         [Authorize(Roles = "MunicipalStaff,FieldMaintenanceSupervisor,PublicWorksDirector,Director,FieldWorker")]

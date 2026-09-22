@@ -529,6 +529,7 @@ namespace CiviLanka.API.Services
                 WorkOrderSeverity      = record.WorkOrder?.Severity,
                 WorkOrderStatus        = record.WorkOrder?.Status,
                 EstimatedCost          = record.WorkOrder?.EstimatedCost,
+                AssignedCrew           = record.WorkOrder?.AssignedCrew,
                 Location               = record.WorkOrder?.Hazard?.Address,
                 HazardCategory         = record.WorkOrder?.Hazard?.Category,
                 HazardTicket           = record.WorkOrder?.Hazard?.TicketNumber,
@@ -580,6 +581,10 @@ namespace CiviLanka.API.Services
                 WorkOrderSeverity  = r.WorkOrder?.Severity,
                 WorkOrderStatus    = r.WorkOrder?.Status,
                 EstimatedCost      = r.WorkOrder?.EstimatedCost,
+                AssignedCrew       = r.WorkOrder?.AssignedCrew,
+                Location           = r.WorkOrder?.Hazard?.Address,
+                HazardCategory     = r.WorkOrder?.Hazard?.Category,
+                HazardTicket       = r.WorkOrder?.Hazard?.TicketNumber,
 
                 AssetId            = r.AssetId,
                 AssetName          = r.Asset?.Name,

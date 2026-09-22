@@ -12,6 +12,7 @@ import {
   ExternalLink,
   ChevronRight,
   Shield,
+  Users,
 } from 'lucide-react';
 import { maintenanceService } from '../services/maintenanceService';
 import type { MaintenanceRecord } from '../types/maintenance';
@@ -142,6 +143,12 @@ export const FieldWorkerPortal: React.FC = () => {
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>{job.labourHours} hrs logged</span>
                       </div>
+                      {job.assignedCrew && (
+                        <div className="flex items-center gap-1 text-slate-500">
+                          <Users className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{job.assignedCrew}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Progress checklist indicator */}

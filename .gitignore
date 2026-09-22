@@ -1,6 +1,7 @@
 # =============================================================================
-# CivitaGuard AI — Master .gitignore
-# Strictly ignores all secret files, API keys, credentials, and build artifacts
+# CiviLanka Master .gitignore
+# Comprehensive protection for .NET backend, React Web, Flutter Mobile,
+# Python Agentic AI (CiviLanka.Agent), database credentials, and secrets.
 # =============================================================================
 
 # ── Environment & Secrets ────────────────────────────────────────────────────
@@ -18,7 +19,7 @@ connectionstrings.json
 *.backup
 *.old
 
-# ── ASP.NET Core Configuration Secrets ───────────────────────────────────────
+# ── ASP.NET Core Configuration & Database Credentials ────────────────────────
 appsettings.json
 appsettings.*.json
 appsettings.local.json
@@ -47,19 +48,32 @@ id_ed25519*
 
 # ── IDE & Local Workspace Settings ───────────────────────────────────────────
 .vs/
+**/.vs/
 .vscode/
+**/.vscode/
 .idea/
+**/.idea/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-# ── .NET / C# Build Artifacts ────────────────────────────────────────────────
+# ── .NET / C# Build Artifacts & Binaries ─────────────────────────────────────
+bin/
+**/bin/
 [Bb]in/
+**/[Bb]in/
+obj/
+**/obj/
 [Oo]bj/
+**/[Oo]bj/
+TestResults/
+**/TestResults/
 [Tt]est[Rr]esults/
+**/[Tt]est[Rr]esults/
 *.tmp
 *.log
+*.pdb
 
 # ── Python / Agent Artifacts (CiviLanka.Agent) ──────────────────────────────
 __pycache__/
@@ -73,35 +87,65 @@ __pycache__/
 chroma_db/
 **/chroma_db/
 *.sqlite3
+*.db
 .venv/
 **/.venv/
 venv/
 **/venv/
+env/
+**/env/
+ENV/
+**/ENV/
 .pytest_cache/
+**/.pytest_cache/
+.coverage
 htmlcov/
-CiviLanka.Agent/.env
-CiviLanka.Agent/.env.*
-CiviLanka.Agent/*.env
-CiviLanka.Agent/chroma_db/
-CiviLanka.Agent/.venv/
+**/.uv/
 
-# ── Node.js / React Web Artifacts ────────────────────────────────────────────
-
+# ── Node.js / React Web Artifacts (CiviLanka.Web) ────────────────────────────
 node_modules/
+**/node_modules/
 dist/
+**/dist/
 dist-ssr/
+**/dist-ssr/
 build/
+**/build/
+.next/
+out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .eslintcache
 
-# ── Flutter / Mobile Build Artifacts ─────────────────────────────────────────
+# ── Flutter / Mobile Build Artifacts (CiviLanka.App) ─────────────────────────
 .dart_tool/
+**/.dart_tool/
 .packages
+**/.packages
 .pub-cache/
+**/.pub-cache/
 .pub/
+**/.pub/
 flutter_*.png
+android/.gradle
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/GeneratedPluginRegistrant.java
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+build/
 
 # ── OS Generated Files ───────────────────────────────────────────────────────
 .DS_Store

@@ -25,6 +25,15 @@ namespace CiviLanka.API.DTOs.WorkOrders
         public string Priority { get; set; } = "NORMAL";
 
         public decimal? EstimatedCost { get; set; }
+        public decimal? MaterialCost { get; set; }
+        public decimal? LabourCost { get; set; }
+        public decimal? EquipmentCost { get; set; }
+        public double? EstimatedLabourHours { get; set; }
+        public int? RecommendedCrewSize { get; set; }
+        public double? EstimatedDurationHours { get; set; }
+        [MaxLength(1000)]
+        public string? EstimateReason { get; set; }
+        public List<SaveWorkOrderItemDto>? Items { get; set; }
 
         public bool IsPriorityValid() =>
             new[] { "LOW", "NORMAL", "HIGH", "URGENT" }.Contains(Priority.ToUpperInvariant());
@@ -184,5 +193,50 @@ namespace CiviLanka.API.DTOs.WorkOrders
 
         [MaxLength(20)]
         public string? Priority { get; set; }
+    }
+
+    public class SaveWorkOrderItemDto
+    {
+        public Guid? Id { get; set; }
+        [MaxLength(20)]
+        public string ItemType { get; set; } = "Material";
+        [Required]
+        [MaxLength(200)]
+        public string ItemName { get; set; } = string.Empty;
+        public double Quantity { get; set; }
+        [MaxLength(50)]
+        public string Unit { get; set; } = string.Empty;
+        public decimal EstimatedUnitCost { get; set; }
+        public decimal EstimatedTotalCost { get; set; }
+    }
+
+    public class SaveWorkOrderEstimateDto
+    {
+        public decimal EstimatedCost { get; set; }
+        public decimal? MaterialCost { get; set; }
+        public decimal? LabourCost { get; set; }
+        public decimal? EquipmentCost { get; set; }
+        public double? EstimatedLabourHours { get; set; }
+        public int? RecommendedCrewSize { get; set; }
+        public double? EstimatedDurationHours { get; set; }
+        [MaxLength(1000)]
+        public string? Reason { get; set; }
+        public List<SaveWorkOrderItemDto> Items { get; set; } = new();
+    }
+
+    public class CostEstimatePreviewResponseDto
+    {
+        public decimal EstimatedCost { get; set; }
+        public string Currency { get; set; } = "LKR";
+        public decimal MaterialCost { get; set; }
+        public decimal LabourCost { get; set; }
+        public decimal EquipmentCost { get; set; }
+        public double EstimatedLabourHours { get; set; }
+        public int RecommendedCrewSize { get; set; }
+        public double EstimatedDurationHours { get; set; }
+        public double Confidence { get; set; }
+        public string Reason { get; set; } = string.Empty;
+        public string ModelName { get; set; } = string.Empty;
+        public List<WorkOrderItemResponseDto> Items { get; set; } = new();
     }
 }

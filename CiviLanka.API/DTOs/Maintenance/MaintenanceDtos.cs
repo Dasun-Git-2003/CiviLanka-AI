@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -96,6 +96,7 @@ namespace CiviLanka.API.DTOs.Maintenance
         public string? WorkOrderSeverity { get; set; }
         public string? WorkOrderStatus { get; set; }
         public decimal? EstimatedCost { get; set; }
+        public string? AssignedCrew { get; set; }
         public string? Location { get; set; }
         public string? HazardCategory { get; set; }
         public string? HazardTicket { get; set; }

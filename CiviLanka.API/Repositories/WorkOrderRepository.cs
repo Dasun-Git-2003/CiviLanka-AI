@@ -15,6 +15,7 @@ namespace CiviLanka.API.Repositories
         Task<WorkOrder> CreateAsync(WorkOrder workOrder);
         Task<WorkOrder> UpdateAsync(WorkOrder workOrder);
         Task<int> GetNextSequenceAsync();
+        Task<bool> ExistsWorkOrderNumberAsync(string number);
         Task<CostEstimate> AddCostEstimateAsync(CostEstimate estimate);
         Task<CostEstimate?> GetLatestCostEstimateAsync(Guid workOrderId);
         Task<WorkOrderAIAnalysis> AddAIAnalysisAsync(WorkOrderAIAnalysis analysis);
@@ -99,8 +100,33 @@ namespace CiviLanka.API.Repositories
             return workOrder;
         }
 
-        public async Task<int> GetNextSequenceAsync() =>
-            await _db.WorkOrders.CountAsync() + 1;
+        public async Task<int> GetNextSequenceAsync()
+        {
+            var currentYear = DateTime.UtcNow.Year;
+            var prefix = $"WO-{currentYear}-";
+
+            var orderNumbers = await _db.WorkOrders
+                .Where(w => w.WorkOrderNumber.StartsWith(prefix))
+                .Select(w => w.WorkOrderNumber)
+                .ToListAsync();
+
+            int maxSeq = 0;
+            foreach (var num in orderNumbers)
+            {
+                var numPart = num.Substring(prefix.Length);
+                if (int.TryParse(numPart, out int seq) && seq > maxSeq)
+                {
+                    maxSeq = seq;
+                }
+            }
+
+            return maxSeq + 1;
+        }
+
+        public async Task<bool> ExistsWorkOrderNumberAsync(string number)
+        {
+            return await _db.WorkOrders.AnyAsync(w => w.WorkOrderNumber == number);
+        }
 
         public async Task<CostEstimate> AddCostEstimateAsync(CostEstimate estimate)
         {

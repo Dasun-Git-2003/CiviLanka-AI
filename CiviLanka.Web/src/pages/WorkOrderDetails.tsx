@@ -16,7 +16,8 @@ import { StatusBadge } from '../components/StatusBadge';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { CostEstimateCard } from '../components/CostEstimateCard';
 import { ApprovalPanel } from '../components/ApprovalPanel';
-import type { WorkOrder } from '../types/workOrder';
+import { CostEstimateEditorModal } from '../components/CostEstimateEditorModal';
+import type { WorkOrder, SaveWorkOrderEstimateDto, CostEstimatePreviewResponse } from '../types/workOrder';
 
 export const WorkOrderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,11 @@ export const WorkOrderDetails: React.FC = () => {
   const [selectedContractor, setSelectedContractor] = useState<number | undefined>();
   const [assignedCrew, setAssignedCrew] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
+
+  // Cost & Materials Estimate Editor modal states
+  const [showEstimateModal, setShowEstimateModal] = useState(false);
+  const [savingEstimate, setSavingEstimate] = useState(false);
+  const [previewEstimateData, setPreviewEstimateData] = useState<CostEstimatePreviewResponse | null>(null);
 
   const fetchDetails = async () => {
     if (!id) return;
@@ -67,14 +73,37 @@ export const WorkOrderDetails: React.FC = () => {
     if (!id) return;
     setEstimating(true);
     try {
-      const updated = await workOrderService.generateEstimate(id);
-      setWorkOrder(updated);
+      const preview = await workOrderService.previewEstimateForWorkOrder(id);
+      setPreviewEstimateData(preview);
+      setShowEstimateModal(true);
     } catch (err) {
-      alert('AI estimation failed. Please check Gemini API key configuration.');
+      alert('AI estimation preview failed. Please check Gemini API configuration.');
       console.error(err);
     } finally {
       setEstimating(false);
     }
+  };
+
+  const handleSaveCustomEstimate = async (data: SaveWorkOrderEstimateDto) => {
+    if (!id) return;
+    setSavingEstimate(true);
+    try {
+      const updated = await workOrderService.saveCustomEstimate(id, data);
+      setWorkOrder(updated);
+      setShowEstimateModal(false);
+      setPreviewEstimateData(null);
+    } catch (err) {
+      alert('Failed to save customized estimate.');
+      console.error(err);
+    } finally {
+      setSavingEstimate(false);
+    }
+  };
+
+  const handleRegenerateAIEstimate = async () => {
+    if (!id) return;
+    const preview = await workOrderService.previewEstimateForWorkOrder(id);
+    setPreviewEstimateData(preview);
   };
 
   const handleApprove = async (notes: string) => {
@@ -336,7 +365,16 @@ export const WorkOrderDetails: React.FC = () => {
 
       {/* AI Cost & Material Estimation Component */}
       <div>
-        <CostEstimateCard estimate={workOrder.latestCostEstimate} items={workOrder.items} />
+        <CostEstimateCard
+          estimate={workOrder.latestCostEstimate}
+          items={workOrder.items}
+          onEdit={() => {
+            setPreviewEstimateData(null);
+            setShowEstimateModal(true);
+          }}
+          onGenerateAI={handleGenerateEstimate}
+          generating={estimating}
+        />
       </div>
 
       {/* Director Approval Panel (Section 21, 22, 23) */}
@@ -472,6 +510,26 @@ export const WorkOrderDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* AI Cost & Materials Estimation Review & Editor Modal */}
+      <CostEstimateEditorModal
+        isOpen={showEstimateModal}
+        onClose={() => {
+          setShowEstimateModal(false);
+          setPreviewEstimateData(null);
+        }}
+        initialEstimate={previewEstimateData || workOrder.latestCostEstimate}
+        initialItems={previewEstimateData ? previewEstimateData.items : workOrder.items}
+        onSave={handleSaveCustomEstimate}
+        onRegenerateAI={handleRegenerateAIEstimate}
+        saving={savingEstimate}
+        title={previewEstimateData ? 'Review & Customize AI Estimate' : 'Edit Work Order Cost & Materials'}
+        subtitle={
+          previewEstimateData
+            ? 'Gemini 2.0 suggested the following materials and budget. You can adjust costs, add or remove items before saving.'
+            : 'Modify estimated budget, labour/equipment costs, or add/remove materials from this work order.'
+        }
+      />
     </div>
   );
 };

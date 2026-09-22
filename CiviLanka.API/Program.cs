@@ -155,6 +155,10 @@ builder.Services.AddHttpClient<IAIService, GeminiService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(35);
 });
+builder.Services.AddHttpClient<IAgentServiceClient, AgentServiceClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 builder.Services.AddScoped<IAIResponseValidator, AIResponseValidator>();
 builder.Services.AddScoped<IAIConfidenceService, AIConfidenceService>();
 builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();

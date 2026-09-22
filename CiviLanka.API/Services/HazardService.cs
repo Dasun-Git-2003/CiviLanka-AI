@@ -42,9 +42,16 @@ namespace CiviLanka.API.Services
 
         public async Task<HazardResponseDto> CreateHazardAsync(string citizenId, CreateHazardDto dto)
         {
-            // Generate ticket number: CG-{YYYY}-{NNNNN}
+            // Generate ticket number: CG-{YYYY}-{NNNNN} with collision guard
             var seq = await _repo.GetNextSequenceAsync();
             var ticket = $"CG-{DateTime.UtcNow.Year}-{seq:D5}";
+
+            int attempts = 0;
+            while (await _repo.ExistsTicketAsync(ticket))
+            {
+                attempts++;
+                ticket = $"CG-{DateTime.UtcNow.Year}-{(seq + attempts):D5}";
+            }
 
             // Reverse-geocode address if coordinates provided
             string? address = null;

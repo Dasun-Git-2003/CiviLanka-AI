@@ -59,6 +59,7 @@ export interface MaintenanceRecord {
   location?: string;
   hazardCategory?: string;
   hazardTicket?: string;
+  assignedCrew?: string;
 
   assetId?: string;
   assetName?: string;
