@@ -26,9 +26,9 @@ const AI_AGENTS = [
     title: 'Hazard Classification Agent',
     badge: 'VISION & DEFECT TRIAGE',
     icon: Scan,
-    borderColor: 'border-cyan-200 hover:border-cyan-400',
-    iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-200',
-    badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    borderColor: 'border-amber-200 hover:border-amber-400',
+    iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
     summary: 'Analyzes citizen photos and descriptions to classify defects, determine severity (Low to Critical), and calculate emergency response hours.',
     features: [
       'Pothole, water leak, and road fracture classification',
@@ -134,7 +134,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-cyan-500 selection:text-white">
+    <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
       {/* ── CLEAN PRIMARY NAVIGATION BAR ──────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
@@ -145,18 +145,18 @@ export default function LandingPage() {
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
-            <a href="#ai-agents" className="hover:text-cyan-700 transition-colors py-1">
+            <a href="#ai-agents" className="hover:text-amber-600 transition-colors py-1">
               AI Architecture
             </a>
-            <a href="#pipeline" className="hover:text-cyan-700 transition-colors py-1">
+            <a href="#pipeline" className="hover:text-amber-600 transition-colors py-1">
               How It Works
             </a>
-            <a href="#impact" className="hover:text-cyan-700 transition-colors py-1">
+            <a href="#impact" className="hover:text-amber-600 transition-colors py-1">
               Measurable Impact
             </a>
-            <Link to="/ai-intelligence" className="hover:text-cyan-700 transition-colors py-1 flex items-center gap-1">
+            <Link to="/ai-intelligence" className="hover:text-amber-600 transition-colors py-1 flex items-center gap-1.5">
               <span>AI Console</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             </Link>
           </nav>
 
@@ -164,17 +164,17 @@ export default function LandingPage() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-200"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-200 hover:border-amber-300"
             >
-              <Shield className="w-3.5 h-3.5 text-cyan-700" />
+              <Shield className="w-3.5 h-3.5 text-amber-600" />
               <span>Officer Sign-In</span>
             </Link>
 
             <Link
               to="/citizen"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white rounded-xl bg-cyan-700 hover:bg-cyan-800 shadow-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 shadow-sm transition-all active:scale-[0.98]"
             >
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-300" />
+              <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
               <span>Report an Issue</span>
             </Link>
 
@@ -196,28 +196,28 @@ export default function LandingPage() {
             <a
               href="#ai-agents"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-slate-50"
             >
               AI Architecture
             </a>
             <a
               href="#pipeline"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-slate-50"
             >
               How It Works
             </a>
             <a
               href="#impact"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-slate-50"
             >
               Measurable Impact
             </a>
             <Link
               to="/ai-intelligence"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-medium text-cyan-700 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-amber-700 hover:bg-slate-50"
             >
               AI Intelligence Console
             </Link>
@@ -227,7 +227,7 @@ export default function LandingPage() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2"
               >
-                <Shield className="w-4 h-4 text-cyan-700" />
+                <Shield className="w-4 h-4 text-amber-600" />
                 <span>Officer Sign-In</span>
               </Link>
             </div>
@@ -245,8 +245,8 @@ export default function LandingPage() {
         {/* Hero Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 flex flex-col items-center text-center">
           {/* Understated Clean Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-cyan-400/30 text-xs text-cyan-300 backdrop-blur-md mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/80 border border-amber-400/40 text-xs text-amber-300 backdrop-blur-md mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
             <span className="font-medium tracking-wide">
               National Municipal Infrastructure Intelligence Platform
             </span>
@@ -256,7 +256,7 @@ export default function LandingPage() {
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white font-display leading-[1.08] max-w-4xl drop-shadow-md">
             Smarter Infrastructure.
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-blue-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-sm">
               Safer Cities.
             </span>
           </h1>
@@ -271,16 +271,16 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/citizen"
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm shadow-lg shadow-cyan-950/50 transition-all duration-200 active:scale-[0.98]"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-950/50 transition-all duration-200 active:scale-[0.98]"
             >
-              <AlertTriangle className="w-4 h-4 text-amber-300 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
               <span>Report an Issue</span>
-              <ArrowRight className="w-4 h-4 shrink-0" />
+              <ArrowRight className="w-4 h-4 shrink-0 text-slate-950" />
             </Link>
 
             <a
               href="#ai-agents"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/95 hover:bg-white text-slate-900 font-semibold text-sm border border-slate-200 shadow-md backdrop-blur-md transition-all duration-200 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/95 hover:bg-white text-slate-900 hover:border-amber-400/50 font-semibold text-sm border border-slate-200 shadow-md backdrop-blur-md transition-all duration-200 active:scale-[0.98]"
             >
               <span>Explore Platform</span>
               <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
@@ -293,8 +293,8 @@ export default function LandingPage() {
       <section id="ai-agents" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-xs font-mono font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-700" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200/80 text-xs font-mono font-bold mb-3">
+              <Sparkles className="w-3.5 h-3.5 text-amber-700" />
               <span>CORE ARCHITECTURE</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
@@ -334,7 +334,7 @@ export default function LandingPage() {
                     <ul className="space-y-1.5 pt-3 border-t border-slate-100 text-xs text-slate-700">
                       {agent.features.map((feat, fIdx) => (
                         <li key={fIdx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-700 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
                           <span className="text-[11px] leading-tight">{feat}</span>
                         </li>
                       ))}
@@ -348,7 +348,7 @@ export default function LandingPage() {
           <div className="mt-10 text-center">
             <Link
               to="/ai-intelligence"
-              className="inline-flex items-center gap-2 text-xs font-bold text-cyan-800 hover:text-cyan-900 transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 hover:text-amber-900 transition-colors"
             >
               <span>View live AI telemetry and testing console</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -382,7 +382,7 @@ export default function LandingPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-cyan-700 shadow-2xs">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-700 shadow-2xs">
                         <IconComp className="w-5 h-5" />
                       </div>
                       <span className="text-2xl font-black font-mono text-slate-300">
@@ -404,7 +404,7 @@ export default function LandingPage() {
       <section id="impact" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-xs font-mono font-bold mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200/80 text-xs font-mono font-bold mb-3">
               <span>PROVEN METRICS</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
@@ -423,7 +423,7 @@ export default function LandingPage() {
               >
                 <div>
                   <div className="text-3xl font-black font-mono text-slate-900">{metric.stat}</div>
-                  <div className="text-xs font-bold text-cyan-800 mt-2">{metric.label}</div>
+                  <div className="text-xs font-bold text-amber-800 mt-2">{metric.label}</div>
                   <p className="text-xs text-slate-600 mt-2 leading-relaxed">{metric.desc}</p>
                 </div>
               </div>
@@ -445,7 +445,7 @@ export default function LandingPage() {
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/citizen"
-              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-[0.98]"
             >
               <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
               <span>Report an Issue</span>
@@ -453,9 +453,9 @@ export default function LandingPage() {
 
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 hover:border-amber-400/40 transition-all active:scale-[0.98]"
             >
-              <Shield className="w-4 h-4 text-cyan-400 shrink-0" />
+              <Shield className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Officer Sign-In</span>
             </Link>
           </div>
@@ -548,7 +548,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex justify-between">
                   <span>Water Board:</span>
-                  <span className="text-cyan-400 font-bold">1939</span>
+                  <span className="text-amber-400 font-bold">1939</span>
                 </li>
                 <li className="flex justify-between">
                   <span>Electricity Board:</span>
