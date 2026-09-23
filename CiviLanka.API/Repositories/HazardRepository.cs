@@ -13,9 +13,11 @@ namespace CiviLanka.API.Repositories
         Task<Hazard> CreateAsync(Hazard hazard);
         Task<Hazard> UpdateAsync(Hazard hazard);
         Task<int> GetNextSequenceAsync();
+        Task<bool> ExistsTicketAsync(string ticketNumber);
         Task<HazardAIAnalysis> AddAnalysisAsync(HazardAIAnalysis analysis);
         Task<HazardAIAnalysis?> GetLatestAnalysisAsync(Guid hazardId);
         Task<List<HazardAIAnalysis>> GetAllAnalysesAsync(Guid hazardId);
+        Task<bool> DeleteAsync(Guid id);
     }
 
     public class HazardRepository : IHazardRepository
@@ -38,7 +40,7 @@ namespace CiviLanka.API.Repositories
         {
             return await _db.Hazards
                 .Include(h => h.Citizen)
-                .Include(h => h.AIAnalyses.OrderByDescending(a => a.CreatedAt))
+                .Include(h => h.AIAnalyses)
                 .FirstOrDefaultAsync(h => h.Id == id);
         }
 
@@ -78,8 +80,30 @@ namespace CiviLanka.API.Repositories
 
         public async Task<int> GetNextSequenceAsync()
         {
-            // Count total hazards (including cancelled) for unique ticket numbering
-            return await _db.Hazards.CountAsync() + 1;
+            var currentYear = DateTime.UtcNow.Year;
+            var prefix = $"CG-{currentYear}-";
+
+            var ticketNumbers = await _db.Hazards
+                .Where(h => h.TicketNumber.StartsWith(prefix))
+                .Select(h => h.TicketNumber)
+                .ToListAsync();
+
+            int maxSeq = 0;
+            foreach (var t in ticketNumbers)
+            {
+                var numPart = t.Substring(prefix.Length);
+                if (int.TryParse(numPart, out int seq) && seq > maxSeq)
+                {
+                    maxSeq = seq;
+                }
+            }
+
+            return maxSeq + 1;
+        }
+
+        public async Task<bool> ExistsTicketAsync(string ticketNumber)
+        {
+            return await _db.Hazards.AnyAsync(h => h.TicketNumber == ticketNumber);
         }
 
         public async Task<HazardAIAnalysis> AddAnalysisAsync(HazardAIAnalysis analysis)
@@ -103,6 +127,23 @@ namespace CiviLanka.API.Repositories
                 .Where(a => a.HazardId == hazardId)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var hazard = await _db.Hazards
+                .Include(h => h.AIAnalyses)
+                .FirstOrDefaultAsync(h => h.Id == id);
+            if (hazard == null) return false;
+
+            if (hazard.AIAnalyses != null && hazard.AIAnalyses.Count > 0)
+            {
+                _db.HazardAIAnalyses.RemoveRange(hazard.AIAnalyses);
+            }
+
+            _db.Hazards.Remove(hazard);
+            await _db.SaveChangesAsync();
+            return true;
         }
     }
 }

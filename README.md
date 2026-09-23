@@ -10,20 +10,24 @@
 
 ```
 CiviLanka-AI/
-├── CiviLanka.API/          ← Shared ASP.NET Core 8 backend (all members extend this)
-└── CiviLanka.App/          ← Flutter citizen mobile app (Member 1)
+├── CiviLanka.API/          ← Shared ASP.NET Core 8 backend (Members 1 & 2)
+├── CiviLanka.App/          ← Flutter citizen mobile app (Member 1)
+├── CiviLanka.Web/          ← React + Vite municipal dashboard (Member 2)
+└── CiviLanka.Agent/        ← Agentic AI RAG system with BM25 + Vector Search (Member 2)
 ```
 
 ---
 
 ## Prerequisites
 
-| Tool | Version |
-|---|---|
-| .NET SDK | 8.0+ |
-| PostgreSQL | 14+ |
-| Flutter | 3.x |
-| dotnet-ef | installed globally |
+| Tool       | Version                  |
+| ---------- | ------------------------ |
+| .NET SDK   | 8.0+                     |
+| PostgreSQL | 14+                      |
+| Flutter    | 3.x                      |
+| Python     | 3.10+ (tested with 3.13) |
+| Node.js    | 18+ (for CiviLanka.Web)  |
+| dotnet-ef  | installed globally       |
 
 ---
 
@@ -68,20 +72,20 @@ Swagger UI is available at `http://localhost:5000` (root).
 
 ## REST API Endpoints
 
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/register` | Public | Register citizen |
-| POST | `/api/auth/login` | Public | Get JWT token |
-| POST | `/api/hazards` | JWT | Submit hazard |
-| GET | `/api/hazards/my` | JWT | My hazard list |
-| GET | `/api/hazards/{id}` | JWT | Hazard detail |
-| PUT | `/api/hazards/{id}` | JWT | Update (editable states only) |
-| DELETE | `/api/hazards/{id}` | JWT | Soft-cancel |
-| POST | `/api/hazards/{id}/analyze` | Staff JWT | Re-trigger AI |
-| GET | `/api/hazards/{id}/ai-analysis` | JWT | Latest AI result |
-| GET | `/api/hazards` | Staff JWT | All hazards (Members 2–4) |
-| POST | `/api/hazards/upload-image` | JWT | Upload photo |
-| GET | `/health` | Public | Health check |
+| Method | Route                           | Auth      | Description                   |
+| ------ | ------------------------------- | --------- | ----------------------------- |
+| POST   | `/api/auth/register`            | Public    | Register citizen              |
+| POST   | `/api/auth/login`               | Public    | Get JWT token                 |
+| POST   | `/api/hazards`                  | JWT       | Submit hazard                 |
+| GET    | `/api/hazards/my`               | JWT       | My hazard list                |
+| GET    | `/api/hazards/{id}`             | JWT       | Hazard detail                 |
+| PUT    | `/api/hazards/{id}`             | JWT       | Update (editable states only) |
+| DELETE | `/api/hazards/{id}`             | JWT       | Soft-cancel                   |
+| POST   | `/api/hazards/{id}/analyze`     | Staff JWT | Re-trigger AI                 |
+| GET    | `/api/hazards/{id}/ai-analysis` | JWT       | Latest AI result              |
+| GET    | `/api/hazards`                  | Staff JWT | All hazards (Members 2–4)     |
+| POST   | `/api/hazards/upload-image`     | JWT       | Upload photo                  |
+| GET    | `/health`                       | Public    | Health check                  |
 
 ---
 
@@ -90,10 +94,12 @@ Swagger UI is available at `http://localhost:5000` (root).
 Built with **Microsoft Semantic Kernel + Google Gemini `gemini-2.0-flash`**.
 
 The agent uses two tool functions:
+
 - `GeocodeAddress(lat, lon)` — Nominatim reverse geocoding
 - `GetNearbyInfrastructureHint(lat, lon)` — Location context
 
 The agent produces:
+
 ```json
 {
   "category": "Pothole",
@@ -135,13 +141,75 @@ flutter run
 
 ---
 
+## Member 2: Agentic AI Infrastructure Cost Estimator (`CiviLanka.Agent`)
+
+Built with **LangChain + LangGraph + ChromaDB + BM25 + Google Gemini** for Sri Lanka municipal civil infrastructure (CIDA/BSR rates, CMC/RDA/NWSDB repair specifications).
+
+### Setup & Run Commands (Windows PowerShell)
+
+#### 1. Navigate to directory:
+
+```powershell
+cd "d:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.Agent"
+```
+
+#### 2. Create and activate virtual environment:
+
+```powershell
+python -m venv .venv
+
+# Allow execution if restricted on PowerShell:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+
+.\.venv\Scripts\Activate.ps1
+```
+
+#### 3. Upgrade pip and install dependencies:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install jupyterlab ipykernel
+```
+
+#### 4. Configure `.env` (Gemini API Key):
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+# Set: GEMINI_API_KEY=AIzaSy...
+```
+
+#### 5. Register Jupyter kernel:
+
+```powershell
+python -m ipykernel install --user --name civilanka-agent --display-name "CiviLanka Agent (Sri Lanka RAG)"
+```
+
+#### 6. Launch testing notebook:
+
+```powershell
+python -m jupyter lab agent_testing.ipynb
+```
+
+#### 7. Run FastAPI REST backend server:
+
+```powershell
+uvicorn main:app --reload --port 8001
+```
+
+- Swagger UI: `http://127.0.0.1:8001/docs`
+- Health check: `http://127.0.0.1:8001/health`
+
+---
+
 ## Integration with Other Members
 
-| Member | How to Integrate |
-|---|---|
-| **Member 2** (Infrastructure) | `GET /api/hazards/{id}` with Staff JWT returns full hazard + GPS |
-| **Member 3** (Work Orders) | `GET /api/hazards` returns all hazards with `severity`, `riskLevel`, `priority`, `latestAIAnalysis.reason` |
-| **Member 4** (Maintenance) | Same as Member 3; filter by `status=AnalysisComplete` |
+| Member                        | How to Integrate                                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Member 2** (Infrastructure) | `GET /api/hazards/{id}` with Staff JWT returns full hazard + GPS                                           |
+| **Member 3** (Work Orders)    | `GET /api/hazards` returns all hazards with `severity`, `riskLevel`, `priority`, `latestAIAnalysis.reason` |
+| **Member 4** (Maintenance)    | Same as Member 3; filter by `status=AnalysisComplete`                                                      |
 
 All members add their own models/controllers to `CiviLanka.API` and their own `DbSet<>` entries in `Data/AppDbContext.cs`.
 
@@ -150,8 +218,9 @@ All members add their own models/controllers to `CiviLanka.API` and their own `D
 ## Soft Delete Design
 
 Municipal hazard records are **never physically deleted**. Instead, `IsCancelled = true` and `Status = "Cancelled"` is set. This preserves:
+
 - Safety audit trails
-- Legal compliance records  
+- Legal compliance records
 - Municipal reporting history
 
 Citizens cannot see cancelled hazards in their list, but municipal staff can.
@@ -173,7 +242,7 @@ Citizens may edit/cancel only in `Submitted` or `PendingAIAnalysis` states.
 ## Definition of Done ✅
 
 - [x] Citizen registration works
-- [x] Citizen login works  
+- [x] Citizen login works
 - [x] JWT authentication works
 - [x] Citizen can CREATE a hazard
 - [x] Citizen can READ their hazards

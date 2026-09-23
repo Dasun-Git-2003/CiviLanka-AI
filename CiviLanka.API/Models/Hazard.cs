@@ -95,8 +95,8 @@ namespace CiviLanka.API.Models
         public const string Resolved = "Resolved";
         public const string Cancelled = "Cancelled";
 
-        /// <summary>States where a citizen is allowed to edit their report.</summary>
-        public static readonly string[] EditableStates = { Submitted, PendingAIAnalysis };
+        /// <summary>States where a citizen is allowed to edit or cancel their report.</summary>
+        public static readonly string[] EditableStates = { Submitted, PendingAIAnalysis, AnalysisComplete, UnderReview };
     }
 
     /// <summary>Allowed hazard categories.</summary>
