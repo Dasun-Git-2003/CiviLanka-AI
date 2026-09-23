@@ -9,7 +9,66 @@
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   body {
-    @apply bg-slate-50 text-slate-900 antialiased selection:bg-cyan-500/20 selection:text-cyan-950;
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300;
+  }
+
+  /* ── Universal Dark Theme Legibility for Headings & Text ── */
+  html.dark h1,
+  html.dark h2,
+  html.dark h3,
+  html.dark h4,
+  html.dark h5,
+  html.dark h6 {
+    color: #ffffff;
+  }
+
+  html.dark .text-slate-900:not([class*="dark:text-"]) {
+    color: #f8fafc;
+  }
+
+  html.dark .text-slate-800:not([class*="dark:text-"]) {
+    color: #f1f5f9;
+  }
+
+  html.dark .text-slate-700:not([class*="dark:text-"]) {
+    color: #e2e8f0;
+  }
+
+  html.dark .text-slate-600:not([class*="dark:text-"]) {
+    color: #cbd5e1;
+  }
+
+  html.dark .text-slate-500:not([class*="dark:text-"]) {
+    color: #94a3b8;
+  }
+
+  /* ── Universal Dark Theme Surfaces for Cards & Tables ── */
+  html.dark .bg-white:not([class*="dark:bg-"]) {
+    background-color: #0f172a;
+  }
+
+  html.dark .bg-slate-50:not([class*="dark:bg-"]) {
+    background-color: #020617;
+  }
+
+  html.dark .border-slate-200:not([class*="dark:border-"]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .border-slate-100:not([class*="dark:border-"]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .border-slate-300:not([class*="dark:border-"]) {
+    border-color: #334155;
+  }
+
+  html.dark .divide-slate-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .divide-slate-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
   }
 }
 

@@ -233,7 +233,7 @@ function Sidebar() {
     <div className="w-64 bg-slate-900 text-slate-300 min-h-screen flex flex-col border-r border-slate-800 select-none">
       <div className="p-6 border-b border-slate-800">
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-primary-500" />
+          <Wrench className="w-6 h-6 text-amber-500" />
           CivitaGuard
         </h1>
         <div className="mt-2 flex items-center gap-1.5">
@@ -246,7 +246,7 @@ function Sidebar() {
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.title}>
-            <div className="text-[10px] font-bold tracking-wider uppercase text-slate-400 px-3 mb-2">
+            <div className="text-[10px] font-bold tracking-wider uppercase text-slate-400 px-3 mb-2 font-gis">
               {section.title}
             </div>
             <div className="space-y-1">
@@ -260,14 +260,14 @@ function Sidebar() {
                     to={item.path}
                     className={twMerge(
                       clsx(
-                        'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-colors',
+                        'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all',
                         isActive
-                          ? 'bg-primary-600 text-white font-semibold shadow-xs'
-                          : 'hover:bg-slate-800 hover:text-white'
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 active:scale-[0.98]'
+                          : 'hover:bg-slate-800 hover:text-white text-slate-300'
                       )
                     )}
                   >
-                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <item.icon className={twMerge('w-4 h-4 flex-shrink-0', isActive ? 'text-slate-950' : 'text-slate-400')} />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -278,7 +278,7 @@ function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-        <span className="text-[11px] font-mono uppercase">{role} ACTIVE</span>
+        <span className="text-[11px] font-mono uppercase text-amber-400/90">{role} ACTIVE</span>
         <button
           onClick={handleLogout}
           className="p-1.5 hover:text-red-400 hover:bg-slate-800 rounded transition-colors"
@@ -317,7 +317,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="View & Edit My Profile"
             >
-              <div className="w-7 h-7 bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 rounded-full flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs">
                 {user?.fullName ? user.fullName[0].toUpperCase() : 'M'}
               </div>
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">
