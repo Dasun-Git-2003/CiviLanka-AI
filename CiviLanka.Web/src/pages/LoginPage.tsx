@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Shield, AlertTriangle, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { authService } from '../services/authService';
+import ThemeToggle from '../components/ThemeToggle';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -93,23 +94,28 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── RIGHT 50%: Clean White Form Panel ──────────────────────────────── */}
-      <div className="md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white">
+      {/* ── RIGHT 50%: Form Panel (Unified with Landing Page Amber Theme & Dark Mode) ── */}
+      <div className="relative md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+        {/* Top-Right Theme Toggle Switch */}
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle />
+        </div>
+
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="space-y-1.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Welcome Back
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-normal">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal">
               Sign in to your CivitaGuard AI account.
             </p>
           </div>
 
-          {/* Error Alert (Reserved Amber/Red for errors) */}
+          {/* Error Alert */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 text-xs flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl p-3.5 text-xs flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <div className="leading-relaxed font-medium">{error}</div>
             </div>
           )}
@@ -118,7 +124,7 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 font-gis">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 font-gis">
                 EMAIL ADDRESS
               </label>
               <input
@@ -127,14 +133,14 @@ export const LoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@municipality.gov.lk"
-                className="w-full px-4 py-3 rounded-lg bg-white border border-slate-300 focus:border-cyan-600 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-amber-500 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-sans shadow-2xs"
               />
             </div>
 
             {/* Password Field */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-700 font-gis">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 font-gis">
                   PASSWORD
                 </label>
                 <a
@@ -143,7 +149,7 @@ export const LoginPage: React.FC = () => {
                     e.preventDefault();
                     alert('Password reset link will be sent to your registered municipal email address.');
                   }}
-                  className="text-xs font-semibold text-cyan-700 hover:text-cyan-800 transition-colors"
+                  className="text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 transition-colors"
                 >
                   Forgot password?
                 </a>
@@ -156,12 +162,12 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
-                  className="w-full pl-4 pr-11 py-3 rounded-lg bg-white border border-slate-300 focus:border-cyan-600 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans shadow-2xs"
+                  className="w-full pl-4 pr-11 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-amber-500 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-sans shadow-2xs"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -176,28 +182,28 @@ export const LoginPage: React.FC = () => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-amber-600 focus:ring-amber-500 accent-amber-500"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-xs text-slate-600 font-medium">
+              <label htmlFor="remember-me" className="ml-2 block text-xs text-slate-600 dark:text-slate-400 font-medium">
                 Remember this workstation for 30 days
               </label>
             </div>
 
-            {/* Primary Sign In Button */}
+            {/* Primary Sign In Button (Landing page gold/amber gradient theme) */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-md shadow-cyan-600/20 hover:shadow-cyan-600/35 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                   <span>Authenticating...</span>
                 </>
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-slate-950" />
                 </>
               )}
             </button>
@@ -205,10 +211,10 @@ export const LoginPage: React.FC = () => {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
+                <div className="w-full border-t border-slate-200 dark:border-slate-800" />
               </div>
               <div className="relative flex justify-center text-[10px] font-gis uppercase">
-                <span className="bg-white px-3 text-slate-400 font-bold">OR</span>
+                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500 font-bold">OR</span>
               </div>
             </div>
 
@@ -218,7 +224,7 @@ export const LoginPage: React.FC = () => {
               onClick={() => {
                 alert('Google SSO for Municipalities is configured via SAML / OpenID Connect.');
               }}
-              className="w-full py-2.5 px-4 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-xs font-semibold text-slate-700 transition-colors flex items-center justify-center gap-2 shadow-2xs"
+              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 shadow-2xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -243,16 +249,16 @@ export const LoginPage: React.FC = () => {
           </form>
 
           {/* Bottom Switcher */}
-          <div className="text-center pt-2 text-xs text-slate-600">
+          <div className="text-center pt-2 text-xs text-slate-600 dark:text-slate-400">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-cyan-700 font-bold hover:underline ml-1">
+            <Link to="/register" className="text-amber-600 dark:text-amber-400 font-bold hover:underline ml-1">
               Create an account
             </Link>
           </div>
 
           {/* Quick Demo Test Accounts for RBAC */}
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-gis text-center">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-gis text-center">
               Quick Test Credentials &bull; 4 RBAC Roles
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -262,10 +268,10 @@ export const LoginPage: React.FC = () => {
                   setEmail('citizen@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-left transition-colors"
+                className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-left transition-colors"
               >
                 <div className="font-bold text-[11px]">1. Citizen</div>
-                <div className="text-[10px] text-emerald-600 truncate">citizen@test.com</div>
+                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 truncate">citizen@test.com</div>
               </button>
 
               <button
@@ -274,10 +280,10 @@ export const LoginPage: React.FC = () => {
                   setEmail('fieldworker@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-left transition-colors"
+                className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-left transition-colors"
               >
                 <div className="font-bold text-[11px]">2. Field Worker</div>
-                <div className="text-[10px] text-amber-600 truncate">fieldworker@test.com</div>
+                <div className="text-[10px] text-amber-600 dark:text-amber-400 truncate">fieldworker@test.com</div>
               </button>
 
               <button
@@ -286,10 +292,10 @@ export const LoginPage: React.FC = () => {
                   setEmail('supervisor@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 text-left transition-colors"
+                className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/60 text-blue-800 dark:text-blue-300 text-left transition-colors"
               >
                 <div className="font-bold text-[11px]">3. Supervisor</div>
-                <div className="text-[10px] text-blue-600 truncate">supervisor@test.com</div>
+                <div className="text-[10px] text-blue-600 dark:text-blue-400 truncate">supervisor@test.com</div>
               </button>
 
               <button
@@ -298,10 +304,10 @@ export const LoginPage: React.FC = () => {
                   setEmail('director@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 text-left transition-colors"
+                className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 text-purple-800 dark:text-purple-300 text-left transition-colors"
               >
                 <div className="font-bold text-[11px]">4. PW Director</div>
-                <div className="text-[10px] text-purple-600 truncate">director@test.com</div>
+                <div className="text-[10px] text-purple-600 dark:text-purple-400 truncate">director@test.com</div>
               </button>
             </div>
           </div>
