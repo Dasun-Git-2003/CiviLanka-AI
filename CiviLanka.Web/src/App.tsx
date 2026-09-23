@@ -23,6 +23,10 @@ import {
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Theme Support
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
+
 // Public Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -292,16 +296,17 @@ function Layout({ children }: { children: React.ReactNode }) {
   const roleMeta = getRoleMeta(user?.role);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 flex items-center justify-between transition-colors">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-700">CivitaGuard AI</span>
-            <span className="text-slate-300">&bull;</span>
-            <span className="text-xs text-slate-500 font-medium">Municipal Management Console</span>
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">CivitaGuard AI</span>
+            <span className="text-slate-300 dark:text-slate-600">&bull;</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Municipal Management Console</span>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <span
               className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${roleMeta.badgeClass}`}
             >
@@ -309,13 +314,13 @@ function Layout({ children }: { children: React.ReactNode }) {
             </span>
             <Link
               to="/profile"
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="View & Edit My Profile"
             >
-              <div className="w-7 h-7 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 rounded-full flex items-center justify-center font-bold text-xs">
                 {user?.fullName ? user.fullName[0].toUpperCase() : 'M'}
               </div>
-              <span className="text-xs font-semibold text-slate-700 hidden sm:inline">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">
                 {user?.fullName || 'Municipal User'}
               </span>
             </Link>
@@ -329,8 +334,9 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ThemeProvider>
+      <Router>
+        <Routes>
         {/* ── Public & Authenticated Core Routes ────────────────────────────── */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -585,6 +591,7 @@ function App() {
         <Route path="*" element={<AccessDeniedPage />} />
       </Routes>
     </Router>
+  </ThemeProvider>
   );
 }
 
