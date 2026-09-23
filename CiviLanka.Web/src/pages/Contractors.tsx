@@ -510,14 +510,14 @@ export default function Contractors() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Contractor Management</h1>
-          <p className="text-slate-500 text-sm mt-1">Directory of specialized municipal contractors.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Contractor Management</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Directory of specialized municipal contractors.</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm text-sm"
+          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] cursor-pointer flex items-center gap-2"
         >
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="w-4 h-4 text-slate-950" />
           Add Contractor
         </button>
       </div>
@@ -527,13 +527,15 @@ export default function Contractors() {
         {contractors.map((contractor) => (
           <div
             key={contractor.id}
-            className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
+            className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
           >
             <div className="p-6 flex-1">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="font-bold text-lg text-slate-900 leading-tight">{contractor.name}</h3>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 ${
-                  contractor.available ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">{contractor.name}</h3>
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 border ${
+                  contractor.available
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                    : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60'
                 }`}>
                   {contractor.available ? 'Available' : 'Busy'}
                 </span>
@@ -541,42 +543,42 @@ export default function Contractors() {
 
               <div className="space-y-2.5">
                 <div>
-                  <span className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium border border-blue-100">
+                  <span className="inline-flex items-center px-2 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-md text-xs font-medium border border-amber-200 dark:border-amber-800/60">
                     {contractor.spec}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />
-                  <span className="font-semibold text-slate-900">{contractor.rating > 0 ? contractor.rating : '—'}</span>
-                  <span className="text-slate-400 text-xs">(Based on {contractor.jobCount} jobs)</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{contractor.rating > 0 ? contractor.rating : '—'}</span>
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">(Based on {contractor.jobCount} jobs)</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
                   {contractor.location}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <Phone className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0" />
                   {contractor.phone}
                 </div>
                 {contractor.assignments.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs text-violet-600 font-medium bg-violet-50 rounded-lg px-3 py-1.5 border border-violet-100">
-                    <Briefcase className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300 font-medium bg-amber-50 dark:bg-amber-950/40 rounded-lg px-3 py-1.5 border border-amber-200 dark:border-amber-800/60">
+                    <Briefcase className="w-3.5 h-3.5 text-amber-500" />
                     {contractor.assignments.length} active assignment{contractor.assignments.length > 1 ? 's' : ''}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="border-t border-slate-100 p-4 bg-slate-50 flex gap-3">
+            <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-950/60 flex gap-3">
               <button
                 onClick={() => setViewTarget(contractor)}
-                className="flex-1 bg-white border border-slate-300 text-slate-700 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 View Profile
               </button>
               <button
                 onClick={() => setAssignTarget(contractor)}
-                className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 py-2 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] cursor-pointer"
               >
                 Assign Work
               </button>
