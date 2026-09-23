@@ -21,7 +21,7 @@ export default function CiviLankaLogo({
           alt="CiviLanka Logo"
           width={size}
           height={size}
-          className="rounded-full object-cover shadow-sm ring-1 ring-amber-500/25 transition-transform hover:scale-105"
+          className="rounded-full object-cover shadow-sm ring-1 ring-amber-500/40 hover:ring-amber-500/80 transition-transform hover:scale-105"
           style={{ width: `${size}px`, height: `${size}px` }}
         />
       </picture>
@@ -37,7 +37,7 @@ export default function CiviLankaLogo({
             >
               CiviLanka
             </span>
-            <span className="text-[11px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-cyan-600 text-white shadow-xs">
+            <span className="text-[11px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-xs border border-amber-500/30">
               AI
             </span>
           </div>
