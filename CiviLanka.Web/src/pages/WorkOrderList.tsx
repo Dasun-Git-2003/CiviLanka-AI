@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Plus, RotateCw, Trash2, ExternalLink } from 'lucide-react';
+import { Search, Filter, Plus, RotateCw, Trash2, ExternalLink, Wrench, ShieldAlert } from 'lucide-react';
 import { workOrderService } from '../services/workOrderService';
 import { StatusBadge } from '../components/StatusBadge';
 import { PriorityBadge } from '../components/PriorityBadge';
@@ -169,7 +169,18 @@ export const WorkOrderList: React.FC = () => {
                     </td>
 
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-900 line-clamp-1">{wo.title}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-900 line-clamp-1">{wo.title}</span>
+                        {wo.isArterialRoad && (
+                          <span
+                            title="Arterial Road (Higher traffic & safety priority)"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 flex-shrink-0"
+                          >
+                            <ShieldAlert className="w-2.5 h-2.5 text-rose-600" />
+                            Arterial
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[11px] text-slate-500 line-clamp-1">{wo.description}</div>
                     </td>
 
@@ -192,9 +203,20 @@ export const WorkOrderList: React.FC = () => {
                           Approved
                         </span>
                       ) : wo.approvalStatus === 'PENDING' ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          Pending
-                        </span>
+                        <div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 inline-block">
+                            Pending Director
+                          </span>
+                          {wo.approvalReason && wo.approvalReason !== 'None' && (
+                            <div className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                              {wo.approvalReason === 'Both'
+                                ? 'Cost & Arterial'
+                                : wo.approvalReason === 'ArterialRoadRisk'
+                                ? 'Arterial Road'
+                                : 'Cost Threshold'}
+                            </div>
+                          )}
+                        </div>
                       ) : wo.approvalStatus === 'REJECTED' ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
                           Rejected
@@ -210,6 +232,15 @@ export const WorkOrderList: React.FC = () => {
 
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {['APPROVED', 'ASSIGNED', 'SCHEDULED', 'IN_PROGRESS'].includes(wo.status) && (
+                          <Link
+                            to={`/maintenance/create?workOrderId=${wo.id}`}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded"
+                            title="Handoff to Maintenance (Member 4)"
+                          >
+                            <Wrench className="w-3.5 h-3.5" />
+                          </Link>
+                        )}
                         <Link
                           to={`/work-orders/${wo.id}`}
                           className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded"

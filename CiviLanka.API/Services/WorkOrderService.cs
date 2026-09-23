@@ -2,6 +2,7 @@ using CiviLanka.API.Agents;
 using CiviLanka.API.Data;
 using CiviLanka.API.DTOs.WorkOrders;
 using CiviLanka.API.Models;
+using CiviLanka.API.Models.Infrastructure;
 using CiviLanka.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,7 @@ namespace CiviLanka.API.Services
     {
         private readonly IWorkOrderRepository _repo;
         private readonly ICostEstimatorAgent _agent;
+        private readonly IWorkOrderApprovalPolicy _approvalPolicy;
         private readonly AppDbContext _db;
         private readonly IConfiguration _config;
         private readonly ILogger<WorkOrderService> _logger;
@@ -35,15 +37,28 @@ namespace CiviLanka.API.Services
         public WorkOrderService(
             IWorkOrderRepository repo,
             ICostEstimatorAgent agent,
+            IWorkOrderApprovalPolicy approvalPolicy,
             AppDbContext db,
             IConfiguration config,
             ILogger<WorkOrderService> logger)
         {
-            _repo   = repo;
-            _agent  = agent;
-            _db     = db;
-            _config = config;
-            _logger = logger;
+            _repo           = repo;
+            _agent          = agent;
+            _approvalPolicy = approvalPolicy;
+            _db             = db;
+            _config         = config;
+            _logger         = logger;
+        }
+
+        // Backwards-compatible constructor for existing tests or direct instantiations
+        public WorkOrderService(
+            IWorkOrderRepository repo,
+            ICostEstimatorAgent agent,
+            AppDbContext db,
+            IConfiguration config,
+            ILogger<WorkOrderService> logger)
+            : this(repo, agent, new WorkOrderApprovalPolicy(config), db, config, logger)
+        {
         }
 
         // ── CREATE ────────────────────────────────────────────────────────────
@@ -55,13 +70,20 @@ namespace CiviLanka.API.Services
             var number = $"WO-{DateTime.UtcNow.Year}-{seq:D5}";
 
             // Pull severity from the linked hazard's AI analysis
+            Hazard? hazard = null;
             string? severity = null;
             if (dto.HazardId.HasValue)
             {
-                var hazard = await _db.Hazards
+                hazard = await _db.Hazards
                     .Include(h => h.AIAnalyses.OrderByDescending(a => a.CreatedAt).Take(1))
                     .FirstOrDefaultAsync(h => h.Id == dto.HazardId.Value);
                 severity = hazard?.Severity ?? hazard?.AIAnalyses.FirstOrDefault()?.Severity;
+            }
+
+            InfrastructureAsset? asset = null;
+            if (!string.IsNullOrEmpty(dto.AssetId))
+            {
+                asset = await _db.InfrastructureAssets.FirstOrDefaultAsync(a => a.Id == dto.AssetId);
             }
 
             var workOrder = new WorkOrder
@@ -79,9 +101,15 @@ namespace CiviLanka.API.Services
                 CreatedBy       = createdByUserId,
             };
 
-            // Check if approval is required based on cost threshold
-            var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold)
+            // Evaluate approval requirements based on threshold and high-risk arterial road detection
+            var approvalEvaluation = _approvalPolicy.Evaluate(
+                dto.EstimatedCost,
+                hazard,
+                asset,
+                dto.Title,
+                dto.Description);
+
+            if (approvalEvaluation.RequiresDirectorApproval)
             {
                 workOrder.ApprovalRequired = true;
                 workOrder.ApprovalStatus   = Models.ApprovalStatus.Pending;
@@ -160,14 +188,23 @@ namespace CiviLanka.API.Services
                 wo.Status = dto.Status.ToUpperInvariant();
             }
 
-            // Re-evaluate approval when cost changes
-            var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold
-                && wo.ApprovalStatus == Models.ApprovalStatus.NotRequired)
+            // Re-evaluate approval when cost changes or if currently NotRequired
+            if (wo.ApprovalStatus == Models.ApprovalStatus.NotRequired)
             {
-                wo.ApprovalRequired = true;
-                wo.ApprovalStatus   = Models.ApprovalStatus.Pending;
-                wo.Status           = WorkOrderStatus.PendingApproval;
+                var effectiveCost = dto.EstimatedCost ?? wo.EstimatedCost;
+                var evaluation = _approvalPolicy.Evaluate(
+                    effectiveCost,
+                    wo.Hazard,
+                    wo.Asset,
+                    wo.Title,
+                    wo.Description);
+
+                if (evaluation.RequiresDirectorApproval)
+                {
+                    wo.ApprovalRequired = true;
+                    wo.ApprovalStatus   = Models.ApprovalStatus.Pending;
+                    wo.Status           = WorkOrderStatus.PendingApproval;
+                }
             }
 
             await _repo.UpdateAsync(wo);
@@ -225,19 +262,29 @@ namespace CiviLanka.API.Services
             var hazard = wo.Hazard;
             var asset  = wo.Asset;
 
+            var isArterial = _approvalPolicy.IsArterialRoad(
+                overrideDto?.Description,
+                hazard?.Address,
+                hazard?.Description,
+                asset?.Location,
+                asset?.Name,
+                wo.Title,
+                wo.Description);
+
             var input = new CostEstimationInput
             {
-                Category     = overrideDto?.Category ?? hazard?.Category ?? wo.Title,
-                Description  = overrideDto?.Description ?? hazard?.Description ?? wo.Description,
-                Severity     = overrideDto?.Severity ?? hazard?.Severity ?? wo.Severity,
-                RiskLevel    = hazard?.RiskLevel,
-                Priority     = overrideDto?.Priority ?? hazard?.Priority ?? wo.Priority,
-                Location     = hazard?.Address,
-                AssetId      = overrideDto?.AssetId ?? wo.AssetId,
-                AssetType    = asset?.Type,
+                Category       = overrideDto?.Category ?? hazard?.Category ?? wo.Title,
+                Description    = overrideDto?.Description ?? hazard?.Description ?? wo.Description,
+                Severity       = overrideDto?.Severity ?? hazard?.Severity ?? wo.Severity,
+                RiskLevel      = hazard?.RiskLevel,
+                Priority       = overrideDto?.Priority ?? hazard?.Priority ?? wo.Priority,
+                Location       = hazard?.Address ?? asset?.Location,
+                IsArterialRoad = isArterial,
+                AssetId        = overrideDto?.AssetId ?? wo.AssetId,
+                AssetType      = asset?.Type,
                 AssetCondition = asset?.Inspections
                     .OrderByDescending(i => i.InspectionDate).FirstOrDefault()?.Condition,
-                AssetAgeYears = asset?.InstallationDate.HasValue == true
+                AssetAgeYears  = asset?.InstallationDate.HasValue == true
                     ? (int)((DateTime.UtcNow - asset.InstallationDate.Value).TotalDays / 365)
                     : null
             };
@@ -249,21 +296,24 @@ namespace CiviLanka.API.Services
                 return null;
             }
 
-            // Validate core constraints (Section 20)
-            result.EstimatedCost         = Math.Max(0, result.EstimatedCost);
-            result.MaterialCost          = Math.Max(0, result.MaterialCost);
-            result.LabourCost            = Math.Max(0, result.LabourCost);
-            result.EquipmentCost         = Math.Max(0, result.EquipmentCost);
-            result.RecommendedCrewSize   = Math.Max(1, result.RecommendedCrewSize);
+            // Treat AI output as untrusted: validate and sanitize core constraints
+            result.EstimatedCost          = Math.Max(0, result.EstimatedCost);
+            result.MaterialCost           = Math.Max(0, result.MaterialCost);
+            result.LabourCost             = Math.Max(0, result.LabourCost);
+            result.EquipmentCost          = Math.Max(0, result.EquipmentCost);
+            result.RecommendedCrewSize    = Math.Max(1, result.RecommendedCrewSize);
             result.EstimatedDurationHours = Math.Max(0, result.EstimatedDurationHours);
-            result.Confidence            = Math.Clamp(result.Confidence, 0.0, 1.0);
+            result.EstimatedLabourHours   = Math.Max(0, result.EstimatedLabourHours);
+            result.Confidence             = Math.Clamp(result.Confidence, 0.0, 1.0);
+            result.Materials            ??= new List<RawMaterial>();
+            result.Equipment            ??= new List<string>();
 
             // Persist CostEstimate
             var estimate = new CostEstimate
             {
                 WorkOrderId           = workOrderId,
                 EstimatedCost         = result.EstimatedCost,
-                Currency              = result.Currency,
+                Currency              = string.IsNullOrWhiteSpace(result.Currency) ? "LKR" : result.Currency,
                 MaterialCost          = result.MaterialCost,
                 LabourCost            = result.LabourCost,
                 EquipmentCost         = result.EquipmentCost,
@@ -276,28 +326,39 @@ namespace CiviLanka.API.Services
             };
             await _repo.AddCostEstimateAsync(estimate);
 
-            // Persist WorkOrderItems (replace existing)
+            // Persist WorkOrderItems (replace existing) with sanitized quantities and costs
             await _repo.RemoveItemsAsync(workOrderId);
-            var items = result.Materials.Select(m => new WorkOrderItem
+            var items = result.Materials
+                .Where(m => !string.IsNullOrWhiteSpace(m.Name))
+                .Select(m => new WorkOrderItem
+                {
+                    WorkOrderId          = workOrderId,
+                    ItemType             = WorkOrderItemType.Material,
+                    ItemName             = m.Name.Trim(),
+                    Quantity             = Math.Max(0, m.Quantity),
+                    Unit                 = string.IsNullOrWhiteSpace(m.Unit) ? "units" : m.Unit.Trim(),
+                    EstimatedUnitCost    = Math.Max(0, m.UnitCost),
+                    EstimatedTotalCost   = Math.Max(0, m.UnitCost * (decimal)Math.Max(0, m.Quantity)),
+                }).ToList();
+
+            if (result.Equipment != null && result.Equipment.Count > 0)
             {
-                WorkOrderId          = workOrderId,
-                ItemType             = WorkOrderItemType.Material,
-                ItemName             = m.Name,
-                Quantity             = m.Quantity,
-                Unit                 = m.Unit,
-                EstimatedUnitCost    = m.UnitCost,
-                EstimatedTotalCost   = m.UnitCost * (decimal)m.Quantity,
-            }).ToList();
-            items.AddRange(result.Equipment.Select(e => new WorkOrderItem
-            {
-                WorkOrderId          = workOrderId,
-                ItemType             = WorkOrderItemType.Equipment,
-                ItemName             = e,
-                Quantity             = 1,
-                Unit                 = "unit",
-                EstimatedUnitCost    = result.EquipmentCost / Math.Max(result.Equipment.Count, 1),
-                EstimatedTotalCost   = result.EquipmentCost / Math.Max(result.Equipment.Count, 1),
-            }));
+                var validEquipment = result.Equipment.Where(e => !string.IsNullOrWhiteSpace(e)).ToList();
+                var equipCostPerItem = validEquipment.Count > 0 && result.EquipmentCost > 0
+                    ? Math.Round(result.EquipmentCost / validEquipment.Count, 2)
+                    : 0m;
+
+                items.AddRange(validEquipment.Select(e => new WorkOrderItem
+                {
+                    WorkOrderId          = workOrderId,
+                    ItemType             = WorkOrderItemType.Equipment,
+                    ItemName             = e.Trim(),
+                    Quantity             = 1,
+                    Unit                 = "unit",
+                    EstimatedUnitCost    = equipCostPerItem,
+                    EstimatedTotalCost   = equipCostPerItem,
+                }));
+            }
             await _repo.AddItemsAsync(items);
 
             // Persist AI Analysis (history)
@@ -317,13 +378,29 @@ namespace CiviLanka.API.Services
             wo.EstimatedDurationHours = (int)result.EstimatedDurationHours;
             wo.RecommendedCrewSize    = result.RecommendedCrewSize;
 
-            // Check approval threshold
-            var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (result.EstimatedCost > threshold)
+            // Evaluate approval requirements based on threshold and high-risk arterial road detection.
+            // Under NO circumstance does AI set ApprovalStatus to APPROVED.
+            var approvalEvaluation = _approvalPolicy.Evaluate(
+                result.EstimatedCost,
+                hazard,
+                asset,
+                wo.Title,
+                wo.Description);
+
+            if (approvalEvaluation.RequiresDirectorApproval)
             {
                 wo.ApprovalRequired = true;
                 wo.ApprovalStatus   = Models.ApprovalStatus.Pending;
                 wo.Status           = WorkOrderStatus.PendingApproval;
+            }
+            else
+            {
+                wo.ApprovalRequired = false;
+                wo.ApprovalStatus   = Models.ApprovalStatus.NotRequired;
+                if (wo.Status == WorkOrderStatus.PendingApproval)
+                {
+                    wo.Status = WorkOrderStatus.AiGenerated;
+                }
             }
 
             await _repo.UpdateAsync(wo);
@@ -389,7 +466,7 @@ namespace CiviLanka.API.Services
             return MapToDto(wo!, estimate, analysis, items);
         }
 
-        private static WorkOrderResponseDto MapToDto(
+        private WorkOrderResponseDto MapToDto(
             WorkOrder wo,
             CostEstimate? estimate,
             WorkOrderAIAnalysis? analysis,
@@ -397,6 +474,13 @@ namespace CiviLanka.API.Services
         {
             var latestHazardAnalysis = wo.Hazard?.AIAnalyses?.OrderByDescending(a => a.CreatedAt).FirstOrDefault();
             var latestInspection = wo.Asset?.Inspections?.OrderByDescending(i => i.InspectionDate).FirstOrDefault();
+
+            var evaluation = _approvalPolicy.Evaluate(
+                wo.EstimatedCost,
+                wo.Hazard,
+                wo.Asset,
+                wo.Title,
+                wo.Description);
 
             return new WorkOrderResponseDto
             {
@@ -431,6 +515,8 @@ namespace CiviLanka.API.Services
                 Status                = wo.Status,
                 ApprovalStatus        = wo.ApprovalStatus,
                 ApprovalRequired      = wo.ApprovalRequired,
+                IsArterialRoad        = evaluation.IsArterialRoad,
+                ApprovalReason        = evaluation.ApprovalReason,
                 Notes                 = wo.Notes,
                 CreatedBy             = wo.CreatedBy,
                 CreatedAt             = wo.CreatedAt,

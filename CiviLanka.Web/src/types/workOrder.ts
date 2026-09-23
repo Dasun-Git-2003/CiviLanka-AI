@@ -83,6 +83,8 @@ export interface WorkOrder {
 
   approvalStatus: 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
   approvalRequired: boolean;
+  isArterialRoad?: boolean;
+  approvalReason?: 'None' | 'ThresholdExceeded' | 'ArterialRoadRisk' | 'Both' | string;
   notes?: string;
 
   createdBy: string;

@@ -112,6 +112,8 @@ namespace CiviLanka.API.DTOs.WorkOrders
         public string Status { get; set; } = string.Empty;
         public string ApprovalStatus { get; set; } = string.Empty;
         public bool ApprovalRequired { get; set; }
+        public bool IsArterialRoad { get; set; }
+        public string ApprovalReason { get; set; } = WorkOrderApprovalReason.None;
         public string? Notes { get; set; }
 
         public string CreatedBy { get; set; } = string.Empty;

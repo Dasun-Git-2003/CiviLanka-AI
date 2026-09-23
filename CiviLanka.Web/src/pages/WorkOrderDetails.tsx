@@ -10,6 +10,8 @@ import {
   Users,
   Trash2,
   Edit,
+  Wrench,
+  ShieldAlert,
 } from 'lucide-react';
 import { workOrderService } from '../services/workOrderService';
 import { StatusBadge } from '../components/StatusBadge';
@@ -69,9 +71,10 @@ export const WorkOrderDetails: React.FC = () => {
     try {
       const updated = await workOrderService.generateEstimate(id);
       setWorkOrder(updated);
-    } catch (err) {
-      alert('AI estimation failed. Please check Gemini API key configuration.');
-      console.error(err);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'AI estimation failed. Please check Gemini API key configuration.';
+      alert(msg);
+      console.error('AI Estimation error:', err);
     } finally {
       setEstimating(false);
     }
@@ -165,19 +168,57 @@ export const WorkOrderDetails: React.FC = () => {
 
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-1.5">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <span className="text-sm font-mono font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded">
                 {workOrder.workOrderNumber}
               </span>
               <PriorityBadge priority={workOrder.priority} />
               <StatusBadge status={workOrder.status} />
+              {workOrder.isArterialRoad && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                  <ShieldAlert className="w-3 h-3 text-rose-600" />
+                  Arterial Road
+                </span>
+              )}
+              {workOrder.approvalRequired && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  Director Approval Required
+                </span>
+              )}
             </div>
             <h1 className="text-xl font-bold text-slate-900">{workOrder.title}</h1>
             <p className="text-xs text-slate-500 mt-1 max-w-2xl">{workOrder.description}</p>
+
+            {workOrder.approvalRequired && workOrder.approvalStatus === 'PENDING' && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5 text-xs text-amber-900">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Director Approval Required Before Work Can Begin: </span>
+                  {workOrder.approvalReason === 'Both'
+                    ? 'Estimated cost exceeds threshold AND site is located on a high-risk arterial road.'
+                    : workOrder.approvalReason === 'ArterialRoadRisk'
+                    ? 'Site is located on a high-risk arterial road or traffic corridor.'
+                    : workOrder.approvalReason === 'ThresholdExceeded'
+                    ? 'Estimated repair cost exceeds configured municipal approval threshold.'
+                    : 'Requires human director approval.'}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            {['APPROVED', 'ASSIGNED', 'SCHEDULED', 'IN_PROGRESS'].includes(workOrder.status) && (
+              <Link
+                to={`/maintenance/create?workOrderId=${workOrder.id}`}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                title="Create Maintenance Execution Record (Member 4)"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                Handoff to Maintenance
+              </Link>
+            )}
+
             <button
               onClick={handleGenerateEstimate}
               disabled={estimating}

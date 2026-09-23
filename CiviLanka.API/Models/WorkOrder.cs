@@ -170,4 +170,13 @@ namespace CiviLanka.API.Models
         public const string Approved    = "APPROVED";
         public const string Rejected    = "REJECTED";
     }
+
+    /// <summary>Conceptual reason explaining why Director approval is evaluated.</summary>
+    public static class WorkOrderApprovalReason
+    {
+        public const string None              = "None";
+        public const string ThresholdExceeded = "ThresholdExceeded";
+        public const string ArterialRoadRisk  = "ArterialRoadRisk";
+        public const string Both              = "Both";
+    }
 }

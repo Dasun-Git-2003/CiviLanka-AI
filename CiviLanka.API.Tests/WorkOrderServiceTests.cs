@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CiviLanka.API.Agents;
@@ -216,6 +216,178 @@ namespace CiviLanka.API.Tests
             Assert.Equal(WorkOrderStatus.Rejected, rejected.Status);
             Assert.Equal(ApprovalStatus.Rejected, rejected.ApprovalStatus);
             Assert.Contains("REJECTED by director-uuid", rejected.Notes);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Cost25k_GalleRoadHazard_RequiresDirectorApproval_ArterialRoadRisk()
+        {
+            using var db = CreateDbContext();
+            var hazard = new Hazard
+            {
+                Id = Guid.NewGuid(),
+                TicketNumber = "CG-2026-0001",
+                CitizenId = "citizen-1",
+                Category = "Pothole",
+                Description = "Pothole on southbound lane",
+                Address = "124 Galle Road, Colombo 03",
+                Status = HazardStatus.Submitted,
+                Severity = "MEDIUM"
+            };
+            db.Hazards.Add(hazard);
+            await db.SaveChangesAsync();
+
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var dto = new CreateWorkOrderDto
+            {
+                Title = "Pothole Patching",
+                Description = "2m patch",
+                Priority = "NORMAL",
+                EstimatedCost = 25000m,
+                HazardId = hazard.Id
+            };
+
+            var result = await service.CreateAsync(dto, "staff-user-1");
+
+            Assert.NotNull(result);
+            Assert.True(result.ApprovalRequired);
+            Assert.Equal(ApprovalStatus.Pending, result.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.PendingApproval, result.Status);
+            Assert.True(result.IsArterialRoad);
+            Assert.Equal(WorkOrderApprovalReason.ArterialRoadRisk, result.ApprovalReason);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Cost250k_ResidentialRoad_RequiresDirectorApproval_ThresholdExceeded()
+        {
+            using var db = CreateDbContext();
+            var hazard = new Hazard
+            {
+                Id = Guid.NewGuid(),
+                TicketNumber = "CG-2026-0002",
+                CitizenId = "citizen-1",
+                Category = "DrainageProblem",
+                Description = "Broken Culvert causing flooding",
+                Address = "45 Lake Drive, Colombo 07",
+                Status = HazardStatus.Submitted,
+                Severity = "HIGH"
+            };
+            db.Hazards.Add(hazard);
+            await db.SaveChangesAsync();
+
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var dto = new CreateWorkOrderDto
+            {
+                Title = "Culvert Rebuild",
+                Description = "Concrete works on Lake Drive",
+                Priority = "HIGH",
+                EstimatedCost = 250000m,
+                HazardId = hazard.Id
+            };
+
+            var result = await service.CreateAsync(dto, "staff-user-1");
+
+            Assert.NotNull(result);
+            Assert.True(result.ApprovalRequired);
+            Assert.Equal(ApprovalStatus.Pending, result.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.PendingApproval, result.Status);
+            Assert.False(result.IsArterialRoad);
+            Assert.Equal(WorkOrderApprovalReason.ThresholdExceeded, result.ApprovalReason);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Cost250k_GalleRoad_RequiresDirectorApproval_Both()
+        {
+            using var db = CreateDbContext();
+            var hazard = new Hazard
+            {
+                Id = Guid.NewGuid(),
+                TicketNumber = "CG-2026-0003",
+                CitizenId = "citizen-1",
+                Category = "DamagedRoad",
+                Description = "Severe Washout",
+                Address = "500 Galle Rd, Wellawatte",
+                Status = HazardStatus.Submitted,
+                Severity = "CRITICAL"
+            };
+            db.Hazards.Add(hazard);
+            await db.SaveChangesAsync();
+
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var dto = new CreateWorkOrderDto
+            {
+                Title = "Major Highway Rebuild",
+                Description = "Extensive structural road repair",
+                Priority = "URGENT",
+                EstimatedCost = 250000m,
+                HazardId = hazard.Id
+            };
+
+            var result = await service.CreateAsync(dto, "staff-user-1");
+
+            Assert.NotNull(result);
+            Assert.True(result.ApprovalRequired);
+            Assert.Equal(ApprovalStatus.Pending, result.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.PendingApproval, result.Status);
+            Assert.True(result.IsArterialRoad);
+            Assert.Equal(WorkOrderApprovalReason.Both, result.ApprovalReason);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Cost40k_TempleLane_DoesNotRequireApproval_None()
+        {
+            using var db = CreateDbContext();
+            var hazard = new Hazard
+            {
+                Id = Guid.NewGuid(),
+                TicketNumber = "CG-2026-0004",
+                CitizenId = "citizen-1",
+                Category = "Pothole",
+                Description = "Small crack",
+                Address = "12 Temple Lane, Colombo 03",
+                Status = HazardStatus.Submitted,
+                Severity = "LOW"
+            };
+            db.Hazards.Add(hazard);
+            await db.SaveChangesAsync();
+
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var config = CreateConfig(100000m);
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var dto = new CreateWorkOrderDto
+            {
+                Title = "Crack Sealing",
+                Description = "Tar application on small residential lane",
+                Priority = "LOW",
+                EstimatedCost = 40000m,
+                HazardId = hazard.Id
+            };
+
+            var result = await service.CreateAsync(dto, "staff-user-1");
+
+            Assert.NotNull(result);
+            Assert.False(result.ApprovalRequired);
+            Assert.Equal(ApprovalStatus.NotRequired, result.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.AiGenerated, result.Status);
+            Assert.False(result.IsArterialRoad);
+            Assert.Equal(WorkOrderApprovalReason.None, result.ApprovalReason);
         }
     }
 }

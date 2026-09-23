@@ -140,6 +140,7 @@ builder.Services.AddScoped<IHazardService, HazardService>();
 builder.Services.AddScoped<IHazardClassificationAgent, HazardClassificationAgent>();
 
 // ── Application Services (Member 3 — Work Orders) ────────────────────────────
+builder.Services.AddScoped<IWorkOrderApprovalPolicy, WorkOrderApprovalPolicy>();
 builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
 builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 builder.Services.AddScoped<ICostEstimatorAgent, CostEstimatorAgent>();
