@@ -19,6 +19,7 @@ import {
   FileText,
   Bot,
   MapPin,
+  ClipboardCheck,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -35,6 +36,7 @@ import AccessDeniedPage from './pages/AccessDeniedPage';
 
 // Citizen Portal Page
 import CitizenDashboard from './pages/CitizenDashboard';
+import CitizenReportsReviewPage from './pages/CitizenReportsReviewPage';
 
 // Member 2 Pages (Infrastructure Registry & Maps)
 import Dashboard from './pages/Dashboard';
@@ -140,6 +142,7 @@ function Sidebar() {
         {
           title: 'Work Orders & AI Triage (M3)',
           items: [
+            { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
             { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
             { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
@@ -178,6 +181,7 @@ function Sidebar() {
         title: 'Executive Governance',
         items: [
           { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
+          { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
           { name: 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
           { name: 'Treasury Budget', path: '/budget', icon: DollarSign },
           { name: 'User Management', path: '/users', icon: Users },
@@ -444,6 +448,16 @@ function App() {
             <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
                 <WorkOrderDetails />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/citizen-reports"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <CitizenReportsReviewPage />
               </Layout>
             </ProtectedRoute>
           }

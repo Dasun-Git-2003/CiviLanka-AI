@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Sparkles, AlertTriangle, Building2, Plus, Loader2, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { workOrderService } from '../services/workOrderService';
 import { CostEstimateEditorModal } from '../components/CostEstimateEditorModal';
@@ -7,6 +7,7 @@ import type { SaveWorkOrderEstimateDto, CostEstimatePreviewResponse } from '../t
 
 export const CreateWorkOrder: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [hazards, setHazards] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
@@ -36,6 +37,17 @@ export const CreateWorkOrder: React.FC = () => {
         ]);
         setHazards(hList);
         setAssets(aList);
+
+        const paramHazardId = searchParams.get('hazardId');
+        if (paramHazardId) {
+          const matched = hList.find((h: any) => h.id === paramHazardId);
+          if (matched) {
+            setSelectedHazardId(paramHazardId);
+            setTitle(`Repair: ${matched.category} - ${matched.ticketNumber || 'Citizen Report'}`);
+            setDescription(matched.description || '');
+            setPriority(matched.priority || 'NORMAL');
+          }
+        }
       } catch (err) {
         console.error('Error fetching hazards/assets:', err);
       } finally {
@@ -43,7 +55,7 @@ export const CreateWorkOrder: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [searchParams]);
 
   // Autofill when a hazard is selected
   const handleHazardChange = (hazardId: string) => {
