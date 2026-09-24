@@ -91,6 +91,37 @@ namespace CiviLanka.API.Tests
         }
 
         [Fact]
+        public async Task CreateAsync_Under100k_WhenRequireDirectorApprovalAlways_TriggersPendingApproval()
+        {
+            using var db = CreateDbContext();
+            var repo = new WorkOrderRepository(db);
+            var mockAgent = new Mock<ICostEstimatorAgent>();
+            var mockLogger = new Mock<ILogger<WorkOrderService>>();
+            var inMemorySettings = new Dictionary<string, string>
+            {
+                { "WorkOrderSettings:RequireDirectorApprovalAlways", "true" },
+                { "WorkOrderSettings:DirectorApprovalThreshold", "0" }
+            };
+            var config = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings!).Build();
+            var service = new WorkOrderService(repo, mockAgent.Object, db, config, mockLogger.Object);
+
+            var dto = new CreateWorkOrderDto
+            {
+                Title = "Minor Pothole Repair",
+                Description = "Small patch under 100k",
+                Priority = "NORMAL",
+                EstimatedCost = 25000m
+            };
+
+            var result = await service.CreateAsync(dto, "staff-user-1");
+
+            Assert.NotNull(result);
+            Assert.True(result.ApprovalRequired);
+            Assert.Equal(ApprovalStatus.Pending, result.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.PendingApproval, result.Status);
+        }
+
+        [Fact]
         public async Task UpdateStatusAsync_ValidTransition_UpdatesStatusSuccessfully()
         {
             using var db = CreateDbContext();

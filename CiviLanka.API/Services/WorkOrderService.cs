@@ -91,9 +91,10 @@ namespace CiviLanka.API.Services
                 CreatedBy       = createdByUserId,
             };
 
-            // Check if approval is required based on cost threshold
+            // Check if approval is required based on cost threshold or mandatory policy
+            var requireAlways = _config.GetValue<bool>("WorkOrderSettings:RequireDirectorApprovalAlways", false);
             var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold)
+            if (requireAlways || threshold == 0m || (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold))
             {
                 workOrder.ApprovalRequired = true;
                 workOrder.ApprovalStatus   = Models.ApprovalStatus.Pending;
@@ -209,9 +210,10 @@ namespace CiviLanka.API.Services
                 wo.Status = dto.Status.ToUpperInvariant();
             }
 
-            // Re-evaluate approval when cost changes
+            // Re-evaluate approval when cost changes or mandatory policy
+            var requireAlways = _config.GetValue<bool>("WorkOrderSettings:RequireDirectorApprovalAlways", false);
             var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold
+            if ((requireAlways || threshold == 0m || (dto.EstimatedCost.HasValue && dto.EstimatedCost.Value > threshold))
                 && wo.ApprovalStatus == Models.ApprovalStatus.NotRequired)
             {
                 wo.ApprovalRequired = true;
@@ -366,9 +368,10 @@ namespace CiviLanka.API.Services
             wo.EstimatedDurationHours = (int)result.EstimatedDurationHours;
             wo.RecommendedCrewSize    = result.RecommendedCrewSize;
 
-            // Check approval threshold
+            // Check approval threshold or mandatory policy
+            var requireAlways = _config.GetValue<bool>("WorkOrderSettings:RequireDirectorApprovalAlways", false);
             var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (result.EstimatedCost > threshold)
+            if (requireAlways || threshold == 0m || result.EstimatedCost > threshold)
             {
                 wo.ApprovalRequired = true;
                 wo.ApprovalStatus   = Models.ApprovalStatus.Pending;
@@ -545,9 +548,10 @@ namespace CiviLanka.API.Services
             if (dto.RecommendedCrewSize.HasValue)
                 wo.RecommendedCrewSize = dto.RecommendedCrewSize.Value;
 
-            // Check approval threshold
+            // Check approval threshold or mandatory policy
+            var requireAlways = _config.GetValue<bool>("WorkOrderSettings:RequireDirectorApprovalAlways", false);
             var threshold = _config.GetValue<decimal>("WorkOrderSettings:DirectorApprovalThreshold", 100000);
-            if (dto.EstimatedCost > threshold)
+            if (requireAlways || threshold == 0m || dto.EstimatedCost > threshold)
             {
                 wo.ApprovalRequired = true;
                 wo.ApprovalStatus   = Models.ApprovalStatus.Pending;

@@ -253,14 +253,14 @@ export const BudgetManagementPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Lock className="w-5 h-5 text-blue-600 flex-shrink-0" />
                 <div>
-                  <div className="font-bold">Director Approval Threshold Active</div>
+                  <div className="font-bold">Director Approval Required For All Work Orders</div>
                   <div className="text-blue-700 text-[11px]">
-                    Work orders above {formatLKR(summary.directorApprovalThreshold)} are routed to the Public Works Directorate for sign-off.
+                    Municipal policy mandates Public Works Director sign-off for all work orders before field dispatch, regardless of budget size.
                   </div>
                 </div>
               </div>
               <div className="font-mono font-bold text-xs bg-white px-3 py-1.5 rounded-lg border border-blue-200">
-                Limit: {formatLKR(summary.directorApprovalThreshold)}
+                Policy: Mandatory All
               </div>
             </div>
           )}
