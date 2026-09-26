@@ -135,6 +135,7 @@ namespace CiviLanka.API.DTOs.Maintenance
 
         public SafetyAnalysisResponseDto? LatestSafetyAnalysis { get; set; }
         public int AuditLogCount { get; set; }
+        public List<MaintenanceAuditLogDto> AuditLogs { get; set; } = new();
     }
 
     public class SafetyAnalysisResponseDto

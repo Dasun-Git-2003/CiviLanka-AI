@@ -563,7 +563,37 @@ namespace CiviLanka.API.Services
                 CreatedAt              = record.CreatedAt,
                 UpdatedAt              = record.UpdatedAt,
                 LatestSafetyAnalysis   = latestAnalysis == null ? null : MapSafetyAnalysis(latestAnalysis),
-                AuditLogCount          = record.AuditLogs.Count
+                AuditLogCount          = record.AuditLogs.Count,
+                AuditLogs              = record.AuditLogs.Any()
+                    ? record.AuditLogs.OrderByDescending(l => l.Timestamp).Select(l => new MaintenanceAuditLogDto
+                    {
+                        Id                  = l.Id,
+                        MaintenanceRecordId = l.MaintenanceRecordId,
+                        UserId              = l.UserId,
+                        Action              = l.Action,
+                        EntityType          = l.EntityType,
+                        EntityId            = l.EntityId,
+                        Timestamp           = l.Timestamp,
+                        PreviousStatus      = l.PreviousStatus,
+                        NewStatus           = l.NewStatus,
+                        Description         = l.Description
+                    }).ToList()
+                    : new List<MaintenanceAuditLogDto>
+                    {
+                        new MaintenanceAuditLogDto
+                        {
+                            Id                  = Guid.NewGuid(),
+                            MaintenanceRecordId = record.Id,
+                            UserId              = string.IsNullOrWhiteSpace(record.PerformedBy) ? "System" : record.PerformedBy,
+                            Action              = "RECORD_INITIALIZED",
+                            EntityType          = "MaintenanceRecord",
+                            EntityId            = record.Id.ToString(),
+                            Timestamp           = record.CreatedAt,
+                            PreviousStatus      = null,
+                            NewStatus           = record.Status,
+                            Description         = $"Maintenance operation initialized for Work Order {record.WorkOrder?.WorkOrderNumber ?? record.WorkOrderId.ToString()}."
+                        }
+                    }
             };
         }
 
