@@ -69,6 +69,9 @@ export interface AuditLog {
   violations_json: string[];
   ai_reasoning: string;
   audited_at: string;
+  confidence_score?: number;
+  risk_level?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  audit_certificate_id?: string;
 }
 
 export const INITIAL_WORK_ORDERS: WorkOrder[] = [

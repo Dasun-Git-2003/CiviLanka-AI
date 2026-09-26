@@ -128,10 +128,44 @@ class SafetyAuditAgent {
       primaryReason = violations.join(' | ');
     }
 
+    // Calculate Multi-Factor AI Confidence Score (0 - 100%)
+    let confidenceScore = 100;
+    if (gpsDistance !== null) {
+      if (gpsDistance > 50) {
+        confidenceScore -= Math.min(45, 20 + ((gpsDistance - 50) / 50) * 10);
+      } else {
+        confidenceScore -= (gpsDistance / 50) * 4; // minor deduction proportional to distance
+      }
+    } else {
+      confidenceScore -= 40;
+    }
+
+    if (!photosValid) {
+      confidenceScore -= 35;
+    }
+    if (!budgetThresholdPassed) {
+      confidenceScore -= 25;
+    }
+    confidenceScore = Math.max(10.0, Math.min(99.6, Math.round(confidenceScore * 10) / 10));
+
+    // Determine Municipal Risk Level
+    let riskLevel = 'LOW';
+    if (!isCompliant) {
+      riskLevel = confidenceScore < 50 ? 'CRITICAL' : 'HIGH';
+    } else if (workOrder.is_arterial_road || workOrder.priority === 'CRITICAL' || workOrder.priority === 'URGENT') {
+      riskLevel = 'MEDIUM';
+    }
+
+    // Generate unique verification certificate ID
+    const auditCertificateId = `CERT-MUNI-${new Date().getFullYear()}-${String(workOrder.id).padStart(4, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const aiAuditRecord = {
       compliance,
       approval_required: approvalRequired,
       reason: primaryReason,
+      confidence_score: confidenceScore,
+      risk_level: riskLevel,
+      audit_certificate_id: auditCertificateId,
       safety_rules_passed: safetyRulesPassed && isCompliant,
       budget_threshold_passed: budgetThresholdPassed,
       gps_verified: gpsPassed,
@@ -141,7 +175,7 @@ class SafetyAuditAgent {
       materials_verified: Boolean(workOrder.materials_json && workOrder.materials_json.length > 0),
       violations_json: violations,
       safety_notes: safetyNotes,
-      ai_reasoning: `Municipal Safety & Audit Agent verdict: ${compliance}. ${primaryReason}`
+      ai_reasoning: `Municipal Safety & Audit Agent verdict: ${compliance} (${confidenceScore}% confidence, Risk: ${riskLevel}). ${primaryReason}`
     };
 
     return aiAuditRecord;

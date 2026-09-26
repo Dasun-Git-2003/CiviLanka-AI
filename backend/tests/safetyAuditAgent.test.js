@@ -91,4 +91,48 @@ describe('SafetyAuditAgent - Municipal Compliance Audits', () => {
     assert.equal(audit.budget_threshold_passed, false);
     assert.ok(audit.violations_json.some((v) => v.includes('Director approval')));
   });
+
+  it('should compute high AI confidence score (>= 90%) and LOW risk for fully compliant orders', async () => {
+    const perfectOrder = {
+      id: 905,
+      title: 'Pedestrian Crossing Paint',
+      location_lat: 6.9271,
+      location_lng: 79.8612,
+      completion_lat: 6.92712,
+      completion_lng: 79.86122,
+      before_photo: 'https://example.com/before.jpg',
+      after_photo: 'https://example.com/after.jpg',
+      estimated_cost: 900,
+      actual_cost: 900,
+      is_arterial_road: false,
+      approval_status: 'NOT_REQUIRED',
+    };
+
+    const audit = await safetyAuditAgent.auditWorkOrder(perfectOrder);
+    assert.equal(audit.compliance, 'PASS');
+    assert.ok(audit.confidence_score >= 90.0, `Confidence score should be >= 90%, got ${audit.confidence_score}`);
+    assert.equal(audit.risk_level, 'LOW');
+  });
+
+  it('should generate a valid municipal audit certificate ID format', async () => {
+    const certOrder = {
+      id: 906,
+      title: 'Guardrail Repair',
+      location_lat: 6.9271,
+      location_lng: 79.8612,
+      completion_lat: 6.92714,
+      completion_lng: 79.86124,
+      before_photo: 'https://example.com/before.jpg',
+      after_photo: 'https://example.com/after.jpg',
+      estimated_cost: 850,
+      actual_cost: 850,
+      is_arterial_road: false,
+      approval_status: 'NOT_REQUIRED',
+    };
+
+    const audit = await safetyAuditAgent.auditWorkOrder(certOrder);
+    assert.ok(audit.audit_certificate_id.startsWith('CERT-MUNI-'), `Certificate ID format invalid: ${audit.audit_certificate_id}`);
+    assert.match(audit.audit_certificate_id, /^CERT-MUNI-\d{4}-\d{4}-\d{4}$/);
+  });
 });
+

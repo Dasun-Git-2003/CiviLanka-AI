@@ -60,11 +60,14 @@ exports.evaluateAgentAudit = async (req, res) => {
     const budgetLog = budgetLogs.find(b => b.work_order_id === order.id) || null;
     const auditRecord = await safetyAuditAgent.auditWorkOrder(order, budgetLog);
 
-    // Return the exact JSON structure defined in the PDF specification
+    // Return the exact JSON structure defined in the PDF specification, enriched with AI analytics
     res.json({
       compliance: auditRecord.compliance,
       approval_required: auditRecord.approval_required,
       reason: auditRecord.reason,
+      confidence_score: auditRecord.confidence_score,
+      risk_level: auditRecord.risk_level,
+      audit_certificate_id: auditRecord.audit_certificate_id,
       details: {
         work_order_id: order.id,
         gps_distance_meters: auditRecord.gps_distance_meters,
