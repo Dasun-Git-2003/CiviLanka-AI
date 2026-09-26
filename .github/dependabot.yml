@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Maintain dependencies for .NET API
+  - package-ecosystem: "nuget"
+    directory: "/CiviLanka.API"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Maintain dependencies for Frontend Web (npm)
+  - package-ecosystem: "npm"
+    directory: "/CiviLanka.Web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Maintain dependencies for Python AI Agent (pip)
+  - package-ecosystem: "pip"
+    directory: "/CiviLanka.Agent"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Maintain GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
