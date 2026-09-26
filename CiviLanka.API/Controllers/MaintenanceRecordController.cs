@@ -121,6 +121,7 @@ namespace CiviLanka.API.Controllers
         [ProducesResponseType(typeof(List<MaintenanceRecordResponseDto>), 200)]
         public async Task<IActionResult> GetAll()
         {
+            await _service.SyncApprovedWorkOrdersAsync();
             var list = await _service.GetAllAsync();
 
             if (User.IsInRole("FieldWorker") && !User.IsInRole("FieldMaintenanceSupervisor") && !User.IsInRole("PublicWorksDirector") && !User.IsInRole("Director"))
@@ -197,6 +198,7 @@ namespace CiviLanka.API.Controllers
         [ProducesResponseType(typeof(List<MaintenanceRecordResponseDto>), 200)]
         public async Task<IActionResult> GetMyAssigned()
         {
+            await _service.SyncApprovedWorkOrdersAsync();
             var allRecords = await _service.GetAllAsync();
 
             // Supervisory / Director / Staff roles see all records

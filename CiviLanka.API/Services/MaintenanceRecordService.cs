@@ -35,6 +35,7 @@ namespace CiviLanka.API.Services
         Task<SafetyAnalysisResponseDto?> GetLatestSafetyAnalysisAsync(Guid id);
         Task<MaintenanceRecordResponseDto?> UploadEvidenceAsync(Guid id, string evidenceType, IFormFile file, string userId);
         Task<List<MaintenanceAuditLogDto>> GetAuditLogsAsync(Guid id);
+        Task SyncApprovedWorkOrdersAsync();
     }
 
     public class MaintenanceRecordService : IMaintenanceRecordService
@@ -60,6 +61,65 @@ namespace CiviLanka.API.Services
             _db = db;
             _env = env;
             _logger = logger;
+        }
+
+        public async Task SyncApprovedWorkOrdersAsync()
+        {
+            try
+            {
+                var approvedWorkOrders = await _db.WorkOrders
+                    .Include(w => w.Hazard)
+                    .Where(w => !w.IsCancelled && (w.Status == WorkOrderStatus.Approved || w.Status == WorkOrderStatus.Assigned))
+                    .ToListAsync();
+
+                foreach (var wo in approvedWorkOrders)
+                {
+                    bool hasRecord = await _db.MaintenanceRecords.AnyAsync(m => m.WorkOrderId == wo.Id && !m.IsDeleted);
+                    if (!hasRecord)
+                    {
+                        string workerEmail = !string.IsNullOrWhiteSpace(wo.AssignedCrew) && wo.AssignedCrew.Contains("@")
+                            ? wo.AssignedCrew
+                            : "worker@civilanka.gov.lk";
+
+                        var mRecord = new MaintenanceRecord
+                        {
+                            WorkOrderId        = wo.Id,
+                            AssetId            = wo.AssetId,
+                            PerformedBy        = workerEmail,
+                            MaintenanceType    = wo.Hazard?.Category ?? "Corrective",
+                            Description        = wo.Title ?? wo.Description,
+                            Status             = MaintenanceStatus.Assigned,
+                            LabourHours        = wo.EstimatedDurationHours.HasValue && wo.EstimatedDurationHours.Value > 0
+                                ? wo.EstimatedDurationHours.Value
+                                : 4.0m,
+                            ActualCost         = 0,
+                            VerificationStatus = MaintenanceVerificationStatus.NotSubmitted,
+                            CreatedAt          = DateTime.UtcNow,
+                            UpdatedAt          = DateTime.UtcNow
+                        };
+                        _db.MaintenanceRecords.Add(mRecord);
+                        await _db.SaveChangesAsync();
+
+                        _db.MaintenanceAuditLogs.Add(new MaintenanceAuditLog
+                        {
+                            MaintenanceRecordId = mRecord.Id,
+                            UserId              = "supervisor@civilanka.gov.lk",
+                            Action              = "INITIALIZE_MAINTENANCE",
+                            EntityType          = "MaintenanceRecord",
+                            EntityId            = mRecord.Id.ToString(),
+                            PreviousStatus      = null,
+                            NewStatus           = MaintenanceStatus.Assigned,
+                            Description         = $"Work Order {wo.WorkOrderNumber} approved and automatically dispatched to field worker terminal ({workerEmail}).",
+                            Timestamp           = DateTime.UtcNow
+                        });
+                        await _db.SaveChangesAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing approved work orders to maintenance records.");
+            }
         }
 
         public async Task<MaintenanceRecordResponseDto> CreateAsync(CreateMaintenanceRecordDto dto, string userId)

@@ -90,7 +90,7 @@ builder.Services.AddAuthorization(options =>
 
     // 6. Contractor Policies
     options.AddPolicy("CanManageContractors", policy =>
-        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
 
     // 7. Budget Policies
     options.AddPolicy("CanViewBudget", policy =>

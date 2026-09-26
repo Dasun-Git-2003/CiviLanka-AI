@@ -56,7 +56,7 @@ import { ApprovalQueue } from './pages/ApprovalQueue';
 import { MaintenanceDashboard } from './pages/MaintenanceDashboard';
 import { CreateMaintenanceRecord } from './pages/CreateMaintenanceRecord';
 import { MaintenanceDetailsPage } from './pages/MaintenanceDetailsPage';
-import { FieldWorkerPortal } from './pages/FieldWorkerPortal';
+import { FieldInspectorPortal } from './pages/FieldInspectorPortal';
 import { VerificationQueuePage } from './pages/VerificationQueuePage';
 import { MaintenanceHistoryPage } from './pages/MaintenanceHistoryPage';
 
@@ -105,7 +105,7 @@ function Sidebar() {
         {
           title: 'Field Operations',
           items: [
-            { name: 'Worker Task Portal', path: '/field-worker', icon: Smartphone },
+            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
             { name: 'Assigned Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
             { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
@@ -155,7 +155,7 @@ function Sidebar() {
             { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
             { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
             { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-            { name: 'Field Worker Portal', path: '/field-worker', icon: Smartphone },
+            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
           ],
         },
         {
@@ -214,7 +214,7 @@ function Sidebar() {
           { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
           { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
           { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-          { name: 'Field Worker Portal', path: '/field-worker', icon: Smartphone },
+          { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
         ],
       },
       {
@@ -505,11 +505,21 @@ function App() {
           }
         />
         <Route
+          path="/field-inspector"
+          element={
+            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <FieldInspectorPortal />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/field-worker"
           element={
             <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
-                <FieldWorkerPortal />
+                <FieldInspectorPortal />
               </Layout>
             </ProtectedRoute>
           }

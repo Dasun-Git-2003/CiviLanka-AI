@@ -83,6 +83,12 @@ namespace CiviLanka.API.Services
                 Description     = dto.Description,
                 Priority        = dto.Priority.ToUpperInvariant(),
                 Severity        = severity,
+                AssignedCrew    = dto.AssignedCrew,
+                ScheduledDate   = dto.ScheduledDate.HasValue
+                    ? (dto.ScheduledDate.Value.Kind == DateTimeKind.Unspecified
+                        ? DateTime.SpecifyKind(dto.ScheduledDate.Value, DateTimeKind.Utc)
+                        : dto.ScheduledDate.Value.ToUniversalTime())
+                    : null,
                 EstimatedCost   = dto.EstimatedCost,
                 EstimatedDurationHours = dto.EstimatedDurationHours.HasValue ? (int)dto.EstimatedDurationHours.Value : null,
                 RecommendedCrewSize    = dto.RecommendedCrewSize,
@@ -137,6 +143,11 @@ namespace CiviLanka.API.Services
                     ModelName              = "Custom / AI Assisted",
                 };
                 await _repo.AddCostEstimateAsync(estimate);
+            }
+
+            if (created.Status == WorkOrderStatus.Approved || created.Status == WorkOrderStatus.Assigned)
+            {
+                await EnsureMaintenanceRecordDispatchedAsync(created, createdByUserId);
             }
 
             return await MapToResponseDtoAsync(created.Id);
@@ -222,6 +233,10 @@ namespace CiviLanka.API.Services
             }
 
             await _repo.UpdateAsync(wo);
+            if (wo.Status == WorkOrderStatus.Approved || wo.Status == WorkOrderStatus.Assigned)
+            {
+                await EnsureMaintenanceRecordDispatchedAsync(wo, "supervisor@civilanka.gov.lk");
+            }
             return await MapToResponseDtoAsync(id);
         }
 
@@ -244,6 +259,10 @@ namespace CiviLanka.API.Services
             wo.Status = status.ToUpperInvariant();
             if (notes != null) wo.Notes = notes;
             await _repo.UpdateAsync(wo);
+            if (wo.Status == WorkOrderStatus.Approved || wo.Status == WorkOrderStatus.Assigned)
+            {
+                await EnsureMaintenanceRecordDispatchedAsync(wo, "supervisor@civilanka.gov.lk");
+            }
             return await MapToResponseDtoAsync(id);
         }
 
@@ -581,6 +600,10 @@ namespace CiviLanka.API.Services
             if (notes != null) wo.Notes = (wo.Notes ?? "") + $"\n[APPROVED by {approvedByUserId}] {notes}";
 
             await _repo.UpdateAsync(wo);
+
+            // Auto-dispatch maintenance record so work order is immediately active on field inspector portal
+            await EnsureMaintenanceRecordDispatchedAsync(wo, approvedByUserId);
+
             return await MapToResponseDtoAsync(id);
         }
 
@@ -602,6 +625,68 @@ namespace CiviLanka.API.Services
 
             await _repo.UpdateAsync(wo);
             return await MapToResponseDtoAsync(id);
+        }
+
+        private async Task EnsureMaintenanceRecordDispatchedAsync(WorkOrder wo, string dispatchedByUserId)
+        {
+            try
+            {
+                bool hasRecord = await _db.MaintenanceRecords.AnyAsync(m => m.WorkOrderId == wo.Id && !m.IsDeleted);
+                if (!hasRecord)
+                {
+                    string workerEmail = !string.IsNullOrWhiteSpace(wo.AssignedCrew) && wo.AssignedCrew.Contains("@")
+                        ? wo.AssignedCrew
+                        : "worker@civilanka.gov.lk";
+
+                    string maintenanceType = "Corrective";
+                    if (wo.Hazard != null && !string.IsNullOrWhiteSpace(wo.Hazard.Category))
+                    {
+                        maintenanceType = wo.Hazard.Category;
+                    }
+                    else if (wo.HazardId.HasValue)
+                    {
+                        var hCat = await _db.Hazards.Where(h => h.Id == wo.HazardId.Value).Select(h => h.Category).FirstOrDefaultAsync();
+                        if (!string.IsNullOrWhiteSpace(hCat)) maintenanceType = hCat;
+                    }
+
+                    var mRecord = new MaintenanceRecord
+                    {
+                        WorkOrderId        = wo.Id,
+                        AssetId            = wo.AssetId,
+                        PerformedBy        = workerEmail,
+                        MaintenanceType    = maintenanceType,
+                        Description        = wo.Title ?? wo.Description,
+                        Status             = MaintenanceStatus.Assigned,
+                        LabourHours        = wo.EstimatedDurationHours.HasValue && wo.EstimatedDurationHours.Value > 0
+                            ? wo.EstimatedDurationHours.Value
+                            : 4.0m,
+                        ActualCost         = 0,
+                        VerificationStatus = MaintenanceVerificationStatus.NotSubmitted,
+                        CreatedAt          = DateTime.UtcNow,
+                        UpdatedAt          = DateTime.UtcNow
+                    };
+                    _db.MaintenanceRecords.Add(mRecord);
+                    await _db.SaveChangesAsync();
+
+                    _db.MaintenanceAuditLogs.Add(new MaintenanceAuditLog
+                    {
+                        MaintenanceRecordId = mRecord.Id,
+                        UserId              = string.IsNullOrWhiteSpace(dispatchedByUserId) ? "supervisor@civilanka.gov.lk" : dispatchedByUserId,
+                        Action              = "INITIALIZE_MAINTENANCE",
+                        EntityType          = "MaintenanceRecord",
+                        EntityId            = mRecord.Id.ToString(),
+                        PreviousStatus      = null,
+                        NewStatus           = MaintenanceStatus.Assigned,
+                        Description         = $"Work Order {wo.WorkOrderNumber} approved and automatically dispatched to field worker terminal ({workerEmail}).",
+                        Timestamp           = DateTime.UtcNow
+                    });
+                    await _db.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to auto-dispatch maintenance record for WorkOrder {Id}", wo.Id);
+            }
         }
 
         public async Task<CostEstimateResponseDto?> GetLatestEstimateAsync(Guid workOrderId)
