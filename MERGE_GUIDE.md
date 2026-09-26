@@ -1,18 +1,19 @@
 # CivitaGuard AI - Team Merge & Git Integration Guide
 **Author**: Member 4 (Maintenance Operations & Audit)  
-**Branch**: `feature/member-4-operations-audit`
+**Branch**: `IT24610825_Maintenance-Operations-&-Audit+Audit-Agent`
 
 ---
 
 ## 1. Overview of Member 4's Deliverables
 Member 4 owns the **post-dispatch operational lifecycle, municipal governance, budget enforcement, and autonomous safety auditing**:
+- **Student ID**: IT24610825
 - **Database Tables Owned**: `budget_logs`, `audit_logs` (and lifecycle management columns on `work_orders`).
 - **AI Agent**: **Municipal Safety & Audit Agent** (`/api/agent/safety-audit`).
 - **State Machine**: `AI_PROPOSED` &rarr; `PENDING_APPROVAL` &rarr; `APPROVED` &rarr; `ASSIGNED` &rarr; `IN_PROGRESS` &rarr; `COMPLETED` &rarr; `VERIFIED` &rarr; `CLOSED`.
 - **Statutory Human Approval Rule**: Enforces Public Works Director approval when:
   1. Estimated repair cost exceeds **LKR 1,000** OR
   2. The work involves a **high-risk arterial road**.
-- **Frontend Web**: Public Works Director React Dashboard (`frontend_director_dashboard/`).
+- **Frontend Web**: Public Works Director React Dashboard (`CiviLanka.Web/`).
 - **Frontend Mobile**: Field Worker Flutter App (`mobile_fieldworker_flutter/`) + Browser Web Simulator.
 
 ---
@@ -21,19 +22,16 @@ Member 4 owns the **post-dispatch operational lifecycle, municipal governance, b
 
 ### To Push Your Work to GitHub / Git Remote:
 ```bash
-# 1. Add your team's remote repository (if not already added)
-git remote add origin https://github.com/<your-organization>/CivitaGuard.git
-
-# 2. Verify current branch
+# 1. Verify current branch
 git branch
-# You should see: * feature/member-4-operations-audit
+# You should see: * IT24610825_Maintenance-Operations-&-Audit+Audit-Agent
 
-# 3. Stage and commit all files
+# 2. Stage and commit all files
 git add .
 git commit -m "feat(member-4): Maintenance Operations, BudgetLogs, AuditLogs, Safety Agent, and Field Worker UIs"
 
-# 4. Push to remote
-git push -u origin feature/member-4-operations-audit
+# 3. Push to remote
+git push origin IT24610825_Maintenance-Operations-&-Audit+Audit-Agent
 ```
 
 ### To Merge with Other Members:
@@ -120,8 +118,23 @@ npm install
 npm start
 
 # Terminal 2: React Director Dashboard
-cd frontend_director_dashboard
+cd CiviLanka.Web
 npm install
 npm run dev
 ```
-Open your browser at `http://localhost:5173` to access the Director Dashboard and the interactive Field Worker Mobile Simulator.
+Open your browser at `http://localhost:5173` to access the Director Dashboard, Budget Management, Safety Audit Center, and Field Worker Mobile Simulator.
+
+---
+
+## 7. Running Automated Test Suite & Build Verification
+```bash
+# 1. Run Backend Automated Unit Tests (Node.js test runner)
+cd backend
+npm test
+# Verifies SafetyAuditAgent GPS tolerance (<=50m), photo evidence, and statutory budget approval rules
+
+# 2. Run Web Portal Type Check and Production Build
+cd ../CiviLanka.Web
+npm run build
+# Verifies TypeScript compiler without errors and generates production bundle
+```
