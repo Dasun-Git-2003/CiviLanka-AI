@@ -11,8 +11,14 @@ class MaterialItem(BaseModel):
     quantity: float = Field(description="Estimated quantity needed for repair")
     unit_cost_lkr: float = Field(
         description="Unit rate in Sri Lankan Rupees (LKR)")
+    unit_rate_lkr: Optional[float] = Field(
+        default=None, description="Alias for unit_cost_lkr in LKR")
     total_cost_lkr: float = Field(
         description="Total cost for this material line item in LKR")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.unit_rate_lkr is None:
+            self.unit_rate_lkr = self.unit_cost_lkr
 
 
 class LaborAndPlantItem(BaseModel):

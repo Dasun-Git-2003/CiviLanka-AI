@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Shield,
   AlertTriangle,
   ArrowRight,
   ChevronRight,
   ChevronDown,
-  Sparkles,
   Scan,
   TrendingUp,
   Coins,
@@ -22,6 +22,13 @@ import ColomboNightHero from '../components/ColomboNightHero';
 import ThemeToggle from '../components/ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
 
+// Apple iOS fluid momentum curve (cubic-bezier matching native iOS SpringBoard & Sheet physics)
+// Executes directly on the GPU compositor thread for silky smooth 60fps/120fps scrolling
+const IOS_TRANSITION = {
+  duration: 0.65,
+  ease: [0.16, 1, 0.3, 1] as const,
+};
+
 const AI_AGENTS = [
   {
     id: 'classification',
@@ -29,6 +36,9 @@ const AI_AGENTS = [
     title: 'Hazard Classification Agent',
     badge: 'VISION & DEFECT TRIAGE',
     icon: Scan,
+    image: '/images/fredrik-posse-LVqjs1bDGFs-unsplash.jpg',
+    actionText: 'REPORT & CLASSIFY',
+    link: '/report-defect',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -45,6 +55,9 @@ const AI_AGENTS = [
     title: 'Asset Risk Prediction Agent',
     badge: 'STRUCTURAL HEALTH',
     icon: TrendingUp,
+    image: '/images/Asserts%20agent.jpg',
+    actionText: 'VIEW PREDICTIONS',
+    link: '/ai-intelligence',
     borderColor: 'border-blue-200 hover:border-blue-400',
     iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -61,6 +74,9 @@ const AI_AGENTS = [
     title: 'BOQ Cost & Material Estimator',
     badge: 'FISCAL GOVERNANCE',
     icon: Coins,
+    image: '/images/yuheng-ouyang-2r0Eo89ZSQk-unsplash.jpg',
+    actionText: 'ESTIMATE MATERIALS',
+    link: '/work-orders',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -77,6 +93,9 @@ const AI_AGENTS = [
     title: 'Safety & Compliance Verifier',
     badge: 'EVIDENCE AUDIT',
     icon: ShieldCheck,
+    image: '/images/pexels-jan-van-der-wolf-11680885-29114485.jpg',
+    actionText: 'VERIFY COMPLIANCE',
+    link: '/work-orders',
     borderColor: 'border-emerald-200 hover:border-emerald-400',
     iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -130,6 +149,39 @@ const IMPACT_METRICS = [
     stat: '100%',
     label: 'Audit Trail Transparency',
     desc: 'Every triage decision, cost estimate, and supervisor sign-off is immutably logged.',
+  },
+];
+
+const PARTNER_AGENCIES = [
+  {
+    name: 'Democratic Socialist Republic of Sri Lanka',
+    short: 'Government of Sri Lanka',
+    logo: '/images/gov.png',
+  },
+  {
+    name: 'Road Development Authority',
+    short: 'RDA',
+    logo: '/images/rda_trans.png',
+  },
+  {
+    name: 'Ceylon Electricity Board',
+    short: 'CEB',
+    logo: '/images/ceb.png',
+  },
+  {
+    name: 'National Water Supply & Drainage Board',
+    short: 'NWSDB',
+    logo: '/images/water_trans.png',
+  },
+  {
+    name: 'Sri Lanka Transport Board',
+    short: 'SLTB',
+    logo: '/images/sltb_trans.png',
+  },
+  {
+    name: 'Lanka Metro Transit Authority',
+    short: 'Metro Transit',
+    logo: '/images/metro_trans.png',
   },
 ];
 
@@ -400,8 +452,14 @@ export default function LandingPage() {
           <ColomboNightHero />
         </div>
 
-        {/* Hero Content (Centered) */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center">
+        {/* Hero Content (Centered) with iOS Smooth Entrance */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center"
+        >
           {/* Platform Tagline (Pure Text, No Background) */}
           <p className="text-xs sm:text-sm font-medium tracking-wide text-amber-300 mb-6 drop-shadow-sm select-none">
             National Municipal Infrastructure Intelligence Platform
@@ -441,7 +499,7 @@ export default function LandingPage() {
               <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Scroll to Explore Indicator (iOS Unlock Shimmer Animation) ─── */}
         <a
@@ -464,98 +522,232 @@ export default function LandingPage() {
         </a>
       </section>
 
+      {/* ── 1.5 INTEGRATED PUBLIC AUTHORITIES HORIZONTAL SLIDESHOW ──────────── */}
+      <section className="py-7 sm:py-8 bg-white dark:bg-slate-950 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 relative overflow-hidden select-none">
+        <style>{`
+          @keyframes civilankaLogoMarquee {
+            0% {
+              transform: translate3d(0, 0, 0);
+            }
+            100% {
+              transform: translate3d(-50%, 0, 0);
+            }
+          }
+          .civilanka-slider-track {
+            display: flex;
+            width: max-content;
+            animation: civilankaLogoMarquee 42s linear infinite;
+            will-change: transform;
+          }
+          .civilanka-slider-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        {/* Gradient blur overlays for smooth left/right fade-in and fade-out */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-slate-950 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
+
+        {/* Continuous Horizontal Infinite Marquee */}
+        <div className="overflow-hidden flex items-center min-h-[56px] sm:min-h-[64px] md:min-h-[72px]">
+          <div className="civilanka-slider-track flex items-center gap-12 sm:gap-16 lg:gap-24 shrink-0 pr-12 sm:pr-16 lg:pr-24">
+            {[...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES].map((partner, index) => (
+              <div
+                key={index}
+                className="shrink-0 flex items-center justify-center cursor-pointer group/logo py-2"
+                title={`${partner.name} (${partner.short})`}
+              >
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className={`${
+                    partner.short === 'Metro Transit'
+                      ? 'h-8 sm:h-9 md:h-10 max-w-[125px] sm:max-w-[150px]'
+                      : partner.short === 'NWSDB'
+                      ? 'h-10 sm:h-11 md:h-12 max-w-[130px] sm:max-w-[155px]'
+                      : 'h-9 sm:h-10 md:h-11 max-w-[110px] sm:max-w-[135px]'
+                  } w-auto object-contain filter grayscale opacity-50 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 group-hover/logo:scale-110 transition-all duration-300 select-none pointer-events-none`}
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
-      <section id="ai-agents" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="ai-agents" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-              <span>CORE ARCHITECTURE</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-3xl mx-auto mb-16 sm:mb-20"
+          >
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-4">
+              CORE ARCHITECTURE
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               Four Specialized AI Agents
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
               Autonomous domain agents powered by Google Gemini, operating synchronously across triage, asset health, financial calculation, and field compliance.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {AI_AGENTS.map((agent) => {
-              const IconComp = agent.icon;
+          <div className="space-y-20 sm:space-y-28 lg:space-y-36">
+            {AI_AGENTS.map((agent, index) => {
+              const isEven = index % 2 === 0;
+
               return (
                 <div
                   key={agent.id}
-                  className={`bg-white dark:bg-slate-900 rounded-2xl p-6 border ${
-                    isDark ? 'border-slate-800 hover:border-amber-500/50 shadow-slate-950/40' : agent.borderColor
-                  } shadow-xs hover:shadow-md transition-all flex flex-col justify-between`}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl border ${agent.iconBg} dark:bg-slate-800 dark:border-slate-700`}>
-                        <IconComp className="w-5 h-5" />
+                  {/* Text Column - Bidirectional smooth entrance from left or right */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? -24 : 24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={IOS_TRANSITION}
+                    style={{ willChange: 'transform, opacity' }}
+                    className={`space-y-6 ${
+                      isEven ? 'lg:col-span-7' : 'lg:col-span-7 lg:order-2'
+                    }`}
+                  >
+                    {/* Eyebrow badge */}
+                    <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-[0.2em] text-slate-500 dark:text-slate-400 uppercase">
+                      <span>AGENT {agent.number}</span>
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <span className="text-slate-800 dark:text-slate-200">{agent.badge}</span>
+                    </div>
+
+                    {/* Headline */}
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase font-display leading-tight">
+                      {agent.title}
+                    </h3>
+
+                    {/* Summary */}
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+                      {agent.summary}
+                    </p>
+
+                    {/* Features */}
+                    <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                        {agent.features.map((feat, fIdx) => (
+                          <li key={fIdx} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                            <span className="leading-snug">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Action Button (Editorial Outline Style) */}
+                    <div className="pt-2">
+                      <Link
+                        to={agent.link}
+                        className="inline-flex items-center justify-center gap-3 px-6 py-3 border-2 border-slate-900 dark:border-white text-slate-900 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 font-mono text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 group"
+                      >
+                        <span>{agent.actionText}</span>
+                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                      </Link>
+                    </div>
+                  </motion.div>
+
+                  {/* Image Column - Bidirectional smooth entrance from opposite side */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? 24 : -24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={{ ...IOS_TRANSITION, delay: 0.04 }}
+                    style={{ willChange: 'transform, opacity' }}
+                    className={`${
+                      isEven ? 'lg:col-span-5' : 'lg:col-span-5 lg:order-1'
+                    }`}
+                  >
+                    <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl aspect-4/3 sm:aspect-16/10 lg:aspect-4/3 w-full bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={agent.image}
+                        alt={agent.title}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
+
+                      {/* Floating Metadata Pills on Photo */}
+                      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                        <span className="px-3 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-white border border-white/15">
+                          {agent.badge}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold text-white/90 border border-white/15">
+                          {agent.number} / 04
+                        </span>
                       </div>
-                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
-                        AGENT {agent.number}
-                      </span>
                     </div>
-
-                    <div>
-                      <span className={`inline-block text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${agent.badgeBg} mb-2`}>
-                        {agent.badge}
-                      </span>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{agent.title}</h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{agent.summary}</p>
-                    </div>
-
-                    <ul className="space-y-1.5 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
-                      {agent.features.map((feat, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                          <span className="text-[11px] leading-tight">{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  </motion.div>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-40px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="mt-16 text-center"
+          >
             <Link
               to="/ai-intelligence"
-              className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
             >
               <span>View live AI telemetry and testing console</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ── 3. HOW IT WORKS: THE 3-STAGE LIFECYCLE ─────────────────────────── */}
-      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono font-bold mb-3">
-              <span>HOW IT WORKS</span>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+              HOW IT WORKS
+            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               From Citizen Report to Verified Repair
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
               A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {WORKFLOW_STEPS.map((wf) => {
+            {WORKFLOW_STEPS.map((wf, idx) => {
               const IconComp = wf.icon;
               return (
-                <div
+                <motion.div
                   key={wf.step}
-                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, margin: '-50px' }}
+                  transition={{ ...IOS_TRANSITION, delay: idx * 0.05 }}
+                  whileHover={{ y: -5, transition: { duration: 0.2, ease: 'easeOut' } }}
+                  style={{ willChange: 'transform, opacity' }}
+                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex flex-col justify-between shadow-xs hover:shadow-md"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -570,7 +762,7 @@ export default function LandingPage() {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{wf.title}</h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{wf.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -578,32 +770,45 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. MEASURABLE CIVIC IMPACT ─────────────────────────────────────── */}
-      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <span>PROVEN METRICS</span>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+              PROVEN METRICS
+            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               Measurable Civic Impact
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
               Quantifiable performance, speed, and governance standards powering modern smart cities.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {IMPACT_METRICS.map((metric, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between"
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-50px' }}
+                transition={{ ...IOS_TRANSITION, delay: idx * 0.04 }}
+                whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
+                style={{ willChange: 'transform, opacity' }}
+                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
               >
                 <div>
                   <div className="text-3xl font-black font-mono text-slate-900 dark:text-white">{metric.stat}</div>
                   <div className="text-xs font-bold text-amber-800 dark:text-amber-400 mt-2">{metric.label}</div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{metric.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -611,7 +816,14 @@ export default function LandingPage() {
 
       {/* ── 5. CLEAN CALL TO ACTION BANNER ─────────────────────────────────── */}
       <section className="py-20 bg-slate-900 text-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, margin: '-50px' }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6"
+        >
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight font-display">
             Build Safer, Smarter Cities.
           </h2>
@@ -636,7 +848,7 @@ export default function LandingPage() {
               <span>Sign-In</span>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── 6. ENTERPRISE FOOTER ──────────────────────────────────────────── */}
@@ -754,3 +966,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
