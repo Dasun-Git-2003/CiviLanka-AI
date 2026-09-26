@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Shield,
   AlertTriangle,
@@ -20,6 +21,13 @@ import CiviLankaLogo from '../components/CiviLankaLogo';
 import ColomboNightHero from '../components/ColomboNightHero';
 import ThemeToggle from '../components/ThemeToggle';
 import { useTheme } from '../context/ThemeContext';
+
+// Apple iOS fluid momentum curve (cubic-bezier matching native iOS SpringBoard & Sheet physics)
+// Executes directly on the GPU compositor thread for silky smooth 60fps/120fps scrolling
+const IOS_TRANSITION = {
+  duration: 0.65,
+  ease: [0.16, 1, 0.3, 1] as const,
+};
 
 const AI_AGENTS = [
   {
@@ -411,8 +419,14 @@ export default function LandingPage() {
           <ColomboNightHero />
         </div>
 
-        {/* Hero Content (Centered) */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center">
+        {/* Hero Content (Centered) with iOS Smooth Entrance */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center"
+        >
           {/* Platform Tagline (Pure Text, No Background) */}
           <p className="text-xs sm:text-sm font-medium tracking-wide text-amber-300 mb-6 drop-shadow-sm select-none">
             National Municipal Infrastructure Intelligence Platform
@@ -452,7 +466,7 @@ export default function LandingPage() {
               <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Scroll to Explore Indicator (iOS Unlock Shimmer Animation) ─── */}
         <a
@@ -476,9 +490,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
-      <section id="ai-agents" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="ai-agents" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-3xl mx-auto mb-16 sm:mb-20"
+          >
             <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-4">
               CORE ARCHITECTURE
             </span>
@@ -488,7 +509,7 @@ export default function LandingPage() {
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
               Autonomous domain agents powered by Google Gemini, operating synchronously across triage, asset health, financial calculation, and field compliance.
             </p>
-          </div>
+          </motion.div>
 
           <div className="space-y-20 sm:space-y-28 lg:space-y-36">
             {AI_AGENTS.map((agent, index) => {
@@ -499,8 +520,13 @@ export default function LandingPage() {
                   key={agent.id}
                   className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center"
                 >
-                  {/* Text Column - 100% visible, zero overlap */}
-                  <div
+                  {/* Text Column - Bidirectional smooth entrance from left or right */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? -24 : 24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={IOS_TRANSITION}
+                    style={{ willChange: 'transform, opacity' }}
                     className={`space-y-6 ${
                       isEven ? 'lg:col-span-7' : 'lg:col-span-7 lg:order-2'
                     }`}
@@ -544,10 +570,15 @@ export default function LandingPage() {
                         <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
                       </Link>
                     </div>
-                  </div>
+                  </motion.div>
 
-                  {/* Image Column */}
-                  <div
+                  {/* Image Column - Bidirectional smooth entrance from opposite side */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? 24 : -24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={{ ...IOS_TRANSITION, delay: 0.04 }}
+                    style={{ willChange: 'transform, opacity' }}
                     className={`${
                       isEven ? 'lg:col-span-5' : 'lg:col-span-5 lg:order-1'
                     }`}
@@ -571,13 +602,20 @@ export default function LandingPage() {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-40px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="mt-16 text-center"
+          >
             <Link
               to="/ai-intelligence"
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
@@ -585,14 +623,21 @@ export default function LandingPage() {
               <span>View live AI telemetry and testing console</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ── 3. HOW IT WORKS: THE 3-STAGE LIFECYCLE ─────────────────────────── */}
-      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
             <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
               HOW IT WORKS
             </span>
@@ -602,15 +647,21 @@ export default function LandingPage() {
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
               A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {WORKFLOW_STEPS.map((wf) => {
+            {WORKFLOW_STEPS.map((wf, idx) => {
               const IconComp = wf.icon;
               return (
-                <div
+                <motion.div
                   key={wf.step}
-                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, margin: '-50px' }}
+                  transition={{ ...IOS_TRANSITION, delay: idx * 0.05 }}
+                  whileHover={{ y: -5, transition: { duration: 0.2, ease: 'easeOut' } }}
+                  style={{ willChange: 'transform, opacity' }}
+                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex flex-col justify-between shadow-xs hover:shadow-md"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -625,7 +676,7 @@ export default function LandingPage() {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{wf.title}</h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{wf.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -633,9 +684,16 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. MEASURABLE CIVIC IMPACT ─────────────────────────────────────── */}
-      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
             <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
               PROVEN METRICS
             </span>
@@ -645,20 +703,26 @@ export default function LandingPage() {
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
               Quantifiable performance, speed, and governance standards powering modern smart cities.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {IMPACT_METRICS.map((metric, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between"
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-50px' }}
+                transition={{ ...IOS_TRANSITION, delay: idx * 0.04 }}
+                whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
+                style={{ willChange: 'transform, opacity' }}
+                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
               >
                 <div>
                   <div className="text-3xl font-black font-mono text-slate-900 dark:text-white">{metric.stat}</div>
                   <div className="text-xs font-bold text-amber-800 dark:text-amber-400 mt-2">{metric.label}</div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{metric.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -666,7 +730,14 @@ export default function LandingPage() {
 
       {/* ── 5. CLEAN CALL TO ACTION BANNER ─────────────────────────────────── */}
       <section className="py-20 bg-slate-900 text-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, margin: '-50px' }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6"
+        >
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight font-display">
             Build Safer, Smarter Cities.
           </h2>
@@ -691,7 +762,7 @@ export default function LandingPage() {
               <span>Sign-In</span>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── 6. ENTERPRISE FOOTER ──────────────────────────────────────────── */}

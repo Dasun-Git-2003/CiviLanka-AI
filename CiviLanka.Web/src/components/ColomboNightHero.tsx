@@ -13,13 +13,14 @@ interface ColomboNightHeroProps {
 }
 
 export default function ColomboNightHero({ className = '' }: ColomboNightHeroProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imagesRef = useRef<(HTMLImageElement | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const currentFrameRef = useRef<number>(0);
-  const [, setFrameTick] = useState<number>(0);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const animFrameIdRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
+  const isVisibleRef = useRef<boolean>(true);
 
   // Draw frame on canvas with high-DPI scaling and cover-fit
   const renderFrame = useCallback((frameIndex: number) => {
@@ -66,6 +67,23 @@ export default function ColomboNightHero({ className = '' }: ColomboNightHeroPro
     ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
   }, []);
 
+  // Pause canvas rendering loop when hero is scrolled out of viewport
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !('IntersectionObserver' in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        isVisibleRef.current = entry ? entry.isIntersecting : true;
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Preload all 176 frames progressively
   useEffect(() => {
     let loadedCount = 0;
@@ -110,7 +128,7 @@ export default function ColomboNightHero({ className = '' }: ColomboNightHeroPro
     return () => window.removeEventListener('resize', handleResize);
   }, [renderFrame]);
 
-  // Smooth continuous autonomous animation loop at cinematic 24 FPS
+  // Smooth continuous autonomous animation loop at cinematic 24 FPS (skips frames when off-screen)
   useEffect(() => {
     if (!hasStarted) return;
 
@@ -118,11 +136,10 @@ export default function ColomboNightHero({ className = '' }: ColomboNightHeroPro
     const interval = 1000 / fps;
 
     const loop = (timestamp: number) => {
-      if (timestamp - lastFrameTimeRef.current >= interval) {
+      if (isVisibleRef.current && timestamp - lastFrameTimeRef.current >= interval) {
         lastFrameTimeRef.current = timestamp;
         currentFrameRef.current = (currentFrameRef.current + 1) % TOTAL_FRAMES;
         renderFrame(currentFrameRef.current);
-        setFrameTick(currentFrameRef.current);
       }
       animFrameIdRef.current = requestAnimationFrame(loop);
     };
@@ -137,7 +154,7 @@ export default function ColomboNightHero({ className = '' }: ColomboNightHeroPro
   }, [hasStarted, renderFrame]);
 
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`relative w-full h-full overflow-hidden ${className}`}>
       {/* HTML5 Canvas for silky smooth autonomous frame rendering */}
       <canvas
         ref={canvasRef}
