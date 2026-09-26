@@ -152,6 +152,39 @@ const IMPACT_METRICS = [
   },
 ];
 
+const PARTNER_AGENCIES = [
+  {
+    name: 'Democratic Socialist Republic of Sri Lanka',
+    short: 'Government of Sri Lanka',
+    logo: '/images/gov.png',
+  },
+  {
+    name: 'Road Development Authority',
+    short: 'RDA',
+    logo: '/images/rda_trans.png',
+  },
+  {
+    name: 'Ceylon Electricity Board',
+    short: 'CEB',
+    logo: '/images/ceb.png',
+  },
+  {
+    name: 'National Water Supply & Drainage Board',
+    short: 'NWSDB',
+    logo: '/images/water_trans.png',
+  },
+  {
+    name: 'Sri Lanka Transport Board',
+    short: 'SLTB',
+    logo: '/images/sltb_trans.png',
+  },
+  {
+    name: 'Lanka Metro Transit Authority',
+    short: 'Metro Transit',
+    logo: '/images/metro_trans.png',
+  },
+];
+
 export default function LandingPage() {
   const { isDark } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -487,6 +520,59 @@ export default function LandingPage() {
             strokeWidth={2.5}
           />
         </a>
+      </section>
+
+      {/* ── 1.5 INTEGRATED PUBLIC AUTHORITIES HORIZONTAL SLIDESHOW ──────────── */}
+      <section className="py-7 sm:py-8 bg-white dark:bg-slate-950 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 relative overflow-hidden select-none">
+        <style>{`
+          @keyframes civilankaLogoMarquee {
+            0% {
+              transform: translate3d(0, 0, 0);
+            }
+            100% {
+              transform: translate3d(-50%, 0, 0);
+            }
+          }
+          .civilanka-slider-track {
+            display: flex;
+            width: max-content;
+            animation: civilankaLogoMarquee 42s linear infinite;
+            will-change: transform;
+          }
+          .civilanka-slider-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        {/* Gradient blur overlays for smooth left/right fade-in and fade-out */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-slate-950 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
+
+        {/* Continuous Horizontal Infinite Marquee */}
+        <div className="overflow-hidden flex items-center min-h-[70px] sm:min-h-[85px] md:min-h-[95px]">
+          <div className="civilanka-slider-track flex items-center gap-12 sm:gap-16 lg:gap-24 shrink-0 pr-12 sm:pr-16 lg:pr-24">
+            {[...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES].map((partner, index) => (
+              <div
+                key={index}
+                className="shrink-0 flex items-center justify-center cursor-pointer group/logo py-2"
+                title={`${partner.name} (${partner.short})`}
+              >
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className={`${
+                    partner.short === 'Metro Transit'
+                      ? 'h-13 sm:h-16 md:h-18 max-w-[200px] sm:max-w-[260px]'
+                      : partner.short === 'NWSDB'
+                      ? 'h-11 sm:h-13 md:h-14 max-w-[145px] sm:max-w-[175px]'
+                      : 'h-9 sm:h-11 md:h-12 max-w-[120px] sm:max-w-[150px]'
+                  } w-auto object-contain filter grayscale opacity-50 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 group-hover/logo:scale-110 transition-all duration-300 select-none pointer-events-none`}
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
