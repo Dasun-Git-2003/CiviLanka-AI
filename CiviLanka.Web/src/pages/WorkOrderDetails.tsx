@@ -247,12 +247,12 @@ export const WorkOrderDetails: React.FC = () => {
 
       {/* Grid: Context Information (Hazard + Asset) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Hazard Information (Member 1) */}
+        {/* Hazard Information */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              Member 1 Hazard Origin
+              Originating Citizen Hazard
             </h3>
             {workOrder.hazardTicket && (
               <span className="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
@@ -296,12 +296,12 @@ export const WorkOrderDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Infrastructure Asset Information (Member 2) */}
+        {/* Infrastructure Asset Information */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-blue-500" />
-              Member 2 Infrastructure Asset
+              Target Infrastructure Asset
             </h3>
             {workOrder.assetId && (
               <span className="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
