@@ -549,7 +549,7 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
 
         {/* Continuous Horizontal Infinite Marquee */}
-        <div className="overflow-hidden flex items-center min-h-[70px] sm:min-h-[85px] md:min-h-[95px]">
+        <div className="overflow-hidden flex items-center min-h-[56px] sm:min-h-[64px] md:min-h-[72px]">
           <div className="civilanka-slider-track flex items-center gap-12 sm:gap-16 lg:gap-24 shrink-0 pr-12 sm:pr-16 lg:pr-24">
             {[...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES].map((partner, index) => (
               <div
@@ -562,10 +562,10 @@ export default function LandingPage() {
                   alt={partner.name}
                   className={`${
                     partner.short === 'Metro Transit'
-                      ? 'h-13 sm:h-16 md:h-18 max-w-[200px] sm:max-w-[260px]'
+                      ? 'h-8 sm:h-9 md:h-10 max-w-[125px] sm:max-w-[150px]'
                       : partner.short === 'NWSDB'
-                      ? 'h-11 sm:h-13 md:h-14 max-w-[145px] sm:max-w-[175px]'
-                      : 'h-9 sm:h-11 md:h-12 max-w-[120px] sm:max-w-[150px]'
+                      ? 'h-10 sm:h-11 md:h-12 max-w-[130px] sm:max-w-[155px]'
+                      : 'h-9 sm:h-10 md:h-11 max-w-[110px] sm:max-w-[135px]'
                   } w-auto object-contain filter grayscale opacity-50 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 group-hover/logo:scale-110 transition-all duration-300 select-none pointer-events-none`}
                   loading="lazy"
                 />
