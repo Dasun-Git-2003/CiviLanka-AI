@@ -39,6 +39,7 @@ namespace CiviLanka.API.Controllers
         /// The AI classification agent runs automatically after creation.
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = "CanReportHazard")]
         [ProducesResponseType(typeof(HazardResponseDto), 201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
@@ -106,7 +107,7 @@ namespace CiviLanka.API.Controllers
         /// Members 2, 3, 4 to consume hazard data.
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "MunicipalStaff,Director")]
+        [Authorize(Policy = "CanManageHazards")]
         [ProducesResponseType(typeof(List<HazardResponseDto>), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
@@ -114,6 +115,22 @@ namespace CiviLanka.API.Controllers
         {
             var hazards = await _service.GetAllHazardsAsync();
             return Ok(hazards);
+        }
+
+        /// <summary>
+        /// Get all active hazards with coordinates for the GIS map.
+        /// Open to all authenticated users (Citizens, Field Workers, Supervisors, Directors).
+        /// </summary>
+        [HttpGet("map")]
+        [Authorize]
+        [ProducesResponseType(typeof(List<HazardResponseDto>), 200)]
+        public async Task<IActionResult> GetMapHazards()
+        {
+            var hazards = await _service.GetAllHazardsAsync();
+            var mapHazards = hazards
+                .Where(h => h.Latitude.HasValue && h.Longitude.HasValue && !h.IsCancelled)
+                .ToList();
+            return Ok(mapHazards);
         }
 
         // ── UPDATE ───────────────────────────────────────────────────────────────
@@ -145,25 +162,28 @@ namespace CiviLanka.API.Controllers
         // ── DELETE (Soft Cancel) ─────────────────────────────────────────────────
 
         /// <summary>
-        /// Cancel (soft-delete) a hazard report.
-        /// Municipal records are never physically deleted for audit and legal compliance.
-        /// IsCancelled is set to true and status is set to Cancelled.
+        /// Cancel or delete a hazard report.
+        /// By default (permanent=false), soft-cancels setting IsCancelled to true and status to Cancelled.
+        /// If permanent=true, physically removes the report and associated AI triage records.
         /// </summary>
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> CancelHazard(Guid id)
+        public async Task<IActionResult> CancelHazard(Guid id, [FromQuery] bool permanent = false)
         {
             var citizenId = GetUserId();
             if (citizenId == null) return Unauthorized();
 
-            var success = await _service.CancelHazardAsync(id, citizenId);
+            var success = await _service.CancelHazardAsync(id, citizenId, permanent);
             if (!success)
-                return StatusCode(403, new { message = "Cannot cancel this hazard. It may not exist, belong to you, or may already be under municipal review." });
+                return StatusCode(403, new { message = "Cannot delete or cancel this hazard. It may not exist, belong to you, or may already be under active field repair." });
 
-            return Ok(new { message = "Hazard has been cancelled.", note = "Record is preserved for municipal audit compliance." });
+            return Ok(new {
+                message = permanent ? "Hazard report has been permanently deleted." : "Hazard report has been cancelled.",
+                permanent
+            });
         }
 
         // ── AI ANALYSIS ──────────────────────────────────────────────────────────
@@ -173,7 +193,7 @@ namespace CiviLanka.API.Controllers
         /// Useful for re-analysis or when automatic trigger failed.
         /// </summary>
         [HttpPost("{id:guid}/analyze")]
-        [Authorize(Roles = "MunicipalStaff,Director")]
+        [Authorize(Policy = "CanManageHazards")]
         [ProducesResponseType(typeof(HazardAIAnalysisResponseDto), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
@@ -201,6 +221,32 @@ namespace CiviLanka.API.Controllers
             if (result == null)
                 return NotFound(new { message = "No AI analysis found for this hazard yet." });
 
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Review (Approve or Reject) a citizen hazard report (Staff / Supervisors / Directors only).
+        /// </summary>
+        [HttpPost("{id:guid}/review")]
+        [Authorize(Policy = "CanManageHazards")]
+        [ProducesResponseType(typeof(HazardResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> ReviewHazard(Guid id, [FromBody] ReviewHazardDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var reviewerName = User.FindFirst(ClaimTypes.Email)?.Value
+                ?? User.Identity?.Name
+                ?? "MunicipalOfficial";
+
+            var result = await _service.ReviewHazardAsync(id, dto, reviewerName);
+            if (result == null)
+                return NotFound(new { message = "Hazard report not found or already cancelled." });
+
+            _logger.LogInformation("Hazard {Ticket} reviewed ({Action}) by {User}", result.TicketNumber, dto.Action, reviewerName);
             return Ok(result);
         }
 
@@ -238,6 +284,54 @@ namespace CiviLanka.API.Controllers
 
             var imageUrl = $"/uploads/{fileName}";
             return Ok(new { imageUrl, message = "Image uploaded successfully." });
+        }
+
+        /// <summary>
+        /// Upload multiple images for a hazard report.
+        /// Returns an array of URLs and a joined string suitable for ImageUrl.
+        /// </summary>
+        [HttpPost("upload-images")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> UploadImages(List<IFormFile> files)
+        {
+            if (files == null || files.Count == 0)
+                return BadRequest(new { message = "No files uploaded." });
+
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp", "image/gif" };
+            var uploadedUrls = new List<string>();
+
+            var uploadsPath = Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, "uploads");
+            Directory.CreateDirectory(uploadsPath);
+
+            foreach (var file in files)
+            {
+                if (file == null || file.Length == 0) continue;
+                if (!allowedTypes.Contains(file.ContentType.ToLower()))
+                    continue;
+                if (file.Length > 10 * 1024 * 1024)
+                    continue;
+
+                var ext = Path.GetExtension(file.FileName);
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                    await file.CopyToAsync(stream);
+
+                uploadedUrls.Add($"/uploads/{fileName}");
+            }
+
+            if (uploadedUrls.Count == 0)
+                return BadRequest(new { message = "No valid images could be processed. Allowed types: JPEG, PNG, WebP, GIF under 10MB." });
+
+            return Ok(new
+            {
+                imageUrls = uploadedUrls,
+                imageUrl = string.Join(",", uploadedUrls),
+                message = $"{uploadedUrls.Count} image(s) uploaded successfully."
+            });
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────────

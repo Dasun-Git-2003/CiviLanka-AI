@@ -91,12 +91,14 @@ namespace CiviLanka.API.Models
         public const string PendingAIAnalysis = "PendingAIAnalysis";
         public const string AnalysisComplete = "AnalysisComplete";
         public const string UnderReview = "UnderReview";
+        public const string Approved = "Approved";
+        public const string Rejected = "Rejected";
         public const string InProgress = "InProgress";
         public const string Resolved = "Resolved";
         public const string Cancelled = "Cancelled";
 
-        /// <summary>States where a citizen is allowed to edit their report.</summary>
-        public static readonly string[] EditableStates = { Submitted, PendingAIAnalysis };
+        /// <summary>States where a citizen is allowed to edit or cancel their report.</summary>
+        public static readonly string[] EditableStates = { Submitted, PendingAIAnalysis, AnalysisComplete, UnderReview };
     }
 
     /// <summary>Allowed hazard categories.</summary>

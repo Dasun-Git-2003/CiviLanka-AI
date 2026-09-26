@@ -1,6 +1,7 @@
 using CiviLanka.API.Data;
 using CiviLanka.API.DTOs.Infrastructure;
 using CiviLanka.API.Models.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ namespace CiviLanka.API.Controllers
     [ApiController]
     [Route("api/work-assignments")]
     [Produces("application/json")]
+    [Authorize(Policy = "CanManageWorkOrders")]
     public class WorkAssignmentsController : ControllerBase
     {
         private readonly AppDbContext _context;

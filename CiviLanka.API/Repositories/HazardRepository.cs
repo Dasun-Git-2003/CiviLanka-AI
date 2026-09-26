@@ -13,9 +13,13 @@ namespace CiviLanka.API.Repositories
         Task<Hazard> CreateAsync(Hazard hazard);
         Task<Hazard> UpdateAsync(Hazard hazard);
         Task<int> GetNextSequenceAsync();
+        Task<bool> ExistsTicketAsync(string ticketNumber);
         Task<HazardAIAnalysis> AddAnalysisAsync(HazardAIAnalysis analysis);
         Task<HazardAIAnalysis?> GetLatestAnalysisAsync(Guid hazardId);
         Task<List<HazardAIAnalysis>> GetAllAnalysesAsync(Guid hazardId);
+        Task<bool> DeleteAsync(Guid id);
+        Task<(Guid? WorkOrderId, string? WorkOrderNumber, string? WorkOrderStatus)> GetLinkedWorkOrderAsync(Guid hazardId);
+        Task<Dictionary<Guid, (Guid Id, string Number, string Status)>> GetAllLinkedWorkOrdersAsync();
     }
 
     public class HazardRepository : IHazardRepository
@@ -38,7 +42,7 @@ namespace CiviLanka.API.Repositories
         {
             return await _db.Hazards
                 .Include(h => h.Citizen)
-                .Include(h => h.AIAnalyses.OrderByDescending(a => a.CreatedAt))
+                .Include(h => h.AIAnalyses)
                 .FirstOrDefaultAsync(h => h.Id == id);
         }
 
@@ -78,8 +82,30 @@ namespace CiviLanka.API.Repositories
 
         public async Task<int> GetNextSequenceAsync()
         {
-            // Count total hazards (including cancelled) for unique ticket numbering
-            return await _db.Hazards.CountAsync() + 1;
+            var currentYear = DateTime.UtcNow.Year;
+            var prefix = $"CG-{currentYear}-";
+
+            var ticketNumbers = await _db.Hazards
+                .Where(h => h.TicketNumber.StartsWith(prefix))
+                .Select(h => h.TicketNumber)
+                .ToListAsync();
+
+            int maxSeq = 0;
+            foreach (var t in ticketNumbers)
+            {
+                var numPart = t.Substring(prefix.Length);
+                if (int.TryParse(numPart, out int seq) && seq > maxSeq)
+                {
+                    maxSeq = seq;
+                }
+            }
+
+            return maxSeq + 1;
+        }
+
+        public async Task<bool> ExistsTicketAsync(string ticketNumber)
+        {
+            return await _db.Hazards.AnyAsync(h => h.TicketNumber == ticketNumber);
         }
 
         public async Task<HazardAIAnalysis> AddAnalysisAsync(HazardAIAnalysis analysis)
@@ -103,6 +129,51 @@ namespace CiviLanka.API.Repositories
                 .Where(a => a.HazardId == hazardId)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var hazard = await _db.Hazards
+                .Include(h => h.AIAnalyses)
+                .FirstOrDefaultAsync(h => h.Id == id);
+            if (hazard == null) return false;
+
+            if (hazard.AIAnalyses != null && hazard.AIAnalyses.Count > 0)
+            {
+                _db.HazardAIAnalyses.RemoveRange(hazard.AIAnalyses);
+            }
+
+            _db.Hazards.Remove(hazard);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<(Guid? WorkOrderId, string? WorkOrderNumber, string? WorkOrderStatus)> GetLinkedWorkOrderAsync(Guid hazardId)
+        {
+            var wo = await _db.WorkOrders
+                .Where(w => w.HazardId == hazardId && !w.IsCancelled)
+                .Select(w => new { w.Id, w.WorkOrderNumber, w.Status })
+                .FirstOrDefaultAsync();
+
+            return wo != null ? (wo.Id, wo.WorkOrderNumber, wo.Status) : (null, null, null);
+        }
+
+        public async Task<Dictionary<Guid, (Guid Id, string Number, string Status)>> GetAllLinkedWorkOrdersAsync()
+        {
+            var list = await _db.WorkOrders
+                .Where(w => w.HazardId.HasValue && !w.IsCancelled)
+                .Select(w => new { HazardId = w.HazardId!.Value, w.Id, w.WorkOrderNumber, w.Status })
+                .ToListAsync();
+
+            var dict = new Dictionary<Guid, (Guid Id, string Number, string Status)>();
+            foreach (var item in list)
+            {
+                if (!dict.ContainsKey(item.HazardId))
+                {
+                    dict[item.HazardId] = (item.Id, item.WorkOrderNumber, item.Status);
+                }
+            }
+            return dict;
         }
     }
 }

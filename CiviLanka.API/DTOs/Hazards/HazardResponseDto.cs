@@ -20,6 +20,12 @@ namespace CiviLanka.API.DTOs.Hazards
         public DateTime UpdatedAt { get; set; }
         public bool IsCancelled { get; set; }
         public HazardAIAnalysisResponseDto? LatestAIAnalysis { get; set; }
+
+        // Official review and linked work order status
+        public Guid? LinkedWorkOrderId { get; set; }
+        public string? LinkedWorkOrderNumber { get; set; }
+        public string? LinkedWorkOrderStatus { get; set; }
+        public string? ReviewNotes { get; set; }
     }
 
     public class HazardAIAnalysisResponseDto

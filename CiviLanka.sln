@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CiviLanka.API", "CiviLanka.API\CiviLanka.API.csproj", "{93554F16-EE64-4C68-9381-446D504C7B65}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CiviLanka.API.Tests", "CiviLanka.API.Tests\CiviLanka.API.Tests.csproj", "{0E52F21E-6DBE-40BA-B193-DE2C106C706E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{93554F16-EE64-4C68-9381-446D504C7B65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93554F16-EE64-4C68-9381-446D504C7B65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93554F16-EE64-4C68-9381-446D504C7B65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E52F21E-6DBE-40BA-B193-DE2C106C706E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E52F21E-6DBE-40BA-B193-DE2C106C706E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E52F21E-6DBE-40BA-B193-DE2C106C706E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E52F21E-6DBE-40BA-B193-DE2C106C706E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

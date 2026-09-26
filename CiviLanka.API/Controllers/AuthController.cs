@@ -42,13 +42,17 @@ namespace CiviLanka.API.Controllers
             if (existingUser != null)
                 return BadRequest(new { message = "Email already registered." });
 
+            // Public registration strictly assigns the Citizen role.
+            // Privileged municipal roles must be provisioned by an authorized Director.
+            const string roleToAssign = "Citizen";
+
             var user = new ApplicationUser
             {
                 UserName = dto.Email,
                 Email = dto.Email,
                 FullName = dto.FullName,
                 ContactPhone = dto.Phone,
-                Role = "Citizen"
+                Role = roleToAssign
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -58,10 +62,11 @@ namespace CiviLanka.API.Controllers
                 return BadRequest(new { message = "Registration failed.", errors });
             }
 
-            await _userManager.AddToRoleAsync(user, "Citizen");
+            await _userManager.AddToRoleAsync(user, roleToAssign);
 
-            var token = _tokenService.GenerateToken(user);
-            _logger.LogInformation("New citizen registered: {Email}", dto.Email);
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var token = _tokenService.GenerateToken(user, userRoles);
+            _logger.LogInformation("New user registered: {Email} with role {Role}", dto.Email, roleToAssign);
 
             return StatusCode(201, new AuthResponseDto
             {
@@ -91,7 +96,8 @@ namespace CiviLanka.API.Controllers
             if (!result.Succeeded)
                 return Unauthorized(new { message = "Invalid credentials." });
 
-            var token = _tokenService.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _tokenService.GenerateToken(user, roles);
             _logger.LogInformation("User logged in: {Email}", dto.Email);
 
             return Ok(new AuthResponseDto
@@ -102,6 +108,45 @@ namespace CiviLanka.API.Controllers
                 Email = user.Email!,
                 Role = user.Role,
                 ExpiresAt = DateTime.UtcNow.AddHours(24)
+            });
+        }
+
+        /// <summary>Get current authenticated user identity and verified roles.</summary>
+        [HttpGet("me")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> GetMe()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst("sub")?.Value
+                ?? User.FindFirst("userId")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+                if (!string.IsNullOrEmpty(email))
+                {
+                    var u = await _userManager.FindByEmailAsync(email);
+                    if (u != null) userId = u.Id;
+                }
+            }
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated." });
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return Unauthorized(new { message = "User record not found." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new
+            {
+                userId = user.Id,
+                fullName = user.FullName,
+                email = user.Email,
+                role = user.Role,
+                roles = roles
             });
         }
     }
