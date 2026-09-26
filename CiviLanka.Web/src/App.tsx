@@ -38,21 +38,21 @@ import AccessDeniedPage from './pages/AccessDeniedPage';
 import CitizenDashboard from './pages/CitizenDashboard';
 import CitizenReportsReviewPage from './pages/CitizenReportsReviewPage';
 
-// Member 2 Pages (Infrastructure Registry & Maps)
+// Infrastructure Registry & Spatial Maps
 import Dashboard from './pages/Dashboard';
 import InfrastructureAssets from './pages/InfrastructureAssets';
 import Contractors from './pages/Contractors';
 import RepairHistory from './pages/RepairHistory';
 import AgentEstimatorPage from './pages/AgentEstimatorPage';
 
-// Member 3 Pages (Work Orders & AI Triage)
+// Work Orders & AI Triage
 import { WorkOrderDashboard } from './pages/WorkOrderDashboard';
 import { WorkOrderList } from './pages/WorkOrderList';
 import { WorkOrderDetails } from './pages/WorkOrderDetails';
 import { CreateWorkOrder } from './pages/CreateWorkOrder';
 import { ApprovalQueue } from './pages/ApprovalQueue';
 
-// Member 4 Pages (Maintenance Records, Field Operations & Safety/Compliance AI)
+// Maintenance Records, Field Operations & Safety/Compliance AI
 import { MaintenanceDashboard } from './pages/MaintenanceDashboard';
 import { CreateMaintenanceRecord } from './pages/CreateMaintenanceRecord';
 import { MaintenanceDetailsPage } from './pages/MaintenanceDetailsPage';
@@ -131,7 +131,7 @@ function Sidebar() {
           ],
         },
         {
-          title: 'Infrastructure (M2)',
+          title: 'Infrastructure & Assets',
           items: [
             { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
             { name: 'Contractors', path: '/contractors', icon: Users },
@@ -140,7 +140,7 @@ function Sidebar() {
           ],
         },
         {
-          title: 'Work Orders & AI Triage (M3)',
+          title: 'Work Orders & AI Triage',
           items: [
             { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
             { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
@@ -149,7 +149,7 @@ function Sidebar() {
           ],
         },
         {
-          title: 'Field Operations & Safety (M4)',
+          title: 'Field Operations & Safety',
           items: [
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
             { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
@@ -191,7 +191,7 @@ function Sidebar() {
         ],
       },
       {
-        title: 'Infrastructure (M2)',
+        title: 'Infrastructure & Assets',
         items: [
           { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
           { name: 'Contractors', path: '/contractors', icon: Users },
@@ -200,7 +200,7 @@ function Sidebar() {
         ],
       },
       {
-        title: 'Work Orders & AI Triage (M3)',
+        title: 'Work Orders & AI Triage',
         items: [
           { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
           { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
@@ -208,7 +208,7 @@ function Sidebar() {
         ],
       },
       {
-        title: 'Field Operations & Safety (M4)',
+        title: 'Field Operations & Safety',
         items: [
           { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
           { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
@@ -359,7 +359,7 @@ function App() {
           }
         />
 
-        {/* ── Infrastructure & Asset Registry (Member 2) ──────────────────────── */}
+        {/* ── Infrastructure & Asset Registry ──────────────────────── */}
         <Route
           path="/dashboard"
           element={
@@ -411,7 +411,7 @@ function App() {
           }
         />
 
-        {/* ── Work Orders & AI Triage (Member 3) ──────────────────────────────── */}
+        {/* ── Work Orders & AI Triage ──────────────────────────────── */}
         <Route
           path="/work-orders-dashboard"
           element={
@@ -473,7 +473,7 @@ function App() {
           }
         />
 
-        {/* ── Maintenance Records, Field Operations & Safety (Member 4) ───────── */}
+        {/* ── Maintenance Records, Field Operations & Safety ───────── */}
         <Route
           path="/maintenance"
           element={

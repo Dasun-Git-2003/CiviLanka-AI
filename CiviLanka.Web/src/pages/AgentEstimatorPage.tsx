@@ -234,7 +234,7 @@ export const AgentEstimatorPage: React.FC = () => {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Member 2: Agentic RAG System</span>
+              <span>Infrastructure Intelligence: Agentic RAG System</span>
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
               <Bot className="w-7 h-7 text-cyan-400" />

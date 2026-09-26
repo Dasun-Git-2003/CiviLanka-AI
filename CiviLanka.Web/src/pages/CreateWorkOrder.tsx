@@ -224,7 +224,7 @@ export const CreateWorkOrder: React.FC = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                  Originating Citizen Hazard (Member 1)
+                  Originating Citizen Hazard
                 </label>
                 <select
                   value={selectedHazardId}
@@ -262,7 +262,7 @@ export const CreateWorkOrder: React.FC = () => {
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-blue-500" />
-                  Target Infrastructure Asset (Member 2)
+                  Target Infrastructure Asset
                 </label>
                 <select
                   value={selectedAssetId}

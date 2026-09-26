@@ -168,7 +168,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 01',
       name: 'Hazard Classification & Triage Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 1 Triage Agent',
+      role: 'Citizen Defect Triage & Vision Engine',
       status: 'ONLINE',
       accuracy: '98.4%',
       processedCount: `${stats?.classifiedHazardsCount ?? 1420} hazards`,
@@ -190,7 +190,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 02',
       name: 'Asset Degradation & Risk Prediction Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 2 Spatial Asset Agent',
+      role: 'Spatial Asset Health & Risk Forecaster',
       status: 'ONLINE',
       accuracy: '96.2%',
       processedCount: `${stats?.assessedAssetsCount ?? 120} assets`,
@@ -212,7 +212,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 03',
       name: 'BOQ Cost & Material Estimator Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 3 Estimator Agent',
+      role: 'BOQ Fiscal Budgeting & RAG Material Pricing',
       status: 'ONLINE',
       accuracy: '95.1%',
       processedCount: `${stats?.estimatedWorkOrdersCount ?? 340} orders`,
@@ -234,7 +234,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 04',
       name: 'Field Operations Safety & Compliance Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 4 Safety Compliance Agent',
+      role: 'Field Safety Protocols & Compliance Verification',
       status: 'ONLINE',
       accuracy: '97.5%',
       processedCount: `${stats?.auditedMaintenanceRecordsCount ?? 215} audits`,
@@ -256,7 +256,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 05',
       name: 'Dispatch & Priority Route Clustering Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 5 Dispatch Optimizer',
+      role: 'Autonomous Work Order Dispatch & Route Clustering',
       status: 'ONLINE',
       accuracy: '97.8%',
       processedCount: '1,120 dispatches',
@@ -278,7 +278,7 @@ export const AIIntelligencePage: React.FC = () => {
       number: 'Agent 06',
       name: 'Municipal Safety & Regulatory Audit Agent',
       model: 'gemini-2.5-flash',
-      role: 'Member 6 Compliance Auditor',
+      role: 'Regulatory Audit & Verification Governance',
       status: 'ONLINE',
       accuracy: '99.1%',
       processedCount: '485 audits',
@@ -402,13 +402,13 @@ export const AIIntelligencePage: React.FC = () => {
         {/* Agent Selector Tabs */}
         <div className="flex flex-wrap gap-2">
           {[
-            { id: 'hazard', label: 'Agent 1: Hazard Triage', icon: AlertTriangle },
-            { id: 'asset', label: 'Agent 2: Asset Risk', icon: Layers },
-            { id: 'cost', label: 'Agent 3: Cost BOQ', icon: DollarSign },
-            { id: 'safety', label: 'Agent 4: Field Safety', icon: ShieldCheck },
-            { id: 'dispatch', label: 'Agent 5: Dispatch & Priority', icon: Truck },
-            { id: 'municipalAudit', label: 'Agent 6: Municipal Safety & Audit', icon: FileCheck },
-            { id: 'workflow', label: 'Full End-to-End Workflow', icon: Zap },
+            { id: 'hazard', label: 'Hazard Classification & Triage', icon: AlertTriangle },
+            { id: 'asset', label: 'Asset Degradation & Risk', icon: Layers },
+            { id: 'cost', label: 'BOQ Cost Estimation', icon: DollarSign },
+            { id: 'safety', label: 'Field Operations Safety', icon: ShieldCheck },
+            { id: 'dispatch', label: 'Dispatch & Route Clustering', icon: Truck },
+            { id: 'municipalAudit', label: 'Municipal Regulatory Audit', icon: FileCheck },
+            { id: 'workflow', label: 'End-to-End Orchestrated Pipeline', icon: Zap },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = selectedAgent === tab.id;
@@ -418,6 +418,7 @@ export const AIIntelligencePage: React.FC = () => {
                 onClick={() => {
                   setSelectedAgent(tab.id as any);
                   setInferenceError(null);
+                  if (tab.id === 'asset' && !inputEntityId) setInputEntityId('AST-001');
                 }}
                 className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
                   active
@@ -448,6 +449,24 @@ export const AIIntelligencePage: React.FC = () => {
                     placeholder="e.g., Colombo South, Galle Road, Central"
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-cyan-500"
                   />
+                  {/* Quick corridor presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1.5 text-[10px]">
+                    <span className="text-slate-400">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() => setDispatchCorridor('Colombo South')}
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono"
+                    >
+                      Colombo South
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDispatchCorridor('Galle Road Corridor')}
+                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono"
+                    >
+                      Galle Road
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -460,6 +479,9 @@ export const AIIntelligencePage: React.FC = () => {
                     placeholder="Leave blank for automatic active hazard clustering"
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-cyan-500 font-mono"
                   />
+                  <div className="pt-1.5 text-[10px] text-slate-400">
+                    Auto-clusters all active high-priority hazards if left blank
+                  </div>
                 </div>
               </div>
             ) : (
@@ -486,6 +508,33 @@ export const AIIntelligencePage: React.FC = () => {
                   }
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-cyan-500 font-mono"
                 />
+
+                {/* Quick Presets for Rapid Testing */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1.5 text-[11px]">
+                  <span className="text-slate-400 font-medium">Quick Test:</span>
+                  {selectedAgent === 'asset' ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setInputEntityId('AST-001')}
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[10px]"
+                      >
+                        AST-001 (Victoria Bridge)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInputEntityId('AST-002')}
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[10px]"
+                      >
+                        AST-002 (Galle Rd Culvert)
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-slate-400 italic text-[10px]">
+                      Enter active {selectedAgent === 'cost' || selectedAgent === 'municipalAudit' ? 'Work Order' : selectedAgent === 'safety' ? 'Maintenance Record' : 'Hazard'} identifier
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
