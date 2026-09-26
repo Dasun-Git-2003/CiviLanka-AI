@@ -1,9 +1,7 @@
-// CiviLanka.Web/src/pages/FieldWorkerSimulator.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Smartphone,
   MapPin,
-  Camera,
   Play,
   CheckCircle2,
   AlertTriangle,

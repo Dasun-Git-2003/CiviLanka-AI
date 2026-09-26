@@ -1,18 +1,13 @@
-// CiviLanka.Web/src/pages/SafetyAuditCenter.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ShieldCheck,
-  ShieldAlert,
   Play,
   CheckCircle2,
   AlertTriangle,
-  MapPin,
-  Camera,
-  Coins,
   Sparkles,
   XCircle,
 } from 'lucide-react';
-import { INITIAL_AUDIT_LOGS, INITIAL_WORK_ORDERS, type AuditLog, type WorkOrder } from '../data/member4Data';
+import { INITIAL_AUDIT_LOGS, INITIAL_WORK_ORDERS, type AuditLog } from '../data/member4Data';
 
 export default function SafetyAuditCenter() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
