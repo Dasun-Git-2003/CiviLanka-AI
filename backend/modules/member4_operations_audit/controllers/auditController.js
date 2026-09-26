@@ -42,13 +42,18 @@ exports.getAuditLogById = (req, res) => {
  */
 exports.evaluateAgentAudit = async (req, res) => {
   try {
-    const { workOrderId } = req.body;
-    const order = workOrders.find(w => w.id === Number(workOrderId));
+    const orderId = req.body.workOrderId || req.body.work_order_id || req.body.id;
+    let order = orderId ? workOrders.find(w => w.id === Number(orderId)) : null;
+
+    // Support auditing custom inline work order payloads
+    if (!order && (req.body.estimated_cost !== undefined || req.body.location_lat !== undefined)) {
+      order = { id: orderId || 999, ...req.body };
+    }
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: `Work Order #${workOrderId} not found.`
+        message: `Work Order #${orderId} not found.`
       });
     }
 
