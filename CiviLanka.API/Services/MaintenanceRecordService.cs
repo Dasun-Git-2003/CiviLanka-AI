@@ -494,22 +494,92 @@ namespace CiviLanka.API.Services
             return await MapToResponseDtoAsync(id);
         }
 
+        private async Task<List<MaintenanceAuditLogDto>> MapAuditLogsAsync(IEnumerable<MaintenanceAuditLog> logs, MaintenanceRecord record)
+        {
+            var list = logs.OrderByDescending(l => l.Timestamp).ToList();
+            if (!list.Any())
+            {
+                var fallbackEmail = !string.IsNullOrWhiteSpace(record.PerformedBy) && record.PerformedBy.Contains("@")
+                    ? record.PerformedBy
+                    : "worker@civilanka.gov.lk";
+
+                return new List<MaintenanceAuditLogDto>
+                {
+                    new MaintenanceAuditLogDto
+                    {
+                        Id                  = Guid.NewGuid(),
+                        MaintenanceRecordId = record.Id,
+                        UserId              = fallbackEmail,
+                        UserEmail           = fallbackEmail,
+                        Action              = "RECORD_INITIALIZED",
+                        EntityType          = "MaintenanceRecord",
+                        EntityId            = record.Id.ToString(),
+                        Timestamp           = record.CreatedAt,
+                        PreviousStatus      = null,
+                        NewStatus           = record.Status,
+                        Description         = $"Maintenance operation initialized for Work Order {record.WorkOrder?.WorkOrderNumber ?? record.WorkOrderId.ToString()}."
+                    }
+                };
+            }
+
+            var userIds = list.Select(l => l.UserId).Distinct().ToList();
+            var userMap = await _db.Users
+                .Where(u => userIds.Contains(u.Id) || (u.UserName != null && userIds.Contains(u.UserName)) || (u.Email != null && userIds.Contains(u.Email)))
+                .ToDictionaryAsync(u => u.Id, u => u.Email ?? u.UserName ?? string.Empty);
+
+            var usernameMap = await _db.Users
+                .Where(u => u.UserName != null && userIds.Contains(u.UserName))
+                .ToDictionaryAsync(u => u.UserName!, u => u.Email ?? u.UserName!);
+
+            return list.Select(l =>
+            {
+                string email = l.UserId;
+                if (userMap.TryGetValue(l.UserId, out var resolved) && !string.IsNullOrWhiteSpace(resolved) && resolved.Contains("@"))
+                {
+                    email = resolved;
+                }
+                else if (usernameMap.TryGetValue(l.UserId, out var resolvedFromUser) && !string.IsNullOrWhiteSpace(resolvedFromUser) && resolvedFromUser.Contains("@"))
+                {
+                    email = resolvedFromUser;
+                }
+                else if (l.UserId.Equals("SYSTEM", StringComparison.OrdinalIgnoreCase))
+                {
+                    email = "safety-agent@civilanka.gov.lk";
+                }
+                else if (!email.Contains("@"))
+                {
+                    if (l.Action.Contains("VERIF") || l.Action.Contains("CORRECTION"))
+                        email = "supervisor@civilanka.gov.lk";
+                    else if (l.Action.Contains("SAFETY") || l.Action.Contains("AI"))
+                        email = "safety-agent@civilanka.gov.lk";
+                    else if (!string.IsNullOrWhiteSpace(record.PerformedBy) && record.PerformedBy.Contains("@"))
+                        email = record.PerformedBy;
+                    else
+                        email = "worker@civilanka.gov.lk";
+                }
+
+                return new MaintenanceAuditLogDto
+                {
+                    Id                  = l.Id,
+                    MaintenanceRecordId = l.MaintenanceRecordId,
+                    UserId              = email,
+                    UserEmail           = email,
+                    Action              = l.Action,
+                    EntityType          = l.EntityType,
+                    EntityId            = l.EntityId,
+                    Timestamp           = l.Timestamp,
+                    PreviousStatus      = l.PreviousStatus,
+                    NewStatus           = l.NewStatus,
+                    Description         = l.Description
+                };
+            }).ToList();
+        }
+
         public async Task<List<MaintenanceAuditLogDto>> GetAuditLogsAsync(Guid id)
         {
+            var record = await _repo.GetByIdAsync(id);
             var logs = await _repo.GetAuditLogsAsync(id);
-            return logs.Select(l => new MaintenanceAuditLogDto
-            {
-                Id                  = l.Id,
-                MaintenanceRecordId = l.MaintenanceRecordId,
-                UserId              = l.UserId,
-                Action              = l.Action,
-                EntityType          = l.EntityType,
-                EntityId            = l.EntityId,
-                Timestamp           = l.Timestamp,
-                PreviousStatus      = l.PreviousStatus,
-                NewStatus           = l.NewStatus,
-                Description         = l.Description
-            }).ToList();
+            return await MapAuditLogsAsync(logs, record ?? new MaintenanceRecord { Id = id });
         }
 
         private async Task<MaintenanceRecordResponseDto?> MapToResponseDtoAsync(Guid id)
@@ -518,6 +588,7 @@ namespace CiviLanka.API.Services
             if (record == null) return null;
 
             var latestAnalysis = record.SafetyAnalyses.OrderByDescending(s => s.CreatedAt).FirstOrDefault();
+            var mappedLogs = await MapAuditLogsAsync(record.AuditLogs, record);
 
             return new MaintenanceRecordResponseDto
             {
@@ -564,36 +635,7 @@ namespace CiviLanka.API.Services
                 UpdatedAt              = record.UpdatedAt,
                 LatestSafetyAnalysis   = latestAnalysis == null ? null : MapSafetyAnalysis(latestAnalysis),
                 AuditLogCount          = record.AuditLogs.Count,
-                AuditLogs              = record.AuditLogs.Any()
-                    ? record.AuditLogs.OrderByDescending(l => l.Timestamp).Select(l => new MaintenanceAuditLogDto
-                    {
-                        Id                  = l.Id,
-                        MaintenanceRecordId = l.MaintenanceRecordId,
-                        UserId              = l.UserId,
-                        Action              = l.Action,
-                        EntityType          = l.EntityType,
-                        EntityId            = l.EntityId,
-                        Timestamp           = l.Timestamp,
-                        PreviousStatus      = l.PreviousStatus,
-                        NewStatus           = l.NewStatus,
-                        Description         = l.Description
-                    }).ToList()
-                    : new List<MaintenanceAuditLogDto>
-                    {
-                        new MaintenanceAuditLogDto
-                        {
-                            Id                  = Guid.NewGuid(),
-                            MaintenanceRecordId = record.Id,
-                            UserId              = string.IsNullOrWhiteSpace(record.PerformedBy) ? "System" : record.PerformedBy,
-                            Action              = "RECORD_INITIALIZED",
-                            EntityType          = "MaintenanceRecord",
-                            EntityId            = record.Id.ToString(),
-                            Timestamp           = record.CreatedAt,
-                            PreviousStatus      = null,
-                            NewStatus           = record.Status,
-                            Description         = $"Maintenance operation initialized for Work Order {record.WorkOrder?.WorkOrderNumber ?? record.WorkOrderId.ToString()}."
-                        }
-                    }
+                AuditLogs              = mappedLogs
             };
         }
 

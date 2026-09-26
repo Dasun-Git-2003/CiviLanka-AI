@@ -38,6 +38,7 @@ export interface MaintenanceAuditLog {
   id: string;
   maintenanceRecordId: string;
   userId: string;
+  userEmail?: string;
   action: string;
   entityType: string;
   entityId: string;

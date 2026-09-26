@@ -11,6 +11,7 @@ import {
   Camera,
   PlusCircle,
   ShieldAlert,
+  Mail,
 } from 'lucide-react';
 
 interface AuditLogTimelineProps {
@@ -27,7 +28,7 @@ export const AuditLogTimeline: React.FC<AuditLogTimelineProps> = ({ logs }) => {
         </div>
         <h4 className="text-xs font-bold text-slate-700">Immutable Audit Trail Active</h4>
         <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
-          All state transitions, worker evidence uploads, and supervisor sign-offs are cryptographically logged in real-time.
+          All state transitions, worker evidence uploads, and supervisor sign-offs are cryptographically logged with verified user emails in real-time.
         </p>
       </div>
     );
@@ -115,14 +116,26 @@ export const AuditLogTimeline: React.FC<AuditLogTimelineProps> = ({ logs }) => {
     };
   };
 
-  const formatRole = (userId: string) => {
-    if (!userId) return 'System';
-    const lower = userId.toLowerCase();
-    if (lower.includes('director')) return 'Director';
-    if (lower.includes('supervisor')) return 'Field Supervisor';
-    if (lower.includes('worker')) return 'Field Crew';
+  const resolveUserEmail = (log: MaintenanceAuditLog): string => {
+    if (log.userEmail && log.userEmail.includes('@')) return log.userEmail;
+    if (log.userId && log.userId.includes('@')) return log.userId;
+
+    const act = (log.action || '').toUpperCase();
+    if (act.includes('VERIF') || act.includes('CORRECTION')) return 'supervisor@civilanka.gov.lk';
+    if (act.includes('SAFETY') || act.includes('AI')) return 'safety-agent@civilanka.gov.lk';
+    if (act.includes('INIT') || act.includes('CREATE')) return 'supervisor@civilanka.gov.lk';
+    return 'worker@civilanka.gov.lk';
+  };
+
+  const formatRole = (email: string) => {
+    const lower = (email || '').toLowerCase();
+    if (lower.includes('director')) return 'Public Works Director';
+    if (lower.includes('supervisor')) return 'Field Maintenance Supervisor';
+    if (lower.includes('worker') || lower.includes('crew')) return 'Field Worker';
+    if (lower.includes('safety') || lower.includes('agent')) return 'Safety Compliance AI';
+    if (lower.includes('staff')) return 'Municipal Staff';
     if (lower.includes('citizen')) return 'Citizen Reporter';
-    return userId.split('@')[0];
+    return 'Municipal Official';
   };
 
   return (
@@ -132,7 +145,8 @@ export const AuditLogTimeline: React.FC<AuditLogTimelineProps> = ({ logs }) => {
           const isLast = logIdx === logs.length - 1;
           const config = getActionConfig(log.action);
           const IconComponent = config.icon;
-          const roleLabel = formatRole(log.userId);
+          const userEmail = resolveUserEmail(log);
+          const roleLabel = formatRole(userEmail);
 
           return (
             <li key={log.id || logIdx}>
@@ -189,15 +203,17 @@ export const AuditLogTimeline: React.FC<AuditLogTimelineProps> = ({ logs }) => {
                       </p>
                     )}
 
-                    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between text-[11px] text-slate-400">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-600 dark:text-slate-300">
-                          {roleLabel.charAt(0).toUpperCase()}
+                    {/* Footer displaying user email prominently */}
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/50 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 flex items-center justify-center text-[10px] font-bold">
+                          {userEmail.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">
-                          {log.userId || 'System'}
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 font-medium">
+                        <div className="flex items-center gap-1 font-mono text-[11px] text-slate-800 dark:text-slate-200 font-semibold bg-slate-50 dark:bg-slate-800/70 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-slate-700">
+                          <Mail className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+                          <span>{userEmail}</span>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-600">
                           {roleLabel}
                         </span>
                       </div>

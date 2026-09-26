@@ -29,17 +29,19 @@ namespace CiviLanka.API.Controllers
             _logger  = logger;
         }
 
-        private string UserId =>
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")
-            ?? User.Identity?.Name
-            ?? "system";
-
         private string UserEmail =>
             User.FindFirstValue(ClaimTypes.Email)
             ?? User.FindFirstValue("email")
             ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)
             ?? (User.Identity?.Name?.Contains("@") == true ? User.Identity.Name : "");
+
+        private string UserId =>
+            !string.IsNullOrWhiteSpace(UserEmail)
+                ? UserEmail
+                : (User.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? User.FindFirstValue("sub")
+                   ?? User.Identity?.Name
+                   ?? "system");
 
         // ── CREATE ────────────────────────────────────────────────────────────
         [HttpPost]
