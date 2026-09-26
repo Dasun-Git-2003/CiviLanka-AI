@@ -213,19 +213,19 @@ jobs:
 
     steps:
       - name: Download Backend Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: civilanka-api-release
           path: ./release/api
 
       - name: Download Frontend Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: civilanka-web-dist
           path: ./release/web
 
       - name: Download AI Agent Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: civilanka-agent-bundle
           path: ./release/agent
