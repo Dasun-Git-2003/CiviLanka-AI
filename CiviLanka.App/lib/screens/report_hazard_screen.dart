@@ -267,4 +267,100 @@ class _ReportHazardScreenState extends State<ReportHazardScreen> {
                           : Colors.grey.withOpacity(0.3),
                     ),
                   ),
-                  child: Row(\n                    children: [\n                      Icon(\n                        _latitude != null\n                            ? Icons.location_on\n                            : Icons.location_off,\n                        color: _latitude != null\n                            ? Colors.green\n                            : Colors.grey,\n                      ),\n                      const SizedBox(width: 10),\n                      Expanded(\n                        child: Text(\n                          _locationText ??\n                              'No location captured yet',\n                          style: TextStyle(\n                            color: _latitude != null\n                                ? Colors.green[700]\n                                : Colors.grey[600],\n                          ),\n                        ),\n                      ),\n                    ],\n                  ),\n                ),\n                const SizedBox(height: 10),\n                OutlinedButton.icon(\n                  onPressed:\n                      _locationLoading ? null : _captureLocation,\n                  icon: _locationLoading\n                      ? const SizedBox(\n                          width: 16,\n                          height: 16,\n                          child: CircularProgressIndicator(\n                              strokeWidth: 2))\n                      : const Icon(Icons.my_location),\n                  label: Text(_locationLoading\n                      ? 'Getting location...'\n                      : _latitude != null\n                          ? 'Update Location'\n                          : 'Capture GPS Location'),\n                  style: OutlinedButton.styleFrom(\n                    padding:\n                        const EdgeInsets.symmetric(vertical: 14),\n                    shape: RoundedRectangleBorder(\n                        borderRadius: BorderRadius.circular(10)),\n                  ),\n                ),\n                const SizedBox(height: 32),\n\n                // Submit\n                ElevatedButton(\n                  onPressed: _submitting ? null : _submit,\n                  style: ElevatedButton.styleFrom(\n                    padding: const EdgeInsets.symmetric(vertical: 16),\n                  ),\n                  child: _submitting\n                      ? const Row(\n                          mainAxisAlignment: MainAxisAlignment.center,\n                          children: [\n                            SizedBox(\n                              width: 20,\n                              height: 20,\n                              child: CircularProgressIndicator(\n                                  strokeWidth: 2,\n                                  color: Colors.white),\n                            ),\n                            SizedBox(width: 12),\n                            Text('Submitting...'),\n                          ],\n                        )\n                      : const Text('Submit Hazard Report'),\n                ),\n                const SizedBox(height: 32),\n              ],\n            ),\n          ),\n        ),\n      ),\n    );\n  }\n}\n\nclass _SectionLabel extends StatelessWidget {\n  final String text;\n  const _SectionLabel(this.text);\n\n  @override\n  Widget build(BuildContext context) => Padding(\n        padding: const EdgeInsets.only(bottom: 8),\n        child: Text(\n          text,\n          style: const TextStyle(\n              fontWeight: FontWeight.w600, fontSize: 14),\n        ),\n      );\n}\n
+                  child: Row(
+                    children: [
+                      Icon(
+                        _latitude != null
+                            ? Icons.location_on
+                            : Icons.location_off,
+                        color: _latitude != null
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _locationText ??
+                              'No location captured yet',
+                          style: TextStyle(
+                            color: _latitude != null
+                                ? Colors.green[700]
+                                : Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed:
+                      _locationLoading ? null : _captureLocation,
+                  icon: _locationLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2))
+                      : const Icon(Icons.my_location),
+                  label: Text(_locationLoading
+                      ? 'Getting location...'
+                      : _latitude != null
+                          ? 'Update Location'
+                          : 'Capture GPS Location'),
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Submit
+                ElevatedButton(
+                  onPressed: _submitting ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _submitting
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Submitting...'),
+                          ],
+                        )
+                      : const Text('Submit Hazard Report'),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          text,
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+      );
+}
