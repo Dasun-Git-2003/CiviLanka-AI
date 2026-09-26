@@ -6,7 +6,6 @@ import {
   ArrowRight,
   ChevronRight,
   ChevronDown,
-  Sparkles,
   Scan,
   TrendingUp,
   Coins,
@@ -29,6 +28,9 @@ const AI_AGENTS = [
     title: 'Hazard Classification Agent',
     badge: 'VISION & DEFECT TRIAGE',
     icon: Scan,
+    image: '/images/fredrik-posse-LVqjs1bDGFs-unsplash.jpg',
+    actionText: 'REPORT & CLASSIFY',
+    link: '/report-defect',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -45,6 +47,9 @@ const AI_AGENTS = [
     title: 'Asset Risk Prediction Agent',
     badge: 'STRUCTURAL HEALTH',
     icon: TrendingUp,
+    image: '/images/Asserts%20agent.jpg',
+    actionText: 'VIEW PREDICTIONS',
+    link: '/ai-intelligence',
     borderColor: 'border-blue-200 hover:border-blue-400',
     iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -61,6 +66,9 @@ const AI_AGENTS = [
     title: 'BOQ Cost & Material Estimator',
     badge: 'FISCAL GOVERNANCE',
     icon: Coins,
+    image: '/images/yuheng-ouyang-2r0Eo89ZSQk-unsplash.jpg',
+    actionText: 'ESTIMATE MATERIALS',
+    link: '/work-orders',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -77,6 +85,9 @@ const AI_AGENTS = [
     title: 'Safety & Compliance Verifier',
     badge: 'EVIDENCE AUDIT',
     icon: ShieldCheck,
+    image: '/images/pexels-jan-van-der-wolf-11680885-29114485.jpg',
+    actionText: 'VERIFY COMPLIANCE',
+    link: '/work-orders',
     borderColor: 'border-emerald-200 hover:border-emerald-400',
     iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -465,70 +476,114 @@ export default function LandingPage() {
       </section>
 
       {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
-      <section id="ai-agents" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="ai-agents" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-              <span>CORE ARCHITECTURE</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+          <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-4">
+              CORE ARCHITECTURE
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               Four Specialized AI Agents
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
               Autonomous domain agents powered by Google Gemini, operating synchronously across triage, asset health, financial calculation, and field compliance.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {AI_AGENTS.map((agent) => {
-              const IconComp = agent.icon;
+          <div className="space-y-20 sm:space-y-28 lg:space-y-36">
+            {AI_AGENTS.map((agent, index) => {
+              const isEven = index % 2 === 0;
+
               return (
                 <div
                   key={agent.id}
-                  className={`bg-white dark:bg-slate-900 rounded-2xl p-6 border ${
-                    isDark ? 'border-slate-800 hover:border-amber-500/50 shadow-slate-950/40' : agent.borderColor
-                  } shadow-xs hover:shadow-md transition-all flex flex-col justify-between`}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center"
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl border ${agent.iconBg} dark:bg-slate-800 dark:border-slate-700`}>
-                        <IconComp className="w-5 h-5" />
+                  {/* Text Column - 100% visible, zero overlap */}
+                  <div
+                    className={`space-y-6 ${
+                      isEven ? 'lg:col-span-7' : 'lg:col-span-7 lg:order-2'
+                    }`}
+                  >
+                    {/* Eyebrow badge */}
+                    <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-[0.2em] text-slate-500 dark:text-slate-400 uppercase">
+                      <span>AGENT {agent.number}</span>
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <span className="text-slate-800 dark:text-slate-200">{agent.badge}</span>
+                    </div>
+
+                    {/* Headline */}
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase font-display leading-tight">
+                      {agent.title}
+                    </h3>
+
+                    {/* Summary */}
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+                      {agent.summary}
+                    </p>
+
+                    {/* Features */}
+                    <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                        {agent.features.map((feat, fIdx) => (
+                          <li key={fIdx} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                            <span className="leading-snug">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Action Button (Editorial Outline Style) */}
+                    <div className="pt-2">
+                      <Link
+                        to={agent.link}
+                        className="inline-flex items-center justify-center gap-3 px-6 py-3 border-2 border-slate-900 dark:border-white text-slate-900 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 font-mono text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 group"
+                      >
+                        <span>{agent.actionText}</span>
+                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Image Column */}
+                  <div
+                    className={`${
+                      isEven ? 'lg:col-span-5' : 'lg:col-span-5 lg:order-1'
+                    }`}
+                  >
+                    <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl aspect-4/3 sm:aspect-16/10 lg:aspect-4/3 w-full bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={agent.image}
+                        alt={agent.title}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
+
+                      {/* Floating Metadata Pills on Photo */}
+                      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                        <span className="px-3 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-white border border-white/15">
+                          {agent.badge}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold text-white/90 border border-white/15">
+                          {agent.number} / 04
+                        </span>
                       </div>
-                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
-                        AGENT {agent.number}
-                      </span>
                     </div>
-
-                    <div>
-                      <span className={`inline-block text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${agent.badgeBg} mb-2`}>
-                        {agent.badge}
-                      </span>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{agent.title}</h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{agent.summary}</p>
-                    </div>
-
-                    <ul className="space-y-1.5 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
-                      {agent.features.map((feat, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                          <span className="text-[11px] leading-tight">{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-16 text-center">
             <Link
               to="/ai-intelligence"
-              className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
             >
               <span>View live AI telemetry and testing console</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -538,9 +593,9 @@ export default function LandingPage() {
       <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono font-bold mb-3">
-              <span>HOW IT WORKS</span>
-            </div>
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+              HOW IT WORKS
+            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               From Citizen Report to Verified Repair
             </h2>
@@ -581,9 +636,9 @@ export default function LandingPage() {
       <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <span>PROVEN METRICS</span>
-            </div>
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+              PROVEN METRICS
+            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               Measurable Civic Impact
             </h2>
@@ -754,3 +809,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
