@@ -116,9 +116,9 @@ function MapInner({
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const handleMarkerClick = useCallback(
-    (asset: AssetPoint, e: google.maps.MapMouseEvent) => {
+    (asset: AssetPoint, e?: any) => {
       // Prevent bubbling to the Map's onClick
-      e.stop?.();
+      e?.stop?.();
       setSelectedId(asset.id);
       onAssetSelect(asset);
     },
