@@ -147,7 +147,7 @@ export default function BudgetManagement() {
           <p className="text-2xl font-extrabold text-slate-800">
             LKR {totalAllocated.toLocaleString()}
           </p>
-          <span className="text-[11px] text-slate-400 mt-1 block">Approved municipal ceiling</span>
+          <span className="text-[11px] text-slate-400 mt-1 block">Approved ceiling: LKR {totalApproved.toLocaleString()}</span>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
