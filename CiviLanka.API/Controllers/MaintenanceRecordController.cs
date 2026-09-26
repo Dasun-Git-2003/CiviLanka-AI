@@ -29,17 +29,19 @@ namespace CiviLanka.API.Controllers
             _logger  = logger;
         }
 
-        private string UserId =>
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")
-            ?? User.Identity?.Name
-            ?? "system";
-
         private string UserEmail =>
             User.FindFirstValue(ClaimTypes.Email)
             ?? User.FindFirstValue("email")
             ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)
             ?? (User.Identity?.Name?.Contains("@") == true ? User.Identity.Name : "");
+
+        private string UserId =>
+            !string.IsNullOrWhiteSpace(UserEmail)
+                ? UserEmail
+                : (User.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? User.FindFirstValue("sub")
+                   ?? User.Identity?.Name
+                   ?? "system");
 
         // ── CREATE ────────────────────────────────────────────────────────────
         [HttpPost]
@@ -119,6 +121,7 @@ namespace CiviLanka.API.Controllers
         [ProducesResponseType(typeof(List<MaintenanceRecordResponseDto>), 200)]
         public async Task<IActionResult> GetAll()
         {
+            await _service.SyncApprovedWorkOrdersAsync();
             var list = await _service.GetAllAsync();
 
             if (User.IsInRole("FieldWorker") && !User.IsInRole("FieldMaintenanceSupervisor") && !User.IsInRole("PublicWorksDirector") && !User.IsInRole("Director"))
@@ -195,6 +198,7 @@ namespace CiviLanka.API.Controllers
         [ProducesResponseType(typeof(List<MaintenanceRecordResponseDto>), 200)]
         public async Task<IActionResult> GetMyAssigned()
         {
+            await _service.SyncApprovedWorkOrdersAsync();
             var allRecords = await _service.GetAllAsync();
 
             // Supervisory / Director / Staff roles see all records

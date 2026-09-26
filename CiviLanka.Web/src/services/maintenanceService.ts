@@ -50,6 +50,18 @@ export const maintenanceService = {
     }
   },
 
+  // 3b. Get maintenance records by Asset ID (Repair History)
+  getByAssetId: async (assetId: string): Promise<MaintenanceRecord[]> => {
+    try {
+      const response = await apiClient.get<MaintenanceRecord[]>(
+        `/api/maintenance-records/asset/${assetId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
   // 4. Get verification queue (records pending supervisor verification)
   getVerificationQueue: async (): Promise<MaintenanceRecord[]> => {
     try {

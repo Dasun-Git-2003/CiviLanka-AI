@@ -69,14 +69,12 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({ workOrder, onAppro
         </div>
       </div>
 
-      {/* Threshold Notice */}
+      {/* Director Approval Notice */}
       {workOrder.approvalRequired && (
         <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3 text-xs flex items-start gap-2.5 mb-5">
           <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Budget Threshold Exceeded:</span> Estimated cost of{' '}
-            <strong>Rs. {(workOrder.estimatedCost || 0).toLocaleString()}</strong> exceeds the municipal threshold of
-            Rs. 100,000. Formal authorization by the Public Works Director is mandatory before dispatching field crews.
+            <span className="font-semibold">Director Authorization Mandatory:</span> Formal electronic authorization by the Public Works Director is mandatory for all municipal work orders (Estimated: <strong>Rs. {(workOrder.estimatedCost || 0).toLocaleString()}</strong>) prior to crew mobilization and budget disbursement.
           </div>
         </div>
       )}

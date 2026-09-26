@@ -24,6 +24,9 @@ namespace CiviLanka.API.DTOs.WorkOrders
         [MaxLength(20)]
         public string Priority { get; set; } = "NORMAL";
 
+        [MaxLength(500)]
+        public string? AssignedCrew { get; set; }
+        public DateTime? ScheduledDate { get; set; }
         public decimal? EstimatedCost { get; set; }
         public decimal? MaterialCost { get; set; }
         public decimal? LabourCost { get; set; }

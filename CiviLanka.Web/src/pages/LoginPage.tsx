@@ -282,7 +282,7 @@ export const LoginPage: React.FC = () => {
                 }}
                 className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-left transition-colors"
               >
-                <div className="font-bold text-[11px]">2. Field Worker</div>
+                <div className="font-bold text-[11px]">2. Field Inspector</div>
                 <div className="text-[10px] text-amber-600 dark:text-amber-400 truncate">fieldworker@test.com</div>
               </button>
 

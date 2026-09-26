@@ -35,7 +35,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // ── JWT Authentication ─────────────────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"]!;
+var secretKey = jwtSettings["SecretKey"] ?? "CiviLanka-SuperSecret-Key-Change-In-Production-2026!";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -90,7 +90,7 @@ builder.Services.AddAuthorization(options =>
 
     // 6. Contractor Policies
     options.AddPolicy("CanManageContractors", policy =>
-        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
+        policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director", "MunicipalStaff"));
 
     // 7. Budget Policies
     options.AddPolicy("CanViewBudget", policy =>

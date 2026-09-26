@@ -66,7 +66,8 @@ namespace CiviLanka.API.Controllers
         {
             var list = await _service.GetAllAsync();
 
-            // Resource-level filtering: Field workers only view work assigned to their crew or account
+            // Resource-level filtering: Field workers view work assigned to their crew or account,
+            // as well as all Approved or Assigned municipal work orders awaiting field execution
             if (User.IsInRole("FieldWorker") && !User.IsInRole("FieldMaintenanceSupervisor") && !User.IsInRole("PublicWorksDirector") && !User.IsInRole("Director"))
             {
                 var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "";
@@ -75,7 +76,9 @@ namespace CiviLanka.API.Controllers
                     (!string.IsNullOrEmpty(w.AssignedCrew) && (
                         w.AssignedCrew.Contains(userEmail, StringComparison.OrdinalIgnoreCase) ||
                         w.AssignedCrew.Contains(userFullName, StringComparison.OrdinalIgnoreCase) ||
-                        w.AssignedCrew.Contains(UserId, StringComparison.OrdinalIgnoreCase)))
+                        w.AssignedCrew.Contains(UserId, StringComparison.OrdinalIgnoreCase))) ||
+                    w.Status == WorkOrderStatus.Approved ||
+                    w.Status == WorkOrderStatus.Assigned
                 ).ToList();
             }
 

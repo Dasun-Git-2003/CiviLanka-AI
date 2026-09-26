@@ -101,6 +101,8 @@ export interface CreateWorkOrderInput {
   title: string;
   description: string;
   priority: string;
+  assignedCrew?: string;
+  scheduledDate?: string;
   estimatedCost?: number;
   materialCost?: number;
   labourCost?: number;

@@ -166,7 +166,7 @@ export const WorkOrderDashboard: React.FC = () => {
                 {pendingApproval} Work Order{pendingApproval > 1 ? 's' : ''} Require Director Approval
               </h3>
               <p className="text-xs text-amber-100 mt-0.5">
-                These work orders exceed the Rs. 100,000 threshold or flag high-risk municipal assets.
+                Executive Director authorization is mandatory prior to crew dispatch and municipal budget release.
               </p>
             </div>
           </div>

@@ -107,11 +107,11 @@ export const MaintenanceDashboard: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
-            to="/field-worker"
+            to="/field-inspector"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
           >
             <Smartphone className="w-4 h-4 text-slate-600" />
-            Field Worker Portal
+            Field Inspector Portal
           </Link>
           <Link
             to="/maintenance/verification"

@@ -19,6 +19,7 @@ import {
   FileText,
   Bot,
   MapPin,
+  ClipboardCheck,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -35,6 +36,7 @@ import AccessDeniedPage from './pages/AccessDeniedPage';
 
 // Citizen Portal Page
 import CitizenDashboard from './pages/CitizenDashboard';
+import CitizenReportsReviewPage from './pages/CitizenReportsReviewPage';
 
 // Member 2 Pages (Infrastructure Registry & Maps)
 import Dashboard from './pages/Dashboard';
@@ -54,7 +56,7 @@ import { ApprovalQueue } from './pages/ApprovalQueue';
 import { MaintenanceDashboard } from './pages/MaintenanceDashboard';
 import { CreateMaintenanceRecord } from './pages/CreateMaintenanceRecord';
 import { MaintenanceDetailsPage } from './pages/MaintenanceDetailsPage';
-import { FieldWorkerPortal } from './pages/FieldWorkerPortal';
+import { FieldInspectorPortal } from './pages/FieldInspectorPortal';
 import { VerificationQueuePage } from './pages/VerificationQueuePage';
 import { MaintenanceHistoryPage } from './pages/MaintenanceHistoryPage';
 
@@ -103,7 +105,7 @@ function Sidebar() {
         {
           title: 'Field Operations',
           items: [
-            { name: 'Worker Task Portal', path: '/field-worker', icon: Smartphone },
+            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
             { name: 'Assigned Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
             { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
@@ -140,6 +142,7 @@ function Sidebar() {
         {
           title: 'Work Orders & AI Triage (M3)',
           items: [
+            { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
             { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
             { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
@@ -152,7 +155,7 @@ function Sidebar() {
             { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
             { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
             { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-            { name: 'Field Worker Portal', path: '/field-worker', icon: Smartphone },
+            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
           ],
         },
         {
@@ -178,6 +181,7 @@ function Sidebar() {
         title: 'Executive Governance',
         items: [
           { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
+          { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
           { name: 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
           { name: 'Treasury Budget', path: '/budget', icon: DollarSign },
           { name: 'User Management', path: '/users', icon: Users },
@@ -210,7 +214,7 @@ function Sidebar() {
           { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
           { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
           { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-          { name: 'Field Worker Portal', path: '/field-worker', icon: Smartphone },
+          { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
         ],
       },
       {
@@ -449,6 +453,16 @@ function App() {
           }
         />
         <Route
+          path="/citizen-reports"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <CitizenReportsReviewPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/approval-queue"
           element={
             <ProtectedRoute allowedRoles={['PublicWorksDirector']}>
@@ -491,11 +505,21 @@ function App() {
           }
         />
         <Route
+          path="/field-inspector"
+          element={
+            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <FieldInspectorPortal />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/field-worker"
           element={
             <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
-                <FieldWorkerPortal />
+                <FieldInspectorPortal />
               </Layout>
             </ProtectedRoute>
           }

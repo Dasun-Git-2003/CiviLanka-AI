@@ -16,6 +16,7 @@ namespace CiviLanka.API.Services
         Task<bool> CancelHazardAsync(Guid id, string citizenId, bool permanent = false);
         Task<HazardAIAnalysisResponseDto?> TriggerAnalysisAsync(Guid hazardId);
         Task<HazardAIAnalysisResponseDto?> GetLatestAnalysisAsync(Guid hazardId);
+        Task<HazardResponseDto?> ReviewHazardAsync(Guid id, ReviewHazardDto dto, string reviewerName);
     }
 
     public class HazardService : IHazardService
@@ -241,12 +242,76 @@ namespace CiviLanka.API.Services
             }
         }
 
+        public async Task<HazardResponseDto?> ReviewHazardAsync(Guid id, ReviewHazardDto dto, string reviewerName)
+        {
+            var hazard = await _repo.GetByIdAsync(id);
+            if (hazard == null || hazard.IsCancelled) return null;
+
+            var actionUpper = (dto.Action ?? "APPROVE").Trim().ToUpperInvariant();
+            if (actionUpper == "REJECT")
+            {
+                hazard.Status = HazardStatus.Rejected;
+                var reason = string.IsNullOrWhiteSpace(dto.ReviewNotes)
+                    ? $"[OFFICIAL REJECTION by {reviewerName}] Report rejected by municipal authority."
+                    : $"[OFFICIAL REJECTION by {reviewerName}] {dto.ReviewNotes}";
+
+                var analysis = new HazardAIAnalysis
+                {
+                    Id = Guid.NewGuid(),
+                    HazardId = hazard.Id,
+                    Category = hazard.Category,
+                    Severity = hazard.Severity ?? "LOW",
+                    RiskLevel = hazard.RiskLevel ?? "LOW",
+                    Priority = hazard.Priority ?? "LOW",
+                    Confidence = 1.0,
+                    Reason = reason,
+                    ModelName = "official-review",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _repo.AddAnalysisAsync(analysis);
+            }
+            else
+            {
+                hazard.Status = HazardStatus.Approved;
+                if (!string.IsNullOrWhiteSpace(dto.Category)) hazard.Category = dto.Category;
+                if (!string.IsNullOrWhiteSpace(dto.Priority)) hazard.Priority = dto.Priority;
+                if (!string.IsNullOrWhiteSpace(dto.Severity)) hazard.Severity = dto.Severity;
+
+                var reason = string.IsNullOrWhiteSpace(dto.ReviewNotes)
+                    ? $"[OFFICIAL APPROVAL by {reviewerName}] Validated by municipal official and approved for work order dispatch."
+                    : $"[OFFICIAL APPROVAL by {reviewerName}] {dto.ReviewNotes}";
+
+                var analysis = new HazardAIAnalysis
+                {
+                    Id = Guid.NewGuid(),
+                    HazardId = hazard.Id,
+                    Category = hazard.Category,
+                    Severity = hazard.Severity ?? "MEDIUM",
+                    RiskLevel = hazard.RiskLevel ?? "MEDIUM",
+                    Priority = hazard.Priority ?? "NORMAL",
+                    Confidence = 1.0,
+                    Reason = reason,
+                    ModelName = "official-review",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _repo.AddAnalysisAsync(analysis);
+            }
+
+            hazard.UpdatedAt = DateTime.UtcNow;
+            await _repo.UpdateAsync(hazard);
+
+            _logger.LogInformation("Hazard {Ticket} reviewed by {Reviewer}: Action={Action}", hazard.TicketNumber, reviewerName, actionUpper);
+            return await MapToResponseAsync(hazard);
+        }
+
         private async Task<HazardResponseDto> MapToResponseAsync(Hazard hazard)
         {
             var latestAnalysis = hazard.AIAnalyses?.OrderByDescending(a => a.CreatedAt).FirstOrDefault()
                 ?? await _repo.GetLatestAnalysisAsync(hazard.Id);
 
-            return new HazardResponseDto
+            var linkedWo = await _repo.GetLinkedWorkOrderAsync(hazard.Id);
+
+            var dto = new HazardResponseDto
             {
                 Id = hazard.Id,
                 TicketNumber = hazard.TicketNumber,
@@ -265,8 +330,18 @@ namespace CiviLanka.API.Services
                 CreatedAt = hazard.CreatedAt,
                 UpdatedAt = hazard.UpdatedAt,
                 IsCancelled = hazard.IsCancelled,
-                LatestAIAnalysis = latestAnalysis == null ? null : MapAnalysis(latestAnalysis)
+                LatestAIAnalysis = latestAnalysis == null ? null : MapAnalysis(latestAnalysis),
+                LinkedWorkOrderId = linkedWo.WorkOrderId,
+                LinkedWorkOrderNumber = linkedWo.WorkOrderNumber,
+                LinkedWorkOrderStatus = linkedWo.WorkOrderStatus
             };
+
+            if (latestAnalysis != null && (latestAnalysis.ModelName == "official-review" || latestAnalysis.Reason.StartsWith("[OFFICIAL")))
+            {
+                dto.ReviewNotes = latestAnalysis.Reason;
+            }
+
+            return dto;
         }
 
         private static HazardAIAnalysisResponseDto MapAnalysis(HazardAIAnalysis a) => new()

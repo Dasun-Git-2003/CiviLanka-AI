@@ -18,6 +18,8 @@ namespace CiviLanka.API.Repositories
         Task<HazardAIAnalysis?> GetLatestAnalysisAsync(Guid hazardId);
         Task<List<HazardAIAnalysis>> GetAllAnalysesAsync(Guid hazardId);
         Task<bool> DeleteAsync(Guid id);
+        Task<(Guid? WorkOrderId, string? WorkOrderNumber, string? WorkOrderStatus)> GetLinkedWorkOrderAsync(Guid hazardId);
+        Task<Dictionary<Guid, (Guid Id, string Number, string Status)>> GetAllLinkedWorkOrdersAsync();
     }
 
     public class HazardRepository : IHazardRepository
@@ -144,6 +146,34 @@ namespace CiviLanka.API.Repositories
             _db.Hazards.Remove(hazard);
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<(Guid? WorkOrderId, string? WorkOrderNumber, string? WorkOrderStatus)> GetLinkedWorkOrderAsync(Guid hazardId)
+        {
+            var wo = await _db.WorkOrders
+                .Where(w => w.HazardId == hazardId && !w.IsCancelled)
+                .Select(w => new { w.Id, w.WorkOrderNumber, w.Status })
+                .FirstOrDefaultAsync();
+
+            return wo != null ? (wo.Id, wo.WorkOrderNumber, wo.Status) : (null, null, null);
+        }
+
+        public async Task<Dictionary<Guid, (Guid Id, string Number, string Status)>> GetAllLinkedWorkOrdersAsync()
+        {
+            var list = await _db.WorkOrders
+                .Where(w => w.HazardId.HasValue && !w.IsCancelled)
+                .Select(w => new { HazardId = w.HazardId!.Value, w.Id, w.WorkOrderNumber, w.Status })
+                .ToListAsync();
+
+            var dict = new Dictionary<Guid, (Guid Id, string Number, string Status)>();
+            foreach (var item in list)
+            {
+                if (!dict.ContainsKey(item.HazardId))
+                {
+                    dict[item.HazardId] = (item.Id, item.WorkOrderNumber, item.Status);
+                }
+            }
+            return dict;
         }
     }
 }
