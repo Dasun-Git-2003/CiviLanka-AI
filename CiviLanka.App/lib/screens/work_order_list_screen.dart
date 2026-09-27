@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/work_order.dart';
+import '../services/auth_service.dart';
 import '../services/work_order_service.dart';
+import 'create_work_order_screen.dart';
 import 'work_order_details_screen.dart';
 
 class WorkOrderListScreen extends StatefulWidget {
@@ -48,6 +50,9 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canCreate =
+        context.read<AuthService>().currentUser?.canCreateWorkOrders ?? false;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Work Orders'),
@@ -63,6 +68,23 @@ class _WorkOrderListScreenState extends State<WorkOrderListScreen> {
         onRefresh: _load,
         child: _buildBody(),
       ),
+      floatingActionButton: canCreate
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final created = await Navigator.push<WorkOrder>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CreateWorkOrderScreen(),
+                  ),
+                );
+                if (created != null && mounted) {
+                  _load();
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('New Work Order'),
+            )
+          : null,
     );
   }
 

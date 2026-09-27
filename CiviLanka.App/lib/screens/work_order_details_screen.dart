@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/work_order.dart';
+import '../services/auth_service.dart';
 import '../services/work_order_service.dart';
+import 'edit_work_order_screen.dart';
 
 class WorkOrderDetailsScreen extends StatefulWidget {
   final String workOrderId;
@@ -45,6 +47,70 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
           _error = e.toString();
           _loading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _navigateToEdit() async {
+    final updated = await Navigator.push<WorkOrder>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditWorkOrderScreen(workOrder: _workOrder!),
+      ),
+    );
+    if (updated != null && mounted) {
+      setState(() => _workOrder = updated);
+    }
+  }
+
+  Future<void> _confirmCancel() async {
+    final wo = _workOrder;
+    if (wo == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel Work Order?'),
+        content: Text(
+          'Are you sure you want to cancel Work Order ${wo.workOrderNumber}? This marks the order as CANCELLED in the municipal registry and preserves the safety audit trail.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Order'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Cancel Order',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await context.read<WorkOrderService>().cancelWorkOrder(wo.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Work Order ${wo.workOrderNumber} was cancelled.'),
+              backgroundColor: Colors.orange.shade800,
+            ),
+          );
+          _load();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+        }
       }
     }
   }
@@ -94,6 +160,16 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
       decimalDigits: 0,
     );
 
+    final auth = context.read<AuthService>();
+    final user = auth.currentUser;
+    final canManage = user?.canManageWorkOrders ?? false;
+    final isEditable = canManage &&
+        !wo.isCancelled &&
+        wo.status.toUpperCase() != 'CANCELLED' &&
+        wo.status.toUpperCase() != 'CLOSED';
+    final isCancellable =
+        canManage && !wo.isCancelled && wo.status.toUpperCase() != 'CANCELLED';
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -105,6 +181,19 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
             tooltip: 'Refresh',
             onPressed: _load,
           ),
+          if (isEditable)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit Work Order',
+              onPressed: _navigateToEdit,
+            ),
+          if (isCancellable)
+            IconButton(
+              icon: const Icon(Icons.cancel_outlined),
+              tooltip: 'Cancel Work Order',
+              color: Colors.white,
+              onPressed: _confirmCancel,
+            ),
         ],
       ),
       body: RefreshIndicator(

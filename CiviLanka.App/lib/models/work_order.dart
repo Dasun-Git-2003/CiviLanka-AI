@@ -354,3 +354,164 @@ class WorkOrderAIAnalysis {
         'createdAt': createdAt.toIso8601String(),
       };
 }
+
+/// DTO for creating a new Work Order on the backend (POST /api/workorders).
+class CreateWorkOrderInput {
+  final String? hazardId;
+  final String? assetId;
+  final String title;
+  final String description;
+  final String priority;
+  final double? estimatedCost;
+
+  const CreateWorkOrderInput({
+    this.hazardId,
+    this.assetId,
+    required this.title,
+    required this.description,
+    this.priority = 'NORMAL',
+    this.estimatedCost,
+  });
+
+  Map<String, dynamic> toJson() => {
+        if (hazardId != null && hazardId!.isNotEmpty) 'hazardId': hazardId,
+        if (assetId != null && assetId!.isNotEmpty) 'assetId': assetId,
+        'title': title,
+        'description': description,
+        'priority': priority.toUpperCase(),
+        if (estimatedCost != null) 'estimatedCost': estimatedCost,
+      };
+}
+
+/// DTO for updating an existing Work Order on the backend (PUT /api/workorders/{id}).
+class UpdateWorkOrderInput {
+  final String? title;
+  final String? description;
+  final String? priority;
+  final int? assignedContractorId;
+  final String? assignedCrew;
+  final DateTime? scheduledDate;
+  final double? estimatedCost;
+  final double? approvedBudget;
+  final double? actualCost;
+  final String? status;
+  final String? notes;
+
+  const UpdateWorkOrderInput({
+    this.title,
+    this.description,
+    this.priority,
+    this.assignedContractorId,
+    this.assignedCrew,
+    this.scheduledDate,
+    this.estimatedCost,
+    this.approvedBudget,
+    this.actualCost,
+    this.status,
+    this.notes,
+  });
+
+  Map<String, dynamic> toJson() => {
+        if (title != null) 'title': title,
+        if (description != null) 'description': description,
+        if (priority != null) 'priority': priority!.toUpperCase(),
+        if (assignedContractorId != null)
+          'assignedContractorId': assignedContractorId,
+        if (assignedCrew != null) 'assignedCrew': assignedCrew,
+        if (scheduledDate != null)
+          'scheduledDate': scheduledDate!.toUtc().toIso8601String(),
+        if (estimatedCost != null) 'estimatedCost': estimatedCost,
+        if (approvedBudget != null) 'approvedBudget': approvedBudget,
+        if (actualCost != null) 'actualCost': actualCost,
+        if (status != null) 'status': status,
+        if (notes != null) 'notes': notes,
+      };
+}
+
+/// Lightweight model for selecting an originating Citizen Hazard.
+class HazardOption {
+  final String id;
+  final String ticketNumber;
+  final String category;
+  final String description;
+
+  const HazardOption({
+    required this.id,
+    required this.ticketNumber,
+    required this.category,
+    required this.description,
+  });
+
+  factory HazardOption.fromJson(Map<String, dynamic> json) => HazardOption(
+        id: json['id']?.toString() ?? '',
+        ticketNumber: json['ticketNumber'] as String? ?? '',
+        category: json['category'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+      );
+}
+
+/// Lightweight model for selecting an Infrastructure Asset.
+class AssetOption {
+  final String id;
+  final String name;
+  final String type;
+
+  const AssetOption({
+    required this.id,
+    required this.name,
+    required this.type,
+  });
+
+  factory AssetOption.fromJson(Map<String, dynamic> json) => AssetOption(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        type: json['type'] as String? ?? '',
+      );
+}
+
+/// Known Work Order status values for UI presentation and selection.
+///
+/// NOTE: Authoritative lifecycle state machine transitions are validated
+/// exclusively by the ASP.NET Core backend. Flutter does not duplicate or
+/// enforce transition rules locally.
+class WorkOrderStatusConstants {
+  static const aiGenerated = 'AI_GENERATED';
+  static const pendingApproval = 'PENDING_APPROVAL';
+  static const approved = 'APPROVED';
+  static const rejected = 'REJECTED';
+  static const assigned = 'ASSIGNED';
+  static const scheduled = 'SCHEDULED';
+  static const inProgress = 'IN_PROGRESS';
+  static const completed = 'COMPLETED';
+  static const verified = 'VERIFIED';
+  static const closed = 'CLOSED';
+  static const cancelled = 'CANCELLED';
+
+  static const List<String> all = [
+    aiGenerated,
+    pendingApproval,
+    approved,
+    rejected,
+    assigned,
+    scheduled,
+    inProgress,
+    completed,
+    verified,
+    closed,
+    cancelled,
+  ];
+
+  /// Status values that are selectable for edit updates by authorized staff.
+  static const List<String> selectableForUpdate = [
+    aiGenerated,
+    pendingApproval,
+    approved,
+    rejected,
+    assigned,
+    scheduled,
+    inProgress,
+    completed,
+    verified,
+    closed,
+  ];
+}

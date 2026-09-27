@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:civilanka_app/models/work_order.dart';
 import 'package:civilanka_app/models/user.dart';
+import 'package:civilanka_app/services/work_order_service.dart';
 
 void main() {
   group('WorkOrder Model Parsing Tests', () {
@@ -175,6 +177,181 @@ void main() {
 
       expect(makeUser('Citizen').canAccessWorkOrders, isFalse);
       expect(makeUser('Guest').canAccessWorkOrders, isFalse);
+    });
+
+    test(
+        'User.canCreateWorkOrders and canManageWorkOrders enforce role hierarchy',
+        () {
+      User makeUser(String role) => User(
+            id: 'u-1',
+            fullName: 'Test User',
+            email: 'test@civilanka.gov.lk',
+            role: role,
+            token: 'mock-token',
+            expiresAt: DateTime.now().add(const Duration(hours: 1)),
+          );
+
+      // Authorized roles (Supervisors, Directors, Municipal Staff)
+      for (final role in [
+        'FieldMaintenanceSupervisor',
+        'PublicWorksDirector',
+        'Director',
+        'MunicipalStaff',
+      ]) {
+        expect(makeUser(role).canCreateWorkOrders, isTrue,
+            reason: '$role should have create permissions');
+        expect(makeUser(role).canManageWorkOrders, isTrue,
+            reason: '$role should have manage permissions');
+      }
+
+      // Unauthorized roles (Field workers can view but not create/manage; Citizens have no WO access)
+      for (final role in ['FieldWorker', 'Citizen', 'Guest', 'Unknown']) {
+        expect(makeUser(role).canCreateWorkOrders, isFalse,
+            reason: '$role should NOT have create permissions');
+        expect(makeUser(role).canManageWorkOrders, isFalse,
+            reason: '$role should NOT have manage permissions');
+      }
+    });
+
+    test('CreateWorkOrderInput.toJson serializes correctly', () {
+      const fullInput = CreateWorkOrderInput(
+        title: 'Emergency Pothole Patching',
+        description: 'Deep pothole repair on Baseline Road',
+        priority: 'urgent',
+        estimatedCost: 85000.0,
+        hazardId: 'haz-123',
+        assetId: 'asset-456',
+      );
+
+      final fullJson = fullInput.toJson();
+      expect(fullJson['title'], 'Emergency Pothole Patching');
+      expect(fullJson['description'], 'Deep pothole repair on Baseline Road');
+      expect(fullJson['priority'], 'URGENT'); // uppercase normalized
+      expect(fullJson['estimatedCost'], 85000.0);
+      expect(fullJson['hazardId'], 'haz-123');
+      expect(fullJson['assetId'], 'asset-456');
+
+      const minInput = CreateWorkOrderInput(
+        title: 'Routine Inspection',
+        description: 'Monthly road inspection',
+      );
+
+      final minJson = minInput.toJson();
+      expect(minJson['title'], 'Routine Inspection');
+      expect(minJson['description'], 'Monthly road inspection');
+      expect(minJson['priority'], 'NORMAL');
+      expect(minJson.containsKey('hazardId'), isFalse);
+      expect(minJson.containsKey('assetId'), isFalse);
+      expect(minJson.containsKey('estimatedCost'), isFalse);
+    });
+
+    test('UpdateWorkOrderInput.toJson serializes partial updates correctly',
+        () {
+      final scheduledDate = DateTime.utc(2026, 10, 15, 9, 30);
+      final update = UpdateWorkOrderInput(
+        title: 'Updated Scope',
+        priority: 'high',
+        assignedCrew: 'Roads Crew Delta',
+        scheduledDate: scheduledDate,
+        estimatedCost: 120000.0,
+        status: 'ASSIGNED',
+        notes: 'Assigned to delta crew for inspection',
+      );
+
+      final json = update.toJson();
+      expect(json['title'], 'Updated Scope');
+      expect(json['priority'], 'HIGH');
+      expect(json['assignedCrew'], 'Roads Crew Delta');
+      expect(json['scheduledDate'], scheduledDate.toIso8601String());
+      expect(json['estimatedCost'], 120000.0);
+      expect(json['status'], 'ASSIGNED');
+      expect(json['notes'], 'Assigned to delta crew for inspection');
+      expect(json.containsKey('description'), isFalse);
+      expect(json.containsKey('approvedBudget'), isFalse);
+      expect(json.containsKey('actualCost'), isFalse);
+    });
+
+    test('HazardOption and AssetOption parse JSON safely', () {
+      final hazard = HazardOption.fromJson({
+        'id': 'h-01',
+        'ticketNumber': 'TKT-999',
+        'category': 'Pothole',
+        'description': 'Large pothole',
+      });
+      expect(hazard.id, 'h-01');
+      expect(hazard.ticketNumber, 'TKT-999');
+      expect(hazard.category, 'Pothole');
+      expect(hazard.description, 'Large pothole');
+
+      final asset = AssetOption.fromJson({
+        'id': 'a-01',
+        'name': 'Baseline Rd Bridge',
+        'type': 'Bridge',
+      });
+      expect(asset.id, 'a-01');
+      expect(asset.name, 'Baseline Rd Bridge');
+      expect(asset.type, 'Bridge');
+    });
+
+    test(
+        'WorkOrderStatusConstants defines known statuses for presentation without lifecycle rules',
+        () {
+      // Presentation constants match backend values
+      expect(WorkOrderStatusConstants.aiGenerated, 'AI_GENERATED');
+      expect(WorkOrderStatusConstants.pendingApproval, 'PENDING_APPROVAL');
+      expect(WorkOrderStatusConstants.approved, 'APPROVED');
+      expect(WorkOrderStatusConstants.rejected, 'REJECTED');
+      expect(WorkOrderStatusConstants.assigned, 'ASSIGNED');
+      expect(WorkOrderStatusConstants.scheduled, 'SCHEDULED');
+      expect(WorkOrderStatusConstants.inProgress, 'IN_PROGRESS');
+      expect(WorkOrderStatusConstants.completed, 'COMPLETED');
+      expect(WorkOrderStatusConstants.verified, 'VERIFIED');
+      expect(WorkOrderStatusConstants.closed, 'CLOSED');
+      expect(WorkOrderStatusConstants.cancelled, 'CANCELLED');
+
+      expect(WorkOrderStatusConstants.all.length, 11);
+      expect(WorkOrderStatusConstants.selectableForUpdate.length, 10);
+    });
+
+    test(
+        'WorkOrderService.extractErrorMessage surfaces authoritative backend validation errors',
+        () {
+      // Backend status transition rejection error (e.g. 400 InvalidOperationException)
+      final transitionError = DioException(
+        requestOptions: RequestOptions(path: '/api/workorders/123'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/api/workorders/123'),
+          statusCode: 400,
+          data: {
+            'message':
+                "Cannot transition work order from 'AI_GENERATED' to 'CLOSED'. Allowed next statuses: PENDING_APPROVAL, APPROVED, ASSIGNED, REJECTED, CANCELLED."
+          },
+        ),
+      );
+
+      final msg = WorkOrderService.extractErrorMessage(transitionError);
+      expect(msg,
+          "Cannot transition work order from 'AI_GENERATED' to 'CLOSED'. Allowed next statuses: PENDING_APPROVAL, APPROVED, ASSIGNED, REJECTED, CANCELLED.");
+
+      // ASP.NET ModelState validation dictionary error
+      final validationError = DioException(
+        requestOptions: RequestOptions(path: '/api/workorders/123'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/api/workorders/123'),
+          statusCode: 400,
+          data: {
+            'errors': {
+              'Status': [
+                "Status cannot be set to CANCELLED via PUT; use DELETE endpoint."
+              ],
+            }
+          },
+        ),
+      );
+
+      final valMsg = WorkOrderService.extractErrorMessage(validationError);
+      expect(valMsg,
+          'Status cannot be set to CANCELLED via PUT; use DELETE endpoint.');
     });
   });
 }

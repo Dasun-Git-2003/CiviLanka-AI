@@ -44,4 +44,14 @@ class User {
       role == 'Director' ||
       role == 'MunicipalStaff' ||
       role == 'FieldWorker';
+
+  /// Whether this user's role is authorized to create municipal Work Orders on the backend (CanCreateWorkOrder policy).
+  bool get canCreateWorkOrders =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff';
+
+  /// Whether this user's role is authorized to update or cancel municipal Work Orders on the backend (CanManageWorkOrders policy).
+  bool get canManageWorkOrders => canCreateWorkOrders;
 }
