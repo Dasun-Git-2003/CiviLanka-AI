@@ -747,9 +747,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── 3. HOW IT WORKS: 3D PARALLAX LIFECYCLE CAROUSEL ─────────────────── */}
-      <section id="pipeline" className="py-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative overflow-hidden select-none">
+      <section id="pipeline" className="py-16 sm:py-20 bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative overflow-hidden select-none">
         {/* Ambient radial glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[520px] bg-amber-500/[0.05] dark:bg-amber-500/[0.04] rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[440px] bg-amber-500/[0.05] dark:bg-amber-500/[0.04] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -758,22 +758,22 @@ export default function LandingPage() {
             viewport={{ once: false, margin: '-50px' }}
             transition={IOS_TRANSITION}
             style={{ willChange: 'transform, opacity' }}
-            className="text-center max-w-2xl mx-auto mb-14"
+            className="text-center max-w-2xl mx-auto mb-10 sm:mb-12"
           >
-            <span className="block text-xs font-mono font-bold text-amber-600 dark:text-amber-400 tracking-[0.25em] uppercase mb-3">
+            <span className="block text-xs font-mono font-bold text-amber-600 dark:text-amber-400 tracking-[0.25em] uppercase mb-2.5">
               HOW IT WORKS
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               From Citizen Report to Verified Repair
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-xl mx-auto">
               A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
             </p>
           </motion.div>
 
           {/* 3D Perspective Coverflow Carousel */}
           <div
-            className="relative w-full max-w-5xl mx-auto h-[480px] sm:h-[510px] flex items-center justify-center"
+            className="relative w-full max-w-5xl mx-auto h-[410px] sm:h-[430px] flex items-center justify-center"
             style={{ perspective: '1200px' }}
             onTouchStart={handleWorkflowTouchStart}
             onTouchEnd={handleWorkflowTouchEnd}
@@ -797,27 +797,27 @@ export default function LandingPage() {
                 opacity = 1;
                 zIndex = 30;
               } else if (diff === -1) {
-                x = '-124%';
-                rotateY = 22;
-                scale = 0.85;
+                x = '-122%';
+                rotateY = 20;
+                scale = 0.86;
                 opacity = 0.45;
                 zIndex = 20;
               } else if (diff === 1) {
-                x = '24%';
-                rotateY = -22;
-                scale = 0.85;
+                x = '22%';
+                rotateY = -20;
+                scale = 0.86;
                 opacity = 0.45;
                 zIndex = 20;
               } else if (diff === -2) {
-                x = '-192%';
-                rotateY = 28;
-                scale = 0.72;
+                x = '-188%';
+                rotateY = 26;
+                scale = 0.74;
                 opacity = 0.22;
                 zIndex = 10;
               } else if (diff === 2) {
-                x = '92%';
-                rotateY = -28;
-                scale = 0.72;
+                x = '88%';
+                rotateY = -26;
+                scale = 0.74;
                 opacity = 0.22;
                 zIndex = 10;
               } else {
@@ -850,33 +850,33 @@ export default function LandingPage() {
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
-                    width: 'min(86vw, 420px)',
-                    height: '460px',
+                    width: 'min(82vw, 340px)',
+                    height: '380px',
                     transformStyle: 'preserve-3d',
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                     cursor: isCenter ? 'default' : 'pointer',
                   }}
-                  className={`rounded-[28px] p-8 sm:p-10 flex flex-col items-center justify-center text-center select-none transition-colors duration-300 ${
+                  className={`rounded-2xl p-6 sm:p-7 flex flex-col items-center justify-center text-center select-none transition-colors duration-300 ${
                     isCenter
-                      ? 'bg-white dark:bg-[#222733] border-2 border-amber-500 dark:border-amber-500/50 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12),0_0_25px_rgba(245,158,11,0.18)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/20'
-                      : 'bg-slate-50/95 dark:bg-[#1e232d]/90 hover:bg-slate-100/90 dark:hover:bg-[#232936] border border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 shadow-lg dark:shadow-2xl'
+                      ? 'bg-white dark:bg-[#222733] border-2 border-amber-500 dark:border-amber-500/50 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.12),0_0_20px_rgba(245,158,11,0.18)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/20'
+                      : 'bg-slate-50/95 dark:bg-[#1e232d]/90 hover:bg-slate-100/90 dark:hover:bg-[#232936] border border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 shadow-md dark:shadow-xl'
                   }`}
                 >
                   {/* Circular Icon Badge */}
                   <div
-                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-300 ${
+                    className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 ${
                       isCenter
                         ? 'bg-amber-50 dark:bg-[#2b3242] border-2 border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-inner'
                         : 'bg-slate-100 dark:bg-[#262c38] border border-slate-200 dark:border-slate-700/60 text-amber-600/70 dark:text-amber-500/70'
                     }`}
                   >
-                    <IconComp className="w-9 h-9 sm:w-11 sm:h-11 stroke-[1.75]" />
+                    <IconComp className="w-7 h-7 sm:w-8 sm:h-8 stroke-[1.75]" />
                   </div>
 
                   {/* Stage Label */}
                   <span
-                    className={`text-xs font-mono font-bold tracking-[0.2em] uppercase mb-2 inline-block transition-colors duration-300 ${
+                    className={`text-[11px] font-mono font-bold tracking-[0.2em] uppercase mb-1.5 inline-block transition-colors duration-300 ${
                       isCenter
                         ? 'text-amber-600 dark:text-amber-400'
                         : 'text-slate-400 dark:text-slate-500'
@@ -887,7 +887,7 @@ export default function LandingPage() {
 
                   {/* Title */}
                   <h3
-                    className={`text-xl sm:text-2xl font-bold mb-4 leading-tight tracking-tight transition-colors duration-300 ${
+                    className={`text-lg sm:text-xl font-bold mb-2.5 leading-tight tracking-tight transition-colors duration-300 ${
                       isCenter
                         ? 'text-slate-900 dark:text-white'
                         : 'text-slate-700 dark:text-slate-200'
@@ -898,7 +898,7 @@ export default function LandingPage() {
 
                   {/* Description */}
                   <p
-                    className={`text-xs sm:text-sm leading-relaxed max-w-xs sm:max-w-sm mx-auto transition-colors duration-300 ${
+                    className={`text-xs sm:text-[13px] leading-relaxed max-w-[270px] sm:max-w-[290px] mx-auto transition-colors duration-300 ${
                       isCenter
                         ? 'text-slate-600 dark:text-slate-300'
                         : 'text-slate-500 dark:text-slate-400'
@@ -912,18 +912,18 @@ export default function LandingPage() {
           </div>
 
           {/* Bottom Navigation: <  ● ● ● ●  > */}
-          <div className="flex items-center justify-center gap-5 mt-10">
+          <div className="flex items-center justify-center gap-4 mt-6 sm:mt-8">
             <button
               type="button"
               onClick={handlePrevWorkflow}
               aria-label="Previous lifecycle stage"
-              className="w-12 h-12 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
 
             {/* Pagination Dots */}
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-100/90 dark:bg-[#202530] border border-slate-200 dark:border-slate-800 shadow-inner">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100/90 dark:bg-[#202530] border border-slate-200 dark:border-slate-800 shadow-inner">
               {WORKFLOW_STEPS.map((_, idx) => (
                 <button
                   key={idx}
@@ -932,8 +932,8 @@ export default function LandingPage() {
                   aria-label={`Go to stage ${idx + 1}`}
                   className={`transition-all duration-300 rounded-full focus:outline-none ${
                     activeWorkflow === idx
-                      ? 'w-8 h-2.5 bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
-                      : 'w-2.5 h-2.5 bg-slate-300 dark:bg-slate-600/60 hover:bg-slate-400 dark:hover:bg-slate-500'
+                      ? 'w-6 h-2 bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]'
+                      : 'w-2 h-2 bg-slate-300 dark:bg-slate-600/60 hover:bg-slate-400 dark:hover:bg-slate-500'
                   }`}
                 />
               ))}
@@ -943,9 +943,9 @@ export default function LandingPage() {
               type="button"
               onClick={handleNextWorkflow}
               aria-label="Next lifecycle stage"
-              className="w-12 h-12 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
