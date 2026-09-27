@@ -874,12 +874,12 @@ export default function LandingPage() {
                     <IconComp className="w-9 h-9 sm:w-11 sm:h-11 stroke-[1.75]" />
                   </div>
 
-                  {/* Stage Pill */}
+                  {/* Stage Label */}
                   <span
-                    className={`text-[11px] font-mono font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 inline-block transition-colors duration-300 ${
+                    className={`text-xs font-mono font-bold tracking-[0.2em] uppercase mb-2 inline-block transition-colors duration-300 ${
                       isCenter
-                        ? 'bg-amber-100/80 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/20'
-                        : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50'
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-slate-400 dark:text-slate-500'
                     }`}
                   >
                     STAGE {wf.step}
