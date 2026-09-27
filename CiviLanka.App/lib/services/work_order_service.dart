@@ -96,6 +96,42 @@ class WorkOrderService {
     }
   }
 
+  // ── APPROVAL WORKFLOW (DIRECTOR ONLY) ──────────────────────────────────────
+
+  /// Approves a work order on the backend (POST /api/workorders/{id}/approve).
+  /// Authorized for PublicWorksDirector or Director only (CanApproveWorkOrder policy).
+  /// The ASP.NET Core backend transitions Work Order status and ApprovalStatus to APPROVED,
+  /// records audit notes, and returns the updated authoritative [WorkOrder].
+  Future<WorkOrder> approveWorkOrder(String id,
+      [ApproveRejectInput? input]) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/approve',
+        data: (input ?? const ApproveRejectInput()).toJson(),
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Rejects a work order on the backend (POST /api/workorders/{id}/reject).
+  /// Authorized for PublicWorksDirector or Director only (CanApproveWorkOrder policy).
+  /// The ASP.NET Core backend transitions Work Order status and ApprovalStatus to REJECTED,
+  /// records optional rejection audit notes, and returns the updated authoritative [WorkOrder].
+  Future<WorkOrder> rejectWorkOrder(String id,
+      [ApproveRejectInput? input]) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/reject',
+        data: (input ?? const ApproveRejectInput()).toJson(),
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // ── LINKED ENTITIES HELPERS ───────────────────────────────────────────────
 
   /// Fetch available active citizen hazards for optional linking.

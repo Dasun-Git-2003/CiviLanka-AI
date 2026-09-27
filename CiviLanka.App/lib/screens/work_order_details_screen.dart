@@ -21,6 +21,7 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
   bool _loading = true;
   String? _error;
   bool _estimating = false;
+  bool _submittingApproval = false;
 
   @override
   void initState() {
@@ -154,6 +155,197 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     }
   }
 
+  Future<void> _confirmApprove() async {
+    final wo = _workOrder;
+    if (wo == null || _submittingApproval) return;
+
+    final notesController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Approve Work Order'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You are approving Work Order ${wo.workOrderNumber}.\n\n'
+                'This will formally transition the order status to APPROVED in the municipal registry and authorize maintenance execution.',
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                maxLength: 1000,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Approval Notes (Optional)',
+                  hintText:
+                      'e.g. Budget authorized, proceed with crew deployment.',
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(ctx, true),
+            icon: const Icon(Icons.check_circle_outline, size: 18),
+            label: const Text('Approve Work Order'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade700,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _submittingApproval = true);
+      try {
+        final notes = notesController.text.trim();
+        final updated = await context.read<WorkOrderService>().approveWorkOrder(
+              wo.id,
+              ApproveRejectInput(notes: notes.isNotEmpty ? notes : null),
+            );
+        if (mounted) {
+          setState(() {
+            _workOrder = updated;
+            _submittingApproval = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Work Order ${updated.workOrderNumber} was approved successfully.',
+              ),
+              backgroundColor: Colors.green.shade700,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _submittingApproval = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _confirmReject() async {
+    final wo = _workOrder;
+    if (wo == null || _submittingApproval) return;
+
+    final reasonController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.cancel_outlined, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Reject Work Order'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You are rejecting Work Order ${wo.workOrderNumber}.\n\n'
+                'Rejection indicates this work order is not authorized by the Public Works Director. (Note: Rejection is distinct from cancellation.)',
+                style: const TextStyle(fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                maxLength: 1000,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Rejection notes (optional)',
+                  hintText:
+                      'e.g. Scope requires revision by district engineer.',
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Under Review'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(ctx, true),
+            icon: const Icon(Icons.cancel_outlined, size: 18),
+            label: const Text('Reject Work Order'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _submittingApproval = true);
+      try {
+        final reason = reasonController.text.trim();
+        final updated = await context.read<WorkOrderService>().rejectWorkOrder(
+              wo.id,
+              ApproveRejectInput(notes: reason.isNotEmpty ? reason : null),
+            );
+        if (mounted) {
+          setState(() {
+            _workOrder = updated;
+            _submittingApproval = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Work Order ${updated.workOrderNumber} was rejected.',
+              ),
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _submittingApproval = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red.shade700,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -202,6 +394,8 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     final auth = context.read<AuthService>();
     final user = auth.currentUser;
     final canManage = user?.canManageWorkOrders ?? false;
+    final canApproveOrReject =
+        (user?.canApproveWorkOrders ?? false) && wo.isApprovalPending;
     final canEstimate = (user?.canGenerateEstimate ?? false) &&
         !wo.isCancelled &&
         wo.status.toUpperCase() != 'CANCELLED' &&
@@ -291,11 +485,9 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ── Arterial / Director Approval Banner ───────────────────────
-              if (wo.approvalRequired) ...[
-                _buildApprovalBanner(wo),
-                const SizedBox(height: 20),
-              ],
+              // ── Governance & Director Approval ────────────────────────────
+              _buildApprovalBanner(wo, canApproveOrReject),
+              const SizedBox(height: 20),
 
               // ── Financial Summary Card ────────────────────────────────────
               _buildFinancialCard(wo, currencyFmt),
@@ -336,49 +528,95 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     );
   }
 
-  Widget _buildApprovalBanner(WorkOrder wo) {
-    String reasonText;
-    switch (wo.approvalReason) {
-      case 'Both':
-        reasonText =
-            'Estimated repair cost exceeds the configured municipal approval threshold and the site is on a high-risk arterial road or traffic corridor.';
-        break;
-      case 'ArterialRoadRisk':
-        reasonText =
-            'Site is located on a high-risk arterial road or traffic corridor.';
-        break;
-      case 'ThresholdExceeded':
-        reasonText =
-            'Estimated repair cost exceeds the configured municipal approval threshold.';
-        break;
-      default:
-        reasonText = 'Formal Public Works Director authorization is required.';
-    }
-
-    final isPending = wo.approvalStatus.toUpperCase() == 'PENDING';
-    final isApproved = wo.approvalStatus.toUpperCase() == 'APPROVED';
-    final isRejected = wo.approvalStatus.toUpperCase() == 'REJECTED';
+  Widget _buildApprovalBanner(WorkOrder wo, bool canApproveOrReject) {
+    final isApproved = wo.isApproved;
+    final isRejected = wo.isRejected;
+    final isPending = wo.isApprovalPending;
+    final isNotRequired = !wo.approvalRequired &&
+        wo.approvalStatus.toUpperCase() == 'NOT_REQUIRED';
 
     final Color bannerColor = isApproved
         ? Colors.green.shade50
         : isRejected
             ? Colors.red.shade50
-            : Colors.amber.shade50;
+            : isPending
+                ? Colors.amber.shade50
+                : Colors.blueGrey.shade50;
+
     final Color borderColor = isApproved
         ? Colors.green.shade300
         : isRejected
             ? Colors.red.shade300
-            : Colors.amber.shade300;
+            : isPending
+                ? Colors.amber.shade300
+                : Colors.blueGrey.shade200;
+
     final Color textColor = isApproved
         ? Colors.green.shade900
         : isRejected
             ? Colors.red.shade900
-            : Colors.amber.shade900;
+            : isPending
+                ? Colors.amber.shade900
+                : Colors.blueGrey.shade800;
+
     final IconData icon = isApproved
         ? Icons.check_circle_outline
         : isRejected
             ? Icons.cancel_outlined
-            : Icons.gavel_outlined;
+            : isPending
+                ? Icons.gavel_outlined
+                : Icons.verified_outlined;
+
+    final String statusTitle = isApproved
+        ? 'Director Approval: Approved'
+        : isRejected
+            ? 'Director Approval: Rejected'
+            : isPending
+                ? 'Director Approval: Pending'
+                : 'Director Approval: Not Required';
+
+    final String badgeLabel = isApproved
+        ? 'Authorized'
+        : isRejected
+            ? 'Not Authorized'
+            : isPending
+                ? 'Awaiting Sign-off'
+                : 'Standard Order';
+
+    String reasonText;
+    if (isNotRequired) {
+      reasonText =
+          'Standard maintenance order within municipal operating thresholds. Does not require Public Works Director sign-off.';
+    } else {
+      switch (wo.approvalReason) {
+        case 'Both':
+          reasonText =
+              'Estimated repair cost exceeds the configured municipal approval threshold and the site is on a high-risk arterial road or traffic corridor.';
+          break;
+        case 'ArterialRoadRisk':
+          reasonText =
+              'Site is located on a high-risk arterial road or traffic corridor.';
+          break;
+        case 'ThresholdExceeded':
+          reasonText =
+              'Estimated repair cost exceeds the configured municipal approval threshold.';
+          break;
+        default:
+          reasonText =
+              'Formal Public Works Director authorization is required.';
+      }
+    }
+
+    String? auditNote;
+    if ((isApproved || isRejected) && wo.notes != null) {
+      final lines = wo.notes!.split('\n');
+      for (final line in lines.reversed) {
+        if (line.contains('[APPROVED') || line.contains('[REJECTED')) {
+          auditNote = line.trim();
+          break;
+        }
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -387,53 +625,148 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: textColor, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: textColor, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Director Approval: ${wo.approvalStatus}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: textColor,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          statusTitle,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: textColor,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isApproved
+                                ? Colors.green.shade100
+                                : isRejected
+                                    ? Colors.red.shade100
+                                    : isPending
+                                        ? Colors.amber.shade200
+                                        : Colors.blueGrey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badgeLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    if (isPending)
+                    const SizedBox(height: 4),
+                    Text(
+                      reasonText,
+                      style: TextStyle(
+                          fontSize: 12, color: textColor, height: 1.3),
+                    ),
+                    if (auditNote != null) ...[
+                      const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.amber.shade200,
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white70,
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Awaiting Sign-off',
+                          auditNote,
                           style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.amber.shade900,
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            color: textColor,
                           ),
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Human Public Works Director sign-off is required. AI estimates costs but cannot approve work orders.',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                        color: textColor.withValues(alpha: 0.8),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  reasonText,
-                  style: TextStyle(fontSize: 12, color: textColor, height: 1.3),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (canApproveOrReject) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            if (_submittingApproval)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Submitting director decision...',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _confirmApprove,
+                      icon: const Icon(Icons.check_circle_outline, size: 16),
+                      label: const Text('Approve Work Order'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _confirmReject,
+                      icon: const Icon(Icons.cancel_outlined, size: 16),
+                      label: const Text('Reject Work Order'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red.shade700,
+                        side: BorderSide(color: Colors.red.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
         ],
       ),
     );

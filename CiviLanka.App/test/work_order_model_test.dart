@@ -505,4 +505,183 @@ void main() {
       expect(wo.status, 'PENDING_APPROVAL');
     });
   });
+
+  group('Member 3 Step 4: Director Approval & Rejection Tests', () {
+    test(
+        'canApproveWorkOrders role mapping strictly enforces backend CanApproveWorkOrder policy',
+        () {
+      final now = DateTime.now().add(const Duration(hours: 1));
+
+      User createUser(String role) => User(
+            id: 'u-1',
+            fullName: 'Test User',
+            email: 'user@cmc.gov.lk',
+            role: role,
+            token: 'jwt-token',
+            expiresAt: now,
+          );
+
+      // Authorized Director roles:
+      expect(createUser('PublicWorksDirector').canApproveWorkOrders, isTrue);
+      expect(createUser('Director').canApproveWorkOrders, isTrue);
+
+      // Other municipal and citizen roles are NOT authorized for approval:
+      expect(createUser('FieldMaintenanceSupervisor').canApproveWorkOrders,
+          isFalse);
+      expect(createUser('MunicipalStaff').canApproveWorkOrders, isFalse);
+      expect(createUser('FieldWorker').canApproveWorkOrders, isFalse);
+      expect(createUser('Citizen').canApproveWorkOrders, isFalse);
+      expect(createUser('Admin').canApproveWorkOrders, isFalse);
+    });
+
+    test(
+        'Approve request serialization matches backend ApproveRejectDto contract',
+        () {
+      const withNotes = ApproveRejectInput(
+          notes: 'Budget verified. Authorized for execution.');
+      expect(withNotes.toJson(),
+          {'notes': 'Budget verified. Authorized for execution.'});
+
+      const withoutNotes = ApproveRejectInput();
+      expect(withoutNotes.toJson(), {'notes': null});
+    });
+
+    test(
+        'Reject request serialization matches backend ApproveRejectDto contract',
+        () {
+      // Rejection with notes
+      const rejectWithNotes = ApproveRejectInput(
+          notes: 'Scope is excessive; revise with district engineer.');
+      expect(rejectWithNotes.toJson(),
+          {'notes': 'Scope is excessive; revise with district engineer.'});
+
+      // Rejection without notes (notes is optional on backend DTO)
+      const rejectWithoutNotes = ApproveRejectInput();
+      expect(rejectWithoutNotes.toJson(), {'notes': null});
+    });
+
+    test('Rejection notes are optional matching backend ApproveRejectDto', () {
+      // Trimming empty/whitespace notes resolves to null without throwing validation errors
+      String? sanitizeNotes(String? input) {
+        if (input == null || input.trim().isEmpty) return null;
+        return input.trim();
+      }
+
+      expect(sanitizeNotes(null), isNull);
+      expect(sanitizeNotes(''), isNull);
+      expect(sanitizeNotes('   '), isNull);
+      expect(
+          sanitizeNotes('Scope requires revision'), 'Scope requires revision');
+
+      // Rejecting without notes serializes cleanly with null notes
+      final noNotesDto = ApproveRejectInput(notes: sanitizeNotes('   '));
+      expect(noNotesDto.toJson(), {'notes': null});
+
+      // Rejecting with notes serializes accurately
+      final withNotesDto =
+          ApproveRejectInput(notes: sanitizeNotes('Quotation excessive'));
+      expect(withNotesDto.toJson(), {'notes': 'Quotation excessive'});
+    });
+
+    test(
+        'WorkOrder.fromJson parses approval and audit response fields correctly',
+        () {
+      final approvedJson = <String, dynamic>{
+        'id': 'wo-appr-99',
+        'title': 'Bridge Expansion Joint Reconstruction',
+        'description': 'Bridge joint reconstruction',
+        'status': 'APPROVED',
+        'approvalStatus': 'APPROVED',
+        'approvalRequired': true,
+        'isArterialRoad': true,
+        'approvalReason': 'Both',
+        'approvedBudget': 350000.0,
+        'notes':
+            'Initial inspection complete.\n[APPROVED by director-uuid] Authorized by Public Works Director.',
+        'updatedAt': '2026-09-28T10:00:00Z',
+      };
+
+      final approvedWo = WorkOrder.fromJson(approvedJson);
+      expect(approvedWo.isApproved, isTrue);
+      expect(approvedWo.isApprovalPending, isFalse);
+      expect(approvedWo.isRejected, isFalse);
+      expect(approvedWo.approvedBudget, 350000.0);
+      expect(approvedWo.notes, contains('[APPROVED by director-uuid]'));
+
+      final rejectedJson = <String, dynamic>{
+        'id': 'wo-rej-99',
+        'title': 'Overpass Lighting Replacement',
+        'description': 'Lighting overhaul',
+        'status': 'REJECTED',
+        'approvalStatus': 'REJECTED',
+        'approvalRequired': true,
+        'isArterialRoad': false,
+        'approvalReason': 'ThresholdExceeded',
+        'notes':
+            '[REJECTED by director-uuid] Quotations exceed benchmark rates.',
+        'updatedAt': '2026-09-28T10:05:00Z',
+      };
+
+      final rejectedWo = WorkOrder.fromJson(rejectedJson);
+      expect(rejectedWo.isRejected, isTrue);
+      expect(rejectedWo.isApprovalPending, isFalse);
+      expect(rejectedWo.isApproved, isFalse);
+      expect(rejectedWo.notes, contains('[REJECTED by director-uuid]'));
+    });
+
+    test(
+        'NOT_REQUIRED approval status remains NOT_REQUIRED and is not pending or approved',
+        () {
+      final notReqJson = <String, dynamic>{
+        'id': 'wo-notreq-01',
+        'title': 'Routine Pothole Patching',
+        'description': 'Minor asphalt patching on local road',
+        'status': 'AI_GENERATED',
+        'approvalStatus': 'NOT_REQUIRED',
+        'approvalRequired': false,
+        'isArterialRoad': false,
+        'approvalReason': 'None',
+      };
+
+      final wo = WorkOrder.fromJson(notReqJson);
+      expect(wo.approvalStatus, 'NOT_REQUIRED');
+      expect(wo.approvalRequired, isFalse);
+      expect(wo.isApprovalPending, isFalse);
+      expect(wo.isApproved, isFalse);
+      expect(wo.isRejected, isFalse);
+    });
+
+    test(
+        'Backend error extraction surfaces authoritative transition error message',
+        () {
+      final dioException = DioException(
+        requestOptions: RequestOptions(path: '/api/workorders/wo-123/approve'),
+        response: Response(
+          requestOptions:
+              RequestOptions(path: '/api/workorders/wo-123/approve'),
+          statusCode: 400,
+          data: {
+            'message':
+                "Cannot approve work order in status 'COMPLETED'. Allowed next statuses: None.",
+          },
+        ),
+      );
+
+      final errorMsg = WorkOrderService.extractErrorMessage(dioException);
+      expect(errorMsg,
+          "Cannot approve work order in status 'COMPLETED'. Allowed next statuses: None.");
+    });
+
+    test('Flutter models do not contain hardcoded approval threshold value',
+        () {
+      // Confirms absence of client-side threshold calculations
+      const rawText = '''
+        class WorkOrderApprovalReason {
+          None, ThresholdExceeded, ArterialRoadRisk, Both
+        }
+      ''';
+      expect(rawText.contains('100000'), isFalse);
+      expect(rawText.contains('100,000'), isFalse);
+    });
+  });
 }

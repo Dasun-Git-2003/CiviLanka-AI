@@ -61,4 +61,8 @@ class User {
       role == 'PublicWorksDirector' ||
       role == 'Director' ||
       role == 'MunicipalStaff';
+
+  /// Whether this user's role is authorized to approve or reject municipal Work Orders on the backend (CanApproveWorkOrder policy: PublicWorksDirector or Director only).
+  bool get canApproveWorkOrders =>
+      role == 'PublicWorksDirector' || role == 'Director';
 }

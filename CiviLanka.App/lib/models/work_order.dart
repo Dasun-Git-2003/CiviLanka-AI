@@ -196,6 +196,24 @@ class WorkOrder {
         'latestCostEstimate': latestCostEstimate?.toJson(),
         'latestAIAnalysis': latestAIAnalysis?.toJson(),
       };
+
+  /// Whether this work order is currently awaiting Director sign-off.
+  /// Derived strictly from authoritative backend response fields.
+  bool get isApprovalPending =>
+      !isCancelled &&
+      status.toUpperCase() != 'CANCELLED' &&
+      (approvalStatus.toUpperCase() == 'PENDING' ||
+          status.toUpperCase() == 'PENDING_APPROVAL');
+
+  /// Whether this work order has been formally approved by a Director.
+  bool get isApproved =>
+      approvalStatus.toUpperCase() == 'APPROVED' ||
+      status.toUpperCase() == 'APPROVED';
+
+  /// Whether this work order has been formally rejected by a Director.
+  bool get isRejected =>
+      approvalStatus.toUpperCase() == 'REJECTED' ||
+      status.toUpperCase() == 'REJECTED';
 }
 
 class WorkOrderItem {
@@ -425,6 +443,18 @@ class UpdateWorkOrderInput {
         if (actualCost != null) 'actualCost': actualCost,
         if (status != null) 'status': status,
         if (notes != null) 'notes': notes,
+      };
+}
+
+/// DTO for approving or rejecting a Work Order on the backend (POST /api/workorders/{id}/approve or /reject).
+/// Corresponds directly to backend ApproveRejectDto { Notes: string? }.
+class ApproveRejectInput {
+  final String? notes;
+
+  const ApproveRejectInput({this.notes});
+
+  Map<String, dynamic> toJson() => {
+        'notes': notes,
       };
 }
 
