@@ -6,12 +6,15 @@ import {
   Wrench,
   FileClock,
   Users,
-  ClipboardList,
+  FileCheck,
+  Coins,
   ShieldCheck,
+  GitBranch,
+  Smartphone,
+  ClipboardList,
   PlusCircle,
   Sparkles,
   LogOut,
-  Smartphone,
   History,
   BarChart3,
   User,
@@ -73,6 +76,13 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { authService } from './services/authService';
 import { normalizeRole, getRoleMeta } from './utils/rbac';
 
+// Member 4 Pages (Maintenance Operations & Audit)
+import DirectorApprovals from './pages/DirectorApprovals';
+import BudgetManagement from './pages/BudgetManagement';
+import SafetyAuditCenter from './pages/SafetyAuditCenter';
+import WorkOrderLifecycle from './pages/WorkOrderLifecycle';
+import FieldWorkerSimulator from './pages/FieldWorkerSimulator';
+
 function Sidebar() {
   const location = useLocation();
   const user = authService.getCurrentUser();
@@ -106,8 +116,10 @@ function Sidebar() {
           title: 'Field Operations',
           items: [
             { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
+            { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
             { name: 'Assigned Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
+            { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
             { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
             { name: 'Visual Analytics', path: '/analytics', icon: BarChart3 },
           ],
@@ -153,6 +165,9 @@ function Sidebar() {
           items: [
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
             { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
+            { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
+            { name: 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
+            { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
             { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
             { name: 'Maintenance History', path: '/maintenance/history', icon: History },
             { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
@@ -162,6 +177,7 @@ function Sidebar() {
           title: 'Executive & AI Hub',
           items: [
             { name: 'Operational Budget', path: '/budget', icon: DollarSign },
+            { name: 'Budget Operations', path: '/budgets', icon: Coins },
             { name: 'AI Intelligence Hub', path: '/ai', icon: Bot },
             { name: 'Audit Logs', path: '/audit', icon: FileText },
           ],
@@ -182,7 +198,9 @@ function Sidebar() {
         items: [
           { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
           { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+          { name: 'Director Approvals', path: '/approvals', icon: FileCheck },
           { name: 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
+          { name: 'Budget Operations', path: '/budgets', icon: Coins },
           { name: 'Treasury Budget', path: '/budget', icon: DollarSign },
           { name: 'User Management', path: '/users', icon: Users },
           { name: 'Security Audit Ledger', path: '/audit', icon: FileText },
@@ -212,6 +230,9 @@ function Sidebar() {
         items: [
           { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
           { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
+          { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
+          { name: 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
+          { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
           { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
           { name: 'Maintenance History', path: '/maintenance/history', icon: History },
           { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
@@ -606,6 +627,58 @@ function App() {
             <ProtectedRoute allowedRoles={['PublicWorksDirector']}>
               <Layout>
                 <UserManagementPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ── Member 4 Dedicated Operational & Audit Portal ─────────────────── */}
+        <Route
+          path="/approvals"
+          element={
+            <ProtectedRoute allowedRoles={['PublicWorksDirector']}>
+              <Layout>
+                <DirectorApprovals />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/budgets"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <BudgetManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audits"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <SafetyAuditCenter />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lifecycle"
+          element={
+            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <WorkOrderLifecycle />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/field-simulator"
+          element={
+            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <FieldWorkerSimulator />
               </Layout>
             </ProtectedRoute>
           }

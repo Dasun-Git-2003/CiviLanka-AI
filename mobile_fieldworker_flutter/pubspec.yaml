@@ -1,0 +1,24 @@
+name: mobile_fieldworker_flutter
+description: CivitaGuard AI - Field Worker Mobile App (Member 4 Maintenance Operations)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1
+  geolocator: ^11.0.0
+  image_picker: ^1.1.1
+  intl: ^0.19.0
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
