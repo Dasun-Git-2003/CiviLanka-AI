@@ -535,48 +535,27 @@ export const AgentEstimatorPage: React.FC = () => {
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                 {/* Result Top Banner */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
-                  <div className="space-y-1">
+                  <div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-700">
                       Authoritative Bill of Quantities
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-black text-slate-900">
-                        {estimateResult.asset_name}
-                      </h2>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                        <Clock className="w-3 h-3 text-blue-600" />
-                        <span>Estimated Repair Time: <strong>{estimateResult.estimate.estimated_duration_days} {estimateResult.estimate.estimated_duration_days === 1 ? 'Day' : 'Days'}</strong></span>
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 max-w-xl">{estimateResult.estimate.summary}</p>
+                    <h2 className="text-lg font-black text-slate-900">
+                      {estimateResult.asset_name}
+                    </h2>
+                    <p className="text-xs text-slate-500">{estimateResult.estimate.summary}</p>
                   </div>
 
-                  {/* Badges: Estimated Repair Time & Total Cost */}
-                  <div className="flex flex-wrap items-center gap-2.5 sm:justify-end shrink-0">
-                    {/* Dedicated Estimated Repair Time Badge */}
-                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl text-right min-w-[155px] shadow-2xs">
-                      <div className="text-[10px] uppercase font-bold text-blue-700 flex items-center justify-end gap-1">
-                        <Clock className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Estimated Time</span>
-                      </div>
-                      <div className="text-xl font-black text-blue-900">
-                        {estimateResult.estimate.estimated_duration_days}{' '}
-                        <span className="text-xs font-bold text-blue-700">
-                          {estimateResult.estimate.estimated_duration_days === 1 ? 'Day (24h SLA)' : 'Days'}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-blue-600 font-medium">Turnaround Target</div>
+                  {/* Total Cost Badge */}
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-right sm:min-w-[190px]">
+                    <div className="text-[10px] uppercase font-bold text-emerald-700">
+                      Total Estimated Cost (LKR)
                     </div>
-
-                    {/* Total Cost Badge */}
-                    <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-right min-w-[170px] shadow-2xs">
-                      <div className="text-[10px] uppercase font-bold text-emerald-700">
-                        Total Estimated Cost
-                      </div>
-                      <div className="text-xl font-black text-emerald-800">
-                        LKR {formatLKR(estimateResult.estimate.total_estimated_cost_lkr)}
-                      </div>
-                      <div className="text-[10px] text-emerald-600 font-medium">CIDA BSR Grounded</div>
+                    <div className="text-xl font-black text-emerald-800">
+                      LKR {formatLKR(estimateResult.estimate.total_estimated_cost_lkr)}
+                    </div>
+                    <div className="text-[10px] text-emerald-600 flex items-center justify-end gap-1 mt-0.5">
+                      <Clock className="w-3 h-3" />
+                      <span>{estimateResult.estimate.estimated_duration_days} days duration</span>
                     </div>
                   </div>
                 </div>
@@ -656,27 +635,8 @@ export const AgentEstimatorPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Overheads & Summary Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-                    <div>
-                      <span className="text-slate-500">Estimated Repair Time:</span>
-                      <span className="font-bold text-blue-900 ml-1.5 font-mono text-sm">
-                        {estimateResult.estimate.estimated_duration_days}{' '}
-                        {estimateResult.estimate.estimated_duration_days === 1 ? 'Day (24h Target SLA)' : 'Days'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <HardHat className="w-4 h-4 text-amber-600 shrink-0" />
-                    <div>
-                      <span className="text-slate-500">Contractor Specialization:</span>
-                      <span className="font-bold text-cyan-800 ml-1.5">
-                        {estimateResult.estimate.recommended_contractor_specialization}
-                      </span>
-                    </div>
-                  </div>
+                {/* Overheads & Contingency */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                   <div>
                     <span className="text-slate-500">Safety & Site Preliminaries:</span>
                     <span className="font-bold text-slate-900 ml-1.5 font-mono">
@@ -689,6 +649,12 @@ export const AgentEstimatorPage: React.FC = () => {
                     </span>
                     <span className="font-bold text-slate-900 ml-1.5 font-mono">
                       LKR {formatLKR(estimateResult.estimate.contingency_cost_lkr)}
+                    </span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-slate-500">Contractor Specialization:</span>
+                    <span className="font-bold text-cyan-800 ml-1.5">
+                      {estimateResult.estimate.recommended_contractor_specialization}
                     </span>
                   </div>
                 </div>
