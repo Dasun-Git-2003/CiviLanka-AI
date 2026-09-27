@@ -215,5 +215,5 @@ def trigger_ingest():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8001"))
-    print(f"Starting CiviLanka.Agent on http://0.0.0.0:{port} (accessible via http://127.0.0.1:{port} and http://localhost:{port})")
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    print(f"Starting CiviLanka.Agent on http://127.0.0.1:{port}")
+    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True)

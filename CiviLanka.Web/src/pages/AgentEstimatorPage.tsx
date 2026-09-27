@@ -68,6 +68,11 @@ const PRESETS = [
   },
 ];
 
+const formatLKR = (val: number | null | undefined): string => {
+  if (val === null || val === undefined || isNaN(Number(val))) return '0';
+  return Number(val).toLocaleString();
+};
+
 export const AgentEstimatorPage: React.FC = () => {
   const location = useLocation();
 
@@ -172,7 +177,7 @@ export const AgentEstimatorPage: React.FC = () => {
       setEstimatorError(
         err.response?.data?.detail ||
           err.message ||
-          'Failed to connect to the agent service at http://127.0.0.1:8001. Ensure the Python FastAPI server is running (uvicorn main:app --reload --host 0.0.0.0 --port 8001).'
+          'Failed to connect to the agent service at http://localhost:8001. Ensure the Python FastAPI server is running.'
       );
     } finally {
       setEstimating(false);
@@ -546,7 +551,7 @@ export const AgentEstimatorPage: React.FC = () => {
                       Total Estimated Cost (LKR)
                     </div>
                     <div className="text-xl font-black text-emerald-800">
-                      LKR {estimateResult.estimate.total_estimated_cost_lkr.toLocaleString()}
+                      LKR {formatLKR(estimateResult.estimate.total_estimated_cost_lkr)}
                     </div>
                     <div className="text-[10px] text-emerald-600 flex items-center justify-end gap-1 mt-0.5">
                       <Clock className="w-3 h-3" />
@@ -584,10 +589,10 @@ export const AgentEstimatorPage: React.FC = () => {
                               {m.quantity} {m.unit}
                             </td>
                             <td className="p-2.5 text-right font-mono text-slate-600">
-                              {m.unit_rate_lkr.toLocaleString()}
+                              {formatLKR(m.unit_rate_lkr ?? m.unit_cost_lkr)}
                             </td>
                             <td className="p-2.5 text-right font-mono font-bold text-slate-900">
-                              {m.total_cost_lkr.toLocaleString()}
+                              {formatLKR(m.total_cost_lkr)}
                             </td>
                           </tr>
                         ))}
@@ -618,10 +623,10 @@ export const AgentEstimatorPage: React.FC = () => {
                             <td className="p-2.5 font-semibold text-slate-800">{l.role_or_machine}</td>
                             <td className="p-2.5 text-center font-mono">{l.days}</td>
                             <td className="p-2.5 text-right font-mono text-slate-600">
-                              {l.daily_rate_lkr.toLocaleString()}
+                              {formatLKR(l.daily_rate_lkr)}
                             </td>
                             <td className="p-2.5 text-right font-mono font-bold text-slate-900">
-                              {l.total_cost_lkr.toLocaleString()}
+                              {formatLKR(l.total_cost_lkr)}
                             </td>
                           </tr>
                         ))}
@@ -635,7 +640,7 @@ export const AgentEstimatorPage: React.FC = () => {
                   <div>
                     <span className="text-slate-500">Safety & Site Preliminaries:</span>
                     <span className="font-bold text-slate-900 ml-1.5 font-mono">
-                      LKR {estimateResult.estimate.safety_and_preliminaries_lkr.toLocaleString()}
+                      LKR {formatLKR(estimateResult.estimate.safety_and_preliminaries_lkr)}
                     </span>
                   </div>
                   <div>
@@ -643,7 +648,7 @@ export const AgentEstimatorPage: React.FC = () => {
                       Contingency ({estimateResult.estimate.contingency_percentage}%):
                     </span>
                     <span className="font-bold text-slate-900 ml-1.5 font-mono">
-                      LKR {estimateResult.estimate.contingency_cost_lkr.toLocaleString()}
+                      LKR {formatLKR(estimateResult.estimate.contingency_cost_lkr)}
                     </span>
                   </div>
                   <div className="sm:col-span-2">

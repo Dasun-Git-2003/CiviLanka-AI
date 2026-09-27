@@ -176,6 +176,11 @@ def estimate_cost_node(state: AgentState) -> dict:
             )
             estimate: CostEstimateOutput = structured_estimator.invoke(prompt)
             estimate_dict = estimate.model_dump()
+            for m in estimate_dict.get("materials", []):
+                if m.get("unit_rate_lkr") is None:
+                    m["unit_rate_lkr"] = m.get("unit_cost_lkr", 0.0)
+                if m.get("unit_cost_lkr") is None:
+                    m["unit_cost_lkr"] = m.get("unit_rate_lkr", 0.0)
             final_text = (
                 f"### Cost & Material Estimate: {asset_name}\n\n"
                 f"**Summary**: {estimate.summary}\n\n"
@@ -255,10 +260,10 @@ def _generate_rule_based_estimate(
 
     if "water" in t or "pipe" in hazard_type.lower():
         materials = [
-            {"item_name": "110mm uPVC Pipe Class 1000 (10 Bar)", "unit": "m", "quantity": 6.0, "unit_cost_lkr": 4850.0, "total_cost_lkr": 29100.0},
-            {"item_name": "Mechanical Repair Clamp SS304 (110mm)", "unit": "unit", "quantity": 2.0, "unit_cost_lkr": 16500.0, "total_cost_lkr": 33000.0},
-            {"item_name": "Selected river sand pipe bedding (150mm surround)", "unit": "m³", "quantity": 3.0, "unit_cost_lkr": 5800.0, "total_cost_lkr": 17400.0},
-            {"item_name": "Aggregate Base Course (ABC) trench backfill & compaction", "unit": "m³", "quantity": 4.0, "unit_cost_lkr": 4200.0, "total_cost_lkr": 16800.0},
+            {"item_name": "110mm uPVC Pipe Class 1000 (10 Bar)", "unit": "m", "quantity": 6.0, "unit_rate_lkr": 4850.0, "unit_cost_lkr": 4850.0, "total_cost_lkr": 29100.0},
+            {"item_name": "Mechanical Repair Clamp SS304 (110mm)", "unit": "unit", "quantity": 2.0, "unit_rate_lkr": 16500.0, "unit_cost_lkr": 16500.0, "total_cost_lkr": 33000.0},
+            {"item_name": "Selected river sand pipe bedding (150mm surround)", "unit": "m³", "quantity": 3.0, "unit_rate_lkr": 5800.0, "unit_cost_lkr": 5800.0, "total_cost_lkr": 17400.0},
+            {"item_name": "Aggregate Base Course (ABC) trench backfill & compaction", "unit": "m³", "quantity": 4.0, "unit_rate_lkr": 4200.0, "unit_cost_lkr": 4200.0, "total_cost_lkr": 16800.0},
         ]
         labor = [
             {"role_or_machine": "JCB 3DX Backhoe Excavator hire", "days": 1.0 if not is_crit else 2.0, "daily_rate_lkr": 38000.0, "total_cost_lkr": 38000.0 if not is_crit else 76000.0},
@@ -269,9 +274,9 @@ def _generate_rule_based_estimate(
         days = 2 if not is_crit else 1
     elif "road" in t or "pothole" in hazard_type.lower():
         materials = [
-            {"item_name": "Bitumen Emulsion Tack Coat (CSS-1h)", "unit": "m²", "quantity": 15.0, "unit_cost_lkr": 450.0, "total_cost_lkr": 6750.0},
-            {"item_name": "Hot-mix asphalt wearing course (50mm compacted)", "unit": "m²", "quantity": 15.0, "unit_cost_lkr": 11200.0, "total_cost_lkr": 168000.0},
-            {"item_name": "Aggregate Base Course (ABC 0-37.5mm)", "unit": "m³", "quantity": 2.0, "unit_cost_lkr": 4600.0, "total_cost_lkr": 9200.0},
+            {"item_name": "Bitumen Emulsion Tack Coat (CSS-1h)", "unit": "m²", "quantity": 15.0, "unit_rate_lkr": 450.0, "unit_cost_lkr": 450.0, "total_cost_lkr": 6750.0},
+            {"item_name": "Hot-mix asphalt wearing course (50mm compacted)", "unit": "m²", "quantity": 15.0, "unit_rate_lkr": 11200.0, "unit_cost_lkr": 11200.0, "total_cost_lkr": 168000.0},
+            {"item_name": "Aggregate Base Course (ABC 0-37.5mm)", "unit": "m³", "quantity": 2.0, "unit_rate_lkr": 4600.0, "unit_cost_lkr": 4600.0, "total_cost_lkr": 9200.0},
         ]
         labor = [
             {"role_or_machine": "5-ton Tandem Vibratory Asphalt Roller hire", "days": 1.0, "daily_rate_lkr": 28000.0, "total_cost_lkr": 28000.0},
@@ -283,8 +288,8 @@ def _generate_rule_based_estimate(
         days = 2
     else:
         materials = [
-            {"item_name": "Reinforced precast concrete slab (Grade 30)", "unit": "unit", "quantity": 3.0, "unit_cost_lkr": 6800.0, "total_cost_lkr": 20400.0},
-            {"item_name": "Cement & sand mortar 1:4 repair mix", "unit": "m³", "quantity": 1.5, "unit_cost_lkr": 16500.0, "total_cost_lkr": 24750.0},
+            {"item_name": "Reinforced precast concrete slab (Grade 30)", "unit": "unit", "quantity": 3.0, "unit_rate_lkr": 6800.0, "unit_cost_lkr": 6800.0, "total_cost_lkr": 20400.0},
+            {"item_name": "Cement & sand mortar 1:4 repair mix", "unit": "m³", "quantity": 1.5, "unit_rate_lkr": 16500.0, "unit_cost_lkr": 16500.0, "total_cost_lkr": 24750.0},
         ]
         labor = [
             {"role_or_machine": "Skilled Mason", "days": 2.0, "daily_rate_lkr": 4500.0, "total_cost_lkr": 9000.0},
