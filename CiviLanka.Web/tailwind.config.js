@@ -8,10 +8,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Space Grotesk"', '"Noto Sans Sinhala"', 'sans-serif'],
-        sans: ['Inter', '"Plus Jakarta Sans"', '"Noto Sans Sinhala"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"Noto Sans Sinhala"', 'monospace'],
-        gis: ['"JetBrains Mono"', '"Noto Sans Sinhala"', 'monospace'],
+        display: ['"Space Grotesk"', 'sans-serif'],
+        sans: ['Inter', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+        gis: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
         brand: {

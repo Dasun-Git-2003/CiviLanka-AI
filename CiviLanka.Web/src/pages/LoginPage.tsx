@@ -48,7 +48,7 @@ export const LoginPage: React.FC = () => {
             className="w-full h-full object-cover filter brightness-[0.85] contrast-[1.1] animate-slow-pan"
           />
           {/* Overlay of Large Red Crane in Night Skyline */}
-          <div className="absolute top-14 md:top-16 left-6 md:left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
+          <div className="absolute top-12 left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
             <img
               src="https://images.unsplash.com/photo-1568732165911-51cf4bfd9b7c?auto=format&fit=crop&w=800&q=85"
               alt="Large Red Crane"
@@ -68,17 +68,11 @@ export const LoginPage: React.FC = () => {
         {/* Back Link */}
         <Link
           to="/"
-          className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-xs font-semibold text-white backdrop-blur-md shadow-lg transition-colors cursor-pointer"
+          className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-xs font-semibold text-white backdrop-blur-md shadow-lg transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{t.backToHome}</span>
         </Link>
-
-        {/* Mobile Top Controls (visible on screens < md) */}
-        <div className="absolute top-6 right-6 z-20 flex md:hidden items-center gap-2">
-          <LanguageToggle isScrolled={false} />
-          <ThemeToggle />
-        </div>
 
         {/* Left Branding Overlay */}
         <div className="absolute bottom-10 left-8 right-8 z-20 space-y-3 text-white">
@@ -107,8 +101,8 @@ export const LoginPage: React.FC = () => {
 
       {/* ── RIGHT 50%: Form Panel (Unified with Landing Page Amber Theme & Dark Mode) ── */}
       <div className="relative md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-        {/* Desktop Top-Right Controls (visible on screens >= md) */}
-        <div className="absolute top-6 right-6 z-20 hidden md:flex items-center gap-2.5">
+        {/* Top-Right Language & Theme Toggle Controls */}
+        <div className="absolute top-6 right-6 z-20 flex items-center gap-2.5">
           <LanguageToggle isScrolled={true} />
           <ThemeToggle />
         </div>
@@ -136,7 +130,7 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 font-sans">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 font-gis">
                 {t.emailLabel}
               </label>
               <input
@@ -152,7 +146,7 @@ export const LoginPage: React.FC = () => {
             {/* Password Field */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 font-sans">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 font-gis">
                   {t.passwordLabel}
                 </label>
                 <a
@@ -205,9 +199,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer ${
-                language === 'si' ? 'font-semibold text-sm' : 'tracking-wider uppercase'
-              }`}
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -227,8 +219,8 @@ export const LoginPage: React.FC = () => {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200 dark:border-slate-800" />
               </div>
-              <div className="relative flex justify-center text-[10px] font-sans">
-                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500 font-bold uppercase">{t.orDivider}</span>
+              <div className="relative flex justify-center text-[10px] font-gis uppercase">
+                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500 font-bold">{t.orDivider}</span>
               </div>
             </div>
 
@@ -272,7 +264,7 @@ export const LoginPage: React.FC = () => {
 
           {/* Quick Demo Test Accounts for RBAC */}
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className={`text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-2 font-sans text-center ${language === 'si' ? '' : 'uppercase tracking-wider'}`}>
+            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-gis text-center">
               {t.quickCredentials}
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
