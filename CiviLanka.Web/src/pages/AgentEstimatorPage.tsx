@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Bot,
@@ -12,18 +12,20 @@ import {
   DollarSign,
   FileText,
   RotateCcw,
-  Send,
   Loader2,
-  Database,
   Layers,
+  Database,
+  MapPin,
+  ChevronDown,
 } from 'lucide-react';
 import { agentService } from '../services/agentService';
+import { assetService } from '../services/assetService';
 import type {
   AgentHealth,
   EstimateRequest,
   EstimateResponse,
-  SearchHit,
 } from '../services/agentService';
+import type { InfrastructureAsset } from '../types/asset';
 
 const PRESETS = [
   {
@@ -76,9 +78,6 @@ const formatLKR = (val: number | string | undefined | null): string => {
 export const AgentEstimatorPage: React.FC = () => {
   const location = useLocation();
 
-  // Tabs: 'estimator' | 'assistant' | 'search'
-  const [activeTab, setActiveTab] = useState<'estimator' | 'assistant' | 'search'>('estimator');
-
   // Health state
   const [health, setHealth] = useState<AgentHealth | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
@@ -97,22 +96,6 @@ export const AgentEstimatorPage: React.FC = () => {
   const [estimateResult, setEstimateResult] = useState<EstimateResponse | null>(null);
   const [estimatorError, setEstimatorError] = useState<string | null>(null);
 
-  // Assistant state
-  const [question, setQuestion] = useState('');
-  const [asking, setAsking] = useState(false);
-  const [chatHistory, setChatHistory] = useState<Array<{ q: string; a: string; time: string }>>([
-    {
-      q: 'What is the standard CIDA BSR rate for 110mm uPVC pipe supply and laying in Sri Lanka?',
-      a: 'Under CIDA/BSR Section 4 (Water Supply & Drainage Standards), 110mm Type 600 uPVC pressure pipe supply is rated at LKR 3,850.00 per linear meter. Trench excavation (up to 1.5m depth in normal soil including shoring) is rated at LKR 1,800.00 per m³, and certified electrofusion/solvent-welded jointing is LKR 2,200.00 per joint.',
-      time: '10:15 AM',
-    },
-  ]);
-
-  // Hybrid search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchHit[]>([]);
-
   // Pre-fill from route state (e.g. from InfrastructureAssets.tsx)
   useEffect(() => {
     if (location.state && location.state.prefill) {
@@ -125,7 +108,6 @@ export const AgentEstimatorPage: React.FC = () => {
         location: p.location || 'Colombo',
         damage_description: p.description || '',
       });
-      setActiveTab('estimator');
     }
   }, [location.state]);
 
@@ -146,6 +128,123 @@ export const AgentEstimatorPage: React.FC = () => {
     checkAgentHealth();
   }, []);
 
+  // Database assets auto-suggest state
+  const [dbAssets, setDbAssets] = useState<InfrastructureAsset[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<InfrastructureAsset | null>(null);
+  const assetDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch registered assets from database for autocomplete
+  useEffect(() => {
+    let isMounted = true;
+    const fetchAssets = async () => {
+      setLoadingAssets(true);
+      try {
+        const data = await assetService.getAll();
+        if (isMounted) {
+          setDbAssets(data || []);
+        }
+      } catch (err) {
+        console.error('Failed to load assets from database for auto-suggest:', err);
+      } finally {
+        if (isMounted) setLoadingAssets(false);
+      }
+    };
+    fetchAssets();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Close suggestion dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (assetDropdownRef.current && !assetDropdownRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter assets based on input query
+  const filteredDbAssets = useMemo(() => {
+    const query = (formData.asset_name || '').trim().toLowerCase();
+    if (!query) {
+      return dbAssets.slice(0, 10);
+    }
+    return dbAssets
+      .filter(
+        (a) =>
+          a.name.toLowerCase().includes(query) ||
+          a.id.toLowerCase().includes(query) ||
+          (a.location && a.location.toLowerCase().includes(query)) ||
+          (a.type && a.type.toLowerCase().includes(query))
+      )
+      .slice(0, 10);
+  }, [dbAssets, formData.asset_name]);
+
+  // Handler to auto-fill all form fields from selected asset
+  const handleSelectDbAsset = (asset: InfrastructureAsset) => {
+    // 1. Map asset type to valid form options
+    let mappedType: EstimateRequest['asset_type'] = 'Civil';
+    const t = (asset.type || '').toLowerCase();
+    if (t.includes('water')) mappedType = 'Water';
+    else if (t.includes('road') || t.includes('bridge') || t.includes('highway') || t.includes('pavement')) mappedType = 'Roads & Bridges';
+    else if (t.includes('drain') || t.includes('sanit') || t.includes('sewer') || t.includes('culvert')) mappedType = 'Sanitation';
+    else if (t.includes('elect') || t.includes('light') || t.includes('power')) mappedType = 'Electrical';
+    else if (t.includes('civil') || t.includes('building')) mappedType = 'Civil';
+
+    // 2. Map condition to severity
+    let mappedSeverity: EstimateRequest['severity'] = 'Moderate';
+    const cond = (asset.latestCondition || (asset.inspections && asset.inspections[0]?.condition) || '').toLowerCase();
+    if (cond.includes('crit')) mappedSeverity = 'Critical';
+    else if (cond.includes('poor')) mappedSeverity = 'Poor';
+    else if (cond.includes('mod')) mappedSeverity = 'Moderate';
+    else if (cond.includes('good') || cond.includes('fair')) mappedSeverity = 'Low';
+
+    // 3. Smart defect / hazard type from inspections or asset type
+    const latestInspection = asset.inspections && asset.inspections[0];
+    let defectType = latestInspection?.issuesFound || '';
+    if (!defectType) {
+      if (mappedType === 'Water') defectType = 'Pipe Burst / Underground Joint Leak';
+      else if (mappedType === 'Roads & Bridges') defectType = 'Asphalt Potholes & Structural Spalling';
+      else if (mappedType === 'Sanitation') defectType = 'Culvert Silt Blockage & Stormwater Overflow';
+      else if (mappedType === 'Electrical') defectType = 'Luminaire / Circuit Control Failure';
+      else defectType = 'Structural Crack & Foundation Deterioration';
+    }
+
+    // 4. Smart engineering damage description
+    let desc = '';
+    if (asset.description) {
+      desc += asset.description;
+    }
+    if (latestInspection?.notes) {
+      desc += (desc ? ' • ' : '') + `Inspection Notes: ${latestInspection.notes}`;
+    }
+    if (latestInspection?.issuesFound && !desc.includes(latestInspection.issuesFound)) {
+      desc += (desc ? ' • ' : '') + `Defect: ${latestInspection.issuesFound}`;
+    }
+    if (!desc) {
+      desc = `Municipal Asset ${asset.name} (${asset.id}) at ${asset.location || 'Colombo'}. Asset condition reported as ${asset.latestCondition || 'degraded'}. Requires CIDA BSR rate schedule evaluation and BOQ generation.`;
+    }
+
+    setFormData({
+      asset_name: `${asset.name} (${asset.id})`,
+      asset_type: mappedType,
+      hazard_type: defectType,
+      severity: mappedSeverity,
+      location: asset.location || 'Colombo',
+      damage_description: desc,
+    });
+
+    setSelectedAsset(asset);
+    setShowSuggestions(false);
+    setEstimateResult(null);
+    setEstimatorError(null);
+  };
+
   const handleApplyPreset = (p: typeof PRESETS[0]) => {
     setFormData({
       asset_name: p.asset_name,
@@ -155,6 +254,8 @@ export const AgentEstimatorPage: React.FC = () => {
       location: p.location,
       damage_description: p.damage_description,
     });
+    setSelectedAsset(null);
+    setShowSuggestions(false);
     setEstimateResult(null);
     setEstimatorError(null);
   };
@@ -181,53 +282,6 @@ export const AgentEstimatorPage: React.FC = () => {
       );
     } finally {
       setEstimating(false);
-    }
-  };
-
-  const handleAsk = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim()) return;
-
-    const currentQ = question;
-    setQuestion('');
-    setAsking(true);
-
-    try {
-      const res = await agentService.askAssistant(currentQ);
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          q: currentQ,
-          a: res.answer,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    } catch (err: any) {
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          q: currentQ,
-          a: `Error: ${err.message || 'Unable to reach agent service on port 8001.'}`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    } finally {
-      setAsking(false);
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    setSearching(true);
-    try {
-      const hits = await agentService.searchKnowledgeBase(searchQuery, 4);
-      setSearchResults(hits);
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
     }
   };
 
@@ -311,48 +365,8 @@ export const AgentEstimatorPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Navigation Tabs ───────────────────────────────────────────────────── */}
-      <div className="flex border-b border-slate-200 gap-2">
-        <button
-          onClick={() => setActiveTab('estimator')}
-          className={`flex items-center gap-2 py-3 px-5 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'estimator'
-              ? 'border-cyan-600 text-cyan-700 bg-cyan-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-          }`}
-        >
-          <Wrench className="w-4 h-4" />
-          <span>Automated Repair Cost Estimator</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('assistant')}
-          className={`flex items-center gap-2 py-3 px-5 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'assistant'
-              ? 'border-cyan-600 text-cyan-700 bg-cyan-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-          }`}
-        >
-          <Bot className="w-4 h-4" />
-          <span>Civil Engineering Assistant (Q&A)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('search')}
-          className={`flex items-center gap-2 py-3 px-5 text-sm font-bold border-b-2 transition-all ${
-            activeTab === 'search'
-              ? 'border-cyan-600 text-cyan-700 bg-cyan-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>Hybrid Search Inspector (BSR Knowledge Base)</span>
-        </button>
-      </div>
-
-      {/* ── TAB 1: Cost Estimator ─────────────────────────────────────────────── */}
-      {activeTab === 'estimator' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* ── Automated Repair Cost Estimator ───────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Form (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
             {/* Quick Demo Presets */}
@@ -391,16 +405,142 @@ export const AgentEstimatorPage: React.FC = () => {
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Asset Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.asset_name}
-                    onChange={(e) => setFormData({ ...formData, asset_name: e.target.value })}
-                    placeholder="e.g. Main St Water Pipe"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-cyan-500"
-                  />
+                <div className="relative" ref={assetDropdownRef}>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">Asset Name</label>
+                    <span className="text-[10px] text-cyan-600 font-semibold flex items-center gap-1">
+                      <Database className="w-3 h-3 text-cyan-600" />
+                      {loadingAssets ? 'Syncing DB…' : `${dbAssets.length} in DB`}
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.asset_name}
+                      onFocus={() => setShowSuggestions(true)}
+                      onChange={(e) => {
+                        setFormData({ ...formData, asset_name: e.target.value });
+                        setShowSuggestions(true);
+                        if (selectedAsset && e.target.value !== `${selectedAsset.name} (${selectedAsset.id})`) {
+                          setSelectedAsset(null);
+                        }
+                      }}
+                      placeholder="Type to search DB assets (e.g. Main St, Bridge)…"
+                      className="w-full pl-3 pr-8 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSuggestions(!showSuggestions)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      title="Toggle database asset list"
+                    >
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform ${showSuggestions ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Selected DB Asset Link Confirmation */}
+                  {selectedAsset && (
+                    <div className="mt-1.5 flex items-center justify-between px-2.5 py-1 bg-cyan-50 border border-cyan-200 rounded-lg text-[10px] text-cyan-800 animate-fadeIn">
+                      <span className="flex items-center gap-1.5 font-medium truncate">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                        <span>
+                          Linked to DB Asset: <strong>{selectedAsset.id}</strong> ({selectedAsset.type})
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAsset(null)}
+                        className="text-cyan-600 hover:text-cyan-900 ml-1 font-bold text-xs"
+                        title="Clear asset link"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Autocomplete Dropdown */}
+                  {showSuggestions && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-72 flex flex-col">
+                      <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5">
+                          <Database className="w-3 h-3 text-cyan-600" />
+                          Assets From Database ({filteredDbAssets.length})
+                        </span>
+                        <span className="text-slate-400 font-normal">Click to auto-fill</span>
+                      </div>
+
+                      <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+                        {loadingAssets && (
+                          <div className="p-3 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-600" />
+                            <span>Loading assets from database…</span>
+                          </div>
+                        )}
+
+                        {!loadingAssets && filteredDbAssets.length === 0 && (
+                          <div className="p-4 text-center text-xs text-slate-400">
+                            No matching assets in database for "{formData.asset_name}". You can continue typing a custom name.
+                          </div>
+                        )}
+
+                        {!loadingAssets &&
+                          filteredDbAssets.map((asset) => (
+                            <div
+                              key={asset.id}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSelectDbAsset(asset);
+                              }}
+                              className="p-2.5 hover:bg-cyan-50/80 transition-colors cursor-pointer flex items-center justify-between gap-2 text-left group"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-xs text-slate-800 truncate group-hover:text-cyan-700">
+                                    {asset.name}
+                                  </span>
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 shrink-0">
+                                    {asset.id}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
+                                  <span className="flex items-center gap-0.5 truncate">
+                                    <MapPin className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                    {asset.location || 'Colombo'}
+                                  </span>
+                                  <span>•</span>
+                                  <span className="font-medium text-slate-600">{asset.type}</span>
+                                </div>
+                              </div>
+
+                              <div className="shrink-0 flex flex-col items-end gap-1">
+                                {asset.latestCondition && (
+                                  <span
+                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                      asset.latestCondition === 'Critical'
+                                        ? 'bg-red-100 text-red-700'
+                                        : asset.latestCondition === 'Poor'
+                                        ? 'bg-amber-100 text-amber-700'
+                                        : asset.latestCondition === 'Moderate'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-emerald-100 text-emerald-700'
+                                    }`}
+                                  >
+                                    {asset.latestCondition}
+                                  </span>
+                                )}
+                                <span className="text-[9px] text-cyan-600 font-semibold group-hover:text-cyan-800">
+                                  Auto-fill ➔
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -688,160 +828,6 @@ export const AgentEstimatorPage: React.FC = () => {
             )}
           </div>
         </div>
-      )}
-
-      {/* ── TAB 2: Civil Engineering Assistant ────────────────────────────────── */}
-      {activeTab === 'assistant' && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[600px]">
-          {/* Top Bar */}
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-cyan-100 text-cyan-700">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-800">
-                  Sri Lanka Municipal Civil Engineering AI Assistant
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  Ask questions regarding CIDA, NWSDB, CMC specifications, or repair guidelines
-                </p>
-              </div>
-            </div>
-            <div className="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">
-              RAG Active
-            </div>
-          </div>
-
-          {/* Chat Stream */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            {chatHistory.map((item, idx) => (
-              <div key={idx} className="space-y-2">
-                {/* Question */}
-                <div className="flex justify-end">
-                  <div className="bg-slate-900 text-white text-xs p-3.5 rounded-2xl rounded-tr-none max-w-xl shadow-xs">
-                    <div className="font-medium">{item.q}</div>
-                    <div className="text-[9px] text-slate-400 text-right mt-1">{item.time}</div>
-                  </div>
-                </div>
-
-                {/* Answer */}
-                <div className="flex justify-start">
-                  <div className="bg-cyan-50/70 border border-cyan-100 text-slate-800 text-xs p-4 rounded-2xl rounded-tl-none max-w-2xl space-y-1 shadow-xs">
-                    <div className="font-bold text-cyan-900 flex items-center gap-1.5 text-[11px] mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
-                      <span>Civil Engineering Assistant</span>
-                    </div>
-                    <div className="whitespace-pre-line leading-relaxed">{item.a}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {asking && (
-              <div className="flex justify-start">
-                <div className="bg-slate-50 border border-slate-200 text-xs p-3 rounded-xl flex items-center gap-2 text-slate-500">
-                  <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
-                  <span>Retrieving Sri Lanka BSR standards and formulating response…</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Prompt Input Box */}
-          <div className="p-3 border-t border-slate-200 bg-slate-50">
-            <form onSubmit={handleAsk} className="flex gap-2">
-              <input
-                type="text"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask any question (e.g. What is the compaction requirement for asphalt patching?)"
-                className="flex-1 px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cyan-500"
-              />
-              <button
-                type="submit"
-                disabled={asking || !question.trim()}
-                className="px-5 py-2.5 bg-cyan-700 hover:bg-cyan-800 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>Send</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── TAB 3: Hybrid Search Inspector ───────────────────────────────────── */}
-      {activeTab === 'search' && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Database className="w-5 h-5 text-cyan-600" />
-              Hybrid Search Inspector (BM25 + ChromaDB Vector RRF)
-            </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Test how the agent retrieves and fuses keyword matches (BM25) and dense semantic vectors
-              from the indexed markdown knowledge base.
-            </p>
-          </div>
-
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter search keywords or engineering code (e.g. 110mm uPVC, asphalt concrete, backhoe loader)"
-                className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cyan-500"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={searching || !searchQuery.trim()}
-              className="px-5 py-2.5 bg-cyan-700 hover:bg-cyan-800 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-2"
-            >
-              {searching ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Searching…</span>
-                </>
-              ) : (
-                <>
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Search Knowledge Base</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Search Hits */}
-          <div className="space-y-3">
-            {searchResults.length === 0 && !searching && (
-              <div className="text-center py-8 text-slate-400 text-xs">
-                Type a query above to inspect hybrid search hits and Reciprocal Rank Fusion scores.
-              </div>
-            )}
-
-            {searchResults.map((hit, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition-colors space-y-2"
-              >
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-cyan-800 font-mono">Rank #{idx + 1}</span>
-                  <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-mono text-[10px]">
-                    Source: {hit.source}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-700 font-mono bg-white p-3 rounded-lg border border-slate-200 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
-                  {hit.content}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
