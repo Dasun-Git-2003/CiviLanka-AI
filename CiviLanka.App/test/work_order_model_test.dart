@@ -352,6 +352,157 @@ void main() {
       final valMsg = WorkOrderService.extractErrorMessage(validationError);
       expect(valMsg,
           'Status cannot be set to CANCELLED via PUT; use DELETE endpoint.');
+
+      // 403 Forbidden error
+      final forbiddenError = DioException(
+        requestOptions: RequestOptions(path: '/api/workorders/123/estimate'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/api/workorders/123/estimate'),
+          statusCode: 403,
+        ),
+      );
+      expect(WorkOrderService.extractErrorMessage(forbiddenError),
+          'Access denied. You do not have municipal permissions to perform this action.');
+
+      // 404 Not Found error
+      final notFoundError = DioException(
+        requestOptions: RequestOptions(path: '/api/workorders/123/estimate'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/api/workorders/123/estimate'),
+          statusCode: 404,
+        ),
+      );
+      expect(WorkOrderService.extractErrorMessage(notFoundError),
+          'Work order not found.');
+    });
+
+    test(
+        'User.canGenerateEstimate enforces backend estimation endpoint authorization',
+        () {
+      User makeUser(String role) => User(
+            id: 'u-1',
+            fullName: 'Test User',
+            email: 'test@civilanka.gov.lk',
+            role: role,
+            token: 'mock-token',
+            expiresAt: DateTime.now().add(const Duration(hours: 1)),
+          );
+
+      // Authorized roles on POST /api/workorders/{id}/estimate
+      for (final role in [
+        'FieldMaintenanceSupervisor',
+        'PublicWorksDirector',
+        'Director',
+        'MunicipalStaff',
+      ]) {
+        expect(makeUser(role).canGenerateEstimate, isTrue,
+            reason: '$role must have estimation permission');
+      }
+
+      // Unauthorized roles
+      for (final role in ['FieldWorker', 'Citizen', 'Guest', 'Unknown']) {
+        expect(makeUser(role).canGenerateEstimate, isFalse,
+            reason: '$role must NOT have estimation permission');
+      }
+    });
+
+    test(
+        'CostEstimate.fromJson parses all cost components and fallback metadata',
+        () {
+      final json = {
+        'id': 'est-002',
+        'estimatedCost': 175000.0,
+        'currency': 'LKR',
+        'materialCost': 95000.0,
+        'labourCost': 50000.0,
+        'equipmentCost': 30000.0,
+        'estimatedLabourHours': 40.0,
+        'recommendedCrewSize': 3,
+        'estimatedDurationHours': 12.0,
+        'confidence': 0.88,
+        'reason':
+            'Deterministic calculation based on project repair benchmarks.',
+        'modelName': 'RuleBasedFallback',
+        'createdAt': '2026-09-28T02:00:00Z',
+      };
+
+      final estimate = CostEstimate.fromJson(json);
+
+      expect(estimate.id, 'est-002');
+      expect(estimate.estimatedCost, 175000.0);
+      expect(estimate.currency, 'LKR');
+      expect(estimate.materialCost, 95000.0);
+      expect(estimate.labourCost, 50000.0);
+      expect(estimate.equipmentCost, 30000.0);
+      expect(estimate.estimatedLabourHours, 40.0);
+      expect(estimate.recommendedCrewSize, 3);
+      expect(estimate.estimatedDurationHours, 12.0);
+      expect(estimate.confidence, 0.88);
+      expect(estimate.reason,
+          'Deterministic calculation based on project repair benchmarks.');
+      expect(estimate.modelName, 'RuleBasedFallback');
+    });
+
+    test('WorkOrderItem.fromJson parses materials and equipment accurately',
+        () {
+      final materialJson = {
+        'id': 'mat-01',
+        'itemType': 'Material',
+        'itemName': 'Ready-Mix Concrete Grade 25',
+        'quantity': 3.5,
+        'unit': 'm3',
+        'estimatedUnitCost': 28000.0,
+        'estimatedTotalCost': 98000.0,
+      };
+
+      final material = WorkOrderItem.fromJson(materialJson);
+      expect(material.id, 'mat-01');
+      expect(material.itemType, 'Material');
+      expect(material.itemName, 'Ready-Mix Concrete Grade 25');
+      expect(material.quantity, 3.5);
+      expect(material.unit, 'm3');
+      expect(material.estimatedUnitCost, 28000.0);
+      expect(material.estimatedTotalCost, 98000.0);
+
+      final equipJson = {
+        'id': 'eq-01',
+        'itemType': 'Equipment',
+        'itemName': 'Plate Compactor',
+        'quantity': 1.0,
+        'unit': 'unit',
+        'estimatedUnitCost': 15000.0,
+        'estimatedTotalCost': 15000.0,
+      };
+
+      final equip = WorkOrderItem.fromJson(equipJson);
+      expect(equip.itemType, 'Equipment');
+      expect(equip.itemName, 'Plate Compactor');
+      expect(equip.estimatedTotalCost, 15000.0);
+    });
+
+    test(
+        'WorkOrder.fromJson parses backend approval fields without local rule computation',
+        () {
+      final json = <String, dynamic>{
+        'id': 'wo-appr-01',
+        'title': 'Bridge Expansion Joint Repair',
+        'description': 'Repair expansion joint on arterial bridge',
+        'status': 'PENDING_APPROVAL',
+        'approvalStatus': 'PENDING',
+        'approvalRequired': true,
+        'isArterialRoad': true,
+        'approvalReason': 'Both',
+        'estimatedCost': 250000.0,
+      };
+
+      final wo = WorkOrder.fromJson(json);
+
+      // Verify that values originate directly from backend payload
+      expect(wo.approvalRequired, isTrue);
+      expect(wo.approvalStatus, 'PENDING');
+      expect(wo.approvalReason, 'Both');
+      expect(wo.isArterialRoad, isTrue);
+      expect(wo.status, 'PENDING_APPROVAL');
     });
   });
 }

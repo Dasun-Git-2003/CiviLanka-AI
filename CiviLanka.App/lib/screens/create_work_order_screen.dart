@@ -235,7 +235,7 @@ class _CreateWorkOrderScreenState extends State<CreateWorkOrderScreen> {
                   hintText: 'e.g. 85000',
                   prefixIcon: Icon(Icons.payments_outlined),
                   helperText:
-                      'Orders > Rs. 100,000 will require Public Works Director approval',
+                      'Orders exceeding the municipal threshold will require Public Works Director approval',
                 ),
                 validator: (v) {
                   if (v != null && v.trim().isNotEmpty) {

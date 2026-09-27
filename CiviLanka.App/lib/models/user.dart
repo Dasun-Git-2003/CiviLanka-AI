@@ -54,4 +54,11 @@ class User {
 
   /// Whether this user's role is authorized to update or cancel municipal Work Orders on the backend (CanManageWorkOrders policy).
   bool get canManageWorkOrders => canCreateWorkOrders;
+
+  /// Whether this user's role is authorized to trigger AI cost estimates on the backend (POST /api/workorders/{id}/estimate).
+  bool get canGenerateEstimate =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff';
 }

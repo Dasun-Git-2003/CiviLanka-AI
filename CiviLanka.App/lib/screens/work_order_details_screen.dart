@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/work_order.dart';
 import '../services/auth_service.dart';
 import '../services/work_order_service.dart';
+import '../widgets/cost_estimate_card.dart';
 import 'edit_work_order_screen.dart';
 
 class WorkOrderDetailsScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
   WorkOrder? _workOrder;
   bool _loading = true;
   String? _error;
+  bool _estimating = false;
 
   @override
   void initState() {
@@ -115,6 +117,43 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     }
   }
 
+  Future<void> _generateEstimate() async {
+    final wo = _workOrder;
+    if (wo == null || _estimating) return;
+
+    setState(() => _estimating = true);
+
+    try {
+      final updated =
+          await context.read<WorkOrderService>().generateCostEstimate(wo.id);
+
+      if (mounted) {
+        setState(() {
+          _workOrder = updated;
+          _estimating = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Cost estimate generated successfully for ${updated.workOrderNumber}!',
+            ),
+            backgroundColor: Colors.green.shade700,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _estimating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -163,6 +202,10 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     final auth = context.read<AuthService>();
     final user = auth.currentUser;
     final canManage = user?.canManageWorkOrders ?? false;
+    final canEstimate = (user?.canGenerateEstimate ?? false) &&
+        !wo.isCancelled &&
+        wo.status.toUpperCase() != 'CANCELLED' &&
+        wo.status.toUpperCase() != 'CLOSED';
     final isEditable = canManage &&
         !wo.isCancelled &&
         wo.status.toUpperCase() != 'CANCELLED' &&
@@ -181,6 +224,21 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
             tooltip: 'Refresh',
             onPressed: _load,
           ),
+          if (canEstimate)
+            IconButton(
+              icon: _estimating
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.auto_awesome),
+              tooltip: 'Generate AI Cost Estimate',
+              onPressed: _estimating ? null : _generateEstimate,
+            ),
           if (isEditable)
             IconButton(
               icon: const Icon(Icons.edit_outlined),
@@ -248,16 +306,13 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
               const SizedBox(height: 20),
 
               // ── AI Cost & Material Estimation ─────────────────────────────
-              if (wo.latestCostEstimate != null) ...[
-                _buildCostEstimateCard(wo.latestCostEstimate!, currencyFmt),
-                const SizedBox(height: 20),
-              ],
-
-              // ── Work Order Items Breakdown ────────────────────────────────
-              if (wo.items.isNotEmpty) ...[
-                _buildItemsCard(wo.items, currencyFmt),
-                const SizedBox(height: 20),
-              ],
+              CostEstimateCard(
+                workOrder: wo,
+                canEstimate: canEstimate,
+                isEstimating: _estimating,
+                onGenerateEstimate: _generateEstimate,
+              ),
+              const SizedBox(height: 20),
 
               // ── Linked Hazard Card ────────────────────────────────────────
               if (wo.hazardId != null || wo.hazardTicket != null) ...[
@@ -286,7 +341,7 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     switch (wo.approvalReason) {
       case 'Both':
         reasonText =
-            'Estimated cost exceeds municipal threshold AND site is located on a high-risk arterial road.';
+            'Estimated repair cost exceeds the configured municipal approval threshold and the site is on a high-risk arterial road or traffic corridor.';
         break;
       case 'ArterialRoadRisk':
         reasonText =
@@ -294,7 +349,7 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
         break;
       case 'ThresholdExceeded':
         reasonText =
-            'Estimated repair cost exceeds configured municipal approval threshold (Rs. 100,000).';
+            'Estimated repair cost exceeds the configured municipal approval threshold.';
         break;
       default:
         reasonText = 'Formal Public Works Director authorization is required.';
@@ -503,189 +558,6 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
     );
   }
 
-  Widget _buildCostEstimateCard(
-      CostEstimate estimate, NumberFormat currencyFmt) {
-    final confidencePct = (estimate.confidence * 100).toStringAsFixed(0);
-    final isFallback = estimate.modelName.toLowerCase().contains('fallback') ||
-        estimate.modelName.toLowerCase().contains('rule');
-
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.psychology_outlined,
-                    size: 18, color: Color(0xFF1A6FA8)),
-                const SizedBox(width: 8),
-                const Text(
-                  'AI Cost & Material Estimation',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isFallback
-                        ? Colors.amber.shade100
-                        : const Color(0xFF1A6FA8).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    isFallback
-                        ? 'Rule-Based Fallback'
-                        : 'Gemini (${estimate.modelName})',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isFallback
-                          ? Colors.amber.shade900
-                          : const Color(0xFF1A6FA8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _MiniCostMetric(
-                    label: 'Material',
-                    amount: currencyFmt.format(estimate.materialCost),
-                  ),
-                ),
-                Expanded(
-                  child: _MiniCostMetric(
-                    label: 'Labour',
-                    amount: currencyFmt.format(estimate.labourCost),
-                  ),
-                ),
-                Expanded(
-                  child: _MiniCostMetric(
-                    label: 'Equipment',
-                    amount: currencyFmt.format(estimate.equipmentCost),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'AI Confidence: $confidencePct%',
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  'Labour: ${estimate.estimatedLabourHours.toStringAsFixed(0)} hrs (Crew of ${estimate.recommendedCrewSize})',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-            if (estimate.reason.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Text(
-                  estimate.reason,
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade800, height: 1.3),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildItemsCard(List<WorkOrderItem> items, NumberFormat currencyFmt) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.inventory_2_outlined,
-                    size: 18, color: Color(0xFF1A6FA8)),
-                const SizedBox(width: 8),
-                Text(
-                  'Required Materials & Items (${items.length})',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...items.map(
-              (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        item.itemType,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item.itemName,
-                        style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                    Text(
-                      '${item.quantity.toStringAsFixed(item.quantity % 1 == 0 ? 0 : 1)} ${item.unit}',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      currencyFmt.format(item.estimatedTotalCost),
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildLinkedHazardCard(WorkOrder wo) {
     return Card(
       elevation: 1,
@@ -884,35 +756,6 @@ class _FinancialTile extends StatelessWidget {
             fontWeight: FontWeight.bold,
             fontSize: 13,
             color: color,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniCostMetric extends StatelessWidget {
-  final String label;
-  final String amount;
-
-  const _MiniCostMetric({required this.label, required this.amount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          amount,
-          style: const TextStyle(
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
           ),
         ),
       ],
