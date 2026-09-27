@@ -497,6 +497,10 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
               _buildOperationalCard(wo, fmt),
               const SizedBox(height: 20),
 
+              // ── Maintenance Execution Handoff (Member 4) ──────────────────
+              _buildMaintenanceHandoffCard(wo),
+              const SizedBox(height: 20),
+
               // ── AI Cost & Material Estimation ─────────────────────────────
               CostEstimateCard(
                 workOrder: wo,
@@ -884,6 +888,133 @@ class _WorkOrderDetailsScreenState extends State<WorkOrderDetailsScreen> {
               value: wo.scheduledDate != null
                   ? fmt.format(wo.scheduledDate!.toLocal())
                   : 'Not scheduled yet',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaintenanceHandoffCard(WorkOrder wo) {
+    final statusUpper = wo.status.toUpperCase();
+    final isCancelled = wo.isCancelled || statusUpper == 'CANCELLED';
+    final isRejected = wo.isRejected || statusUpper == 'REJECTED';
+    final isApprovalPending = wo.isApprovalPending;
+
+    final Color cardBorder;
+    final Color badgeColor;
+    final Color badgeTextColor;
+    final String stageBadge;
+    final String headline;
+    final String explanation;
+    final IconData icon;
+
+    if (isCancelled || isRejected) {
+      cardBorder = Colors.grey.shade300;
+      badgeColor = Colors.grey.shade200;
+      badgeTextColor = Colors.grey.shade700;
+      stageBadge = 'Not Available';
+      headline = isCancelled ? 'Work Order Cancelled' : 'Work Order Rejected';
+      explanation =
+          'This work order is ${isCancelled ? "cancelled" : "rejected"}. No mobile maintenance handoff action is available.';
+      icon = Icons.block_outlined;
+    } else if (isApprovalPending) {
+      cardBorder = Colors.amber.shade200;
+      badgeColor = Colors.amber.shade100;
+      badgeTextColor = Colors.amber.shade900;
+      stageBadge = 'Pending Sign-off';
+      headline = 'Director Sign-off Pending';
+      explanation =
+          'Director sign-off is still pending for this work order. Complete the required governance step before proceeding with the normal maintenance workflow.';
+      icon = Icons.hourglass_top_outlined;
+    } else {
+      cardBorder = const Color(0xFFB0D0E8);
+      badgeColor = const Color(0xFFE8F1F8);
+      badgeTextColor = const Color(0xFF1A6FA8);
+      stageBadge = 'Ready for Next Stage';
+      headline = 'Ready for Maintenance Workflow';
+      explanation =
+          'This work order is ready for the next municipal maintenance workflow stage. Member 4 mobile maintenance screens are not yet available.';
+      icon = Icons.handyman_outlined;
+    }
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: cardBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: const Color(0xFF1A6FA8)),
+                const SizedBox(width: 8),
+                const Text(
+                  'Maintenance Execution Handoff',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    stageBadge,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: badgeTextColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              headline,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              explanation,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade700,
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline,
+                      size: 14, color: Colors.grey.shade600),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Handoff Target: Work Order ${wo.workOrderNumber} (Backend ID: ${wo.id.isNotEmpty ? wo.id.substring(0, wo.id.length > 8 ? 8 : wo.id.length) : "—"}...)',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

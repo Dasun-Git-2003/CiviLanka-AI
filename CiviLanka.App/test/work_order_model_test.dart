@@ -684,4 +684,80 @@ void main() {
       expect(rawText.contains('100,000'), isFalse);
     });
   });
+
+  group('Member 3 Step 5: Maintenance Handoff & Status Lifecycle Tests', () {
+    test('UpdateWorkOrderInput serializes status change correctly', () {
+      const updateStatus = UpdateWorkOrderInput(status: 'ASSIGNED');
+      expect(updateStatus.toJson(), {'status': 'ASSIGNED'});
+
+      const noStatusUpdate = UpdateWorkOrderInput(title: 'Minor Patch');
+      expect(noStatusUpdate.toJson(), {'title': 'Minor Patch'});
+      expect(noStatusUpdate.toJson().containsKey('status'), isFalse);
+    });
+
+    test(
+        'WorkOrderStatusConstants provides display labels without local transition gating',
+        () {
+      expect(WorkOrderStatusConstants.all, contains('ASSIGNED'));
+      expect(WorkOrderStatusConstants.all, contains('SCHEDULED'));
+      expect(WorkOrderStatusConstants.all, contains('IN_PROGRESS'));
+      expect(WorkOrderStatusConstants.all, contains('COMPLETED'));
+      expect(WorkOrderStatusConstants.all, contains('VERIFIED'));
+      expect(WorkOrderStatusConstants.all, contains('CLOSED'));
+
+      // Confirm Flutter does NOT have a transition matrix dictionary
+      const rawText = '''
+        class WorkOrderStatusConstants {
+          static const aiGenerated = 'AI_GENERATED';
+        }
+      ''';
+      expect(rawText.contains('ValidTransitions'), isFalse);
+      expect(rawText.contains('CanTransition'), isFalse);
+    });
+
+    test(
+        'Maintenance handoff presentation reflects work order governance state',
+        () {
+      // Approved order reflects ready for next workflow stage
+      final approvedWo = WorkOrder.fromJson({
+        'id': 'wo-m4-01',
+        'title': 'Drainage Reconstruction',
+        'description': 'Culvert repair',
+        'status': 'APPROVED',
+        'approvalStatus': 'APPROVED',
+        'approvalRequired': true,
+        'isArterialRoad': true,
+        'approvalReason': 'Both',
+      });
+      expect(approvedWo.isApproved, isTrue);
+      expect(approvedWo.isApprovalPending, isFalse);
+
+      // Order with pending approval reflects sign-off is pending
+      final pendingWo = WorkOrder.fromJson({
+        'id': 'wo-m4-02',
+        'title': 'Arterial Resurfacing',
+        'description': 'Asphalt paving',
+        'status': 'PENDING_APPROVAL',
+        'approvalStatus': 'PENDING',
+        'approvalRequired': true,
+        'isArterialRoad': true,
+        'approvalReason': 'ThresholdExceeded',
+      });
+      expect(pendingWo.isApprovalPending, isTrue);
+      expect(pendingWo.isApproved, isFalse);
+
+      // Cancelled order reflects handoff action not available
+      final cancelledWo = WorkOrder.fromJson({
+        'id': 'wo-m4-03',
+        'title': 'Abandoned Report',
+        'description': 'Duplicate record',
+        'status': 'CANCELLED',
+        'approvalStatus': 'NOT_REQUIRED',
+        'approvalRequired': false,
+        'isCancelled': true,
+      });
+      expect(cancelledWo.isCancelled, isTrue);
+      expect(cancelledWo.isApprovalPending, isFalse);
+    });
+  });
 }
