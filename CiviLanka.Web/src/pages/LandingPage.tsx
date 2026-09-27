@@ -747,9 +747,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── 3. HOW IT WORKS: 3D PARALLAX LIFECYCLE CAROUSEL ─────────────────── */}
-      <section id="pipeline" className="py-24 bg-[#181c24] text-white border-b border-slate-800/80 relative overflow-hidden select-none">
+      <section id="pipeline" className="py-24 bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative overflow-hidden select-none">
         {/* Ambient radial glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[520px] bg-amber-500/[0.04] rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[520px] bg-amber-500/[0.05] dark:bg-amber-500/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -760,13 +760,13 @@ export default function LandingPage() {
             style={{ willChange: 'transform, opacity' }}
             className="text-center max-w-2xl mx-auto mb-14"
           >
-            <span className="block text-xs font-mono font-bold text-amber-400 tracking-[0.25em] uppercase mb-3">
+            <span className="block text-xs font-mono font-bold text-amber-600 dark:text-amber-400 tracking-[0.25em] uppercase mb-3">
               HOW IT WORKS
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight font-display">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
               From Citizen Report to Verified Repair
             </h2>
-            <p className="text-sm sm:text-base text-slate-400 mt-3 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
               A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
             </p>
           </motion.div>
@@ -859,33 +859,51 @@ export default function LandingPage() {
                   }}
                   className={`rounded-[28px] p-8 sm:p-10 flex flex-col items-center justify-center text-center select-none transition-colors duration-300 ${
                     isCenter
-                      ? 'bg-[#222733] border-2 border-amber-500/40 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/30'
-                      : 'bg-[#1e232d]/90 hover:bg-[#232936] border border-slate-700/50 hover:border-slate-600 shadow-2xl'
+                      ? 'bg-white dark:bg-[#222733] border-2 border-amber-500 dark:border-amber-500/50 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.12),0_0_25px_rgba(245,158,11,0.18)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/20'
+                      : 'bg-slate-50/95 dark:bg-[#1e232d]/90 hover:bg-slate-100/90 dark:hover:bg-[#232936] border border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 shadow-lg dark:shadow-2xl'
                   }`}
                 >
                   {/* Circular Icon Badge */}
                   <div
                     className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-300 ${
                       isCenter
-                        ? 'bg-[#2b3242] border-2 border-amber-500/40 shadow-inner text-amber-400'
-                        : 'bg-[#262c38] border border-slate-700/60 text-amber-500/70'
+                        ? 'bg-amber-50 dark:bg-[#2b3242] border-2 border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-inner'
+                        : 'bg-slate-100 dark:bg-[#262c38] border border-slate-200 dark:border-slate-700/60 text-amber-600/70 dark:text-amber-500/70'
                     }`}
                   >
                     <IconComp className="w-9 h-9 sm:w-11 sm:h-11 stroke-[1.75]" />
                   </div>
 
                   {/* Stage Pill */}
-                  <span className="text-[11px] font-mono font-bold tracking-widest text-amber-400 uppercase px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 inline-block">
+                  <span
+                    className={`text-[11px] font-mono font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3 inline-block transition-colors duration-300 ${
+                      isCenter
+                        ? 'bg-amber-100/80 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/20'
+                        : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50'
+                    }`}
+                  >
                     STAGE {wf.step}
                   </span>
 
                   {/* Title */}
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 leading-tight tracking-tight">
+                  <h3
+                    className={`text-xl sm:text-2xl font-bold mb-4 leading-tight tracking-tight transition-colors duration-300 ${
+                      isCenter
+                        ? 'text-slate-900 dark:text-white'
+                        : 'text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
                     {wf.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xs sm:max-w-sm mx-auto">
+                  <p
+                    className={`text-xs sm:text-sm leading-relaxed max-w-xs sm:max-w-sm mx-auto transition-colors duration-300 ${
+                      isCenter
+                        ? 'text-slate-600 dark:text-slate-300'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
                     {wf.desc}
                   </p>
                 </motion.div>
@@ -899,13 +917,13 @@ export default function LandingPage() {
               type="button"
               onClick={handlePrevWorkflow}
               aria-label="Previous lifecycle stage"
-              className="w-12 h-12 rounded-full bg-[#242933] hover:bg-[#2e3542] border border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
             {/* Pagination Dots */}
-            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#202530] border border-slate-800 shadow-inner">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-slate-100/90 dark:bg-[#202530] border border-slate-200 dark:border-slate-800 shadow-inner">
               {WORKFLOW_STEPS.map((_, idx) => (
                 <button
                   key={idx}
@@ -915,7 +933,7 @@ export default function LandingPage() {
                   className={`transition-all duration-300 rounded-full focus:outline-none ${
                     activeWorkflow === idx
                       ? 'w-8 h-2.5 bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
-                      : 'w-2.5 h-2.5 bg-slate-600/60 hover:bg-slate-500'
+                      : 'w-2.5 h-2.5 bg-slate-300 dark:bg-slate-600/60 hover:bg-slate-400 dark:hover:bg-slate-500'
                   }`}
                 />
               ))}
@@ -925,7 +943,7 @@ export default function LandingPage() {
               type="button"
               onClick={handleNextWorkflow}
               aria-label="Next lifecycle stage"
-              className="w-12 h-12 rounded-full bg-[#242933] hover:bg-[#2e3542] border border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
