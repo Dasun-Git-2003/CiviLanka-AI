@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Scan,
   TrendingUp,
@@ -113,16 +114,22 @@ const WORKFLOW_STEPS = [
     step: '01',
     title: 'Citizen Report & AI Triage',
     icon: Camera,
-    desc: 'Citizens capture photos and GPS coordinates without creating an account. The vision model classifies defect severity, priority, and response SLA within seconds.',
+    desc: 'Citizens capture geotagged defect photos without creating an account. Gemini vision classifies defect severity, priority, and response SLA within seconds.',
   },
   {
     step: '02',
+    title: 'Asset Risk & Health Forecast',
+    icon: TrendingUp,
+    desc: 'Predictive neural models calculate asset degradation indices, flood exposure, and structural fatigue to prioritize preventative interventions.',
+  },
+  {
+    step: '03',
     title: 'BOQ Estimation & Approval',
     icon: Coins,
     desc: 'The estimator agent generates exact material quantities, labour hours, and costs in LKR. High-value work orders automatically route to directors for authorization.',
   },
   {
-    step: '03',
+    step: '04',
     title: 'Field Execution & Verification',
     icon: Wrench,
     desc: 'Contractors receive dispatched work orders with turn-by-turn routing. AI compares before/after photographic evidence before the municipality disburses payment.',
@@ -190,6 +197,32 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollKey, setScrollKey] = useState(0);
+  const [activeWorkflow, setActiveWorkflow] = useState(0);
+  const [workflowTouchStart, setWorkflowTouchStart] = useState<number | null>(null);
+
+  const handlePrevWorkflow = () => {
+    setActiveWorkflow((prev) => (prev - 1 + WORKFLOW_STEPS.length) % WORKFLOW_STEPS.length);
+  };
+
+  const handleNextWorkflow = () => {
+    setActiveWorkflow((prev) => (prev + 1) % WORKFLOW_STEPS.length);
+  };
+
+  const handleWorkflowTouchStart = (e: React.TouchEvent) => {
+    setWorkflowTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleWorkflowTouchEnd = (e: React.TouchEvent) => {
+    if (workflowTouchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = workflowTouchStart - touchEnd;
+    if (diff > 45) {
+      handleNextWorkflow();
+    } else if (diff < -45) {
+      handlePrevWorkflow();
+    }
+    setWorkflowTouchStart(null);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -713,9 +746,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 3. HOW IT WORKS: THE 3-STAGE LIFECYCLE ─────────────────────────── */}
-      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ── 3. HOW IT WORKS: 3D PARALLAX LIFECYCLE CAROUSEL ─────────────────── */}
+      <section id="pipeline" className="py-24 bg-[#181c24] text-white border-b border-slate-800/80 relative overflow-hidden select-none">
+        {/* Ambient radial glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[520px] bg-amber-500/[0.04] rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -724,47 +760,175 @@ export default function LandingPage() {
             style={{ willChange: 'transform, opacity' }}
             className="text-center max-w-2xl mx-auto mb-14"
           >
-            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+            <span className="block text-xs font-mono font-bold text-amber-400 tracking-[0.25em] uppercase mb-3">
               HOW IT WORKS
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight font-display">
               From Citizen Report to Verified Repair
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-sm sm:text-base text-slate-400 mt-3 leading-relaxed">
               A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* 3D Perspective Coverflow Carousel */}
+          <div
+            className="relative w-full max-w-5xl mx-auto h-[480px] sm:h-[510px] flex items-center justify-center"
+            style={{ perspective: '1200px' }}
+            onTouchStart={handleWorkflowTouchStart}
+            onTouchEnd={handleWorkflowTouchEnd}
+          >
             {WORKFLOW_STEPS.map((wf, idx) => {
               const IconComp = wf.icon;
+              const diff = idx - activeWorkflow;
+              const isCenter = diff === 0;
+
+              // 3D Coverflow transform calculation matching reference design
+              let x = '-50%';
+              let rotateY = 0;
+              let scale = 1;
+              let opacity = 1;
+              let zIndex = 30;
+
+              if (diff === 0) {
+                x = '-50%';
+                rotateY = 0;
+                scale = 1;
+                opacity = 1;
+                zIndex = 30;
+              } else if (diff === -1) {
+                x = '-124%';
+                rotateY = 22;
+                scale = 0.85;
+                opacity = 0.45;
+                zIndex = 20;
+              } else if (diff === 1) {
+                x = '24%';
+                rotateY = -22;
+                scale = 0.85;
+                opacity = 0.45;
+                zIndex = 20;
+              } else if (diff === -2) {
+                x = '-192%';
+                rotateY = 28;
+                scale = 0.72;
+                opacity = 0.22;
+                zIndex = 10;
+              } else if (diff === 2) {
+                x = '92%';
+                rotateY = -28;
+                scale = 0.72;
+                opacity = 0.22;
+                zIndex = 10;
+              } else {
+                x = diff > 0 ? '160%' : '-260%';
+                rotateY = diff > 0 ? -35 : 35;
+                scale = 0.6;
+                opacity = 0;
+                zIndex = 0;
+              }
+
               return (
                 <motion.div
                   key={wf.step}
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: false, margin: '-50px' }}
-                  transition={{ ...IOS_TRANSITION, delay: idx * 0.05 }}
-                  whileHover={{ y: -5, transition: { duration: 0.2, ease: 'easeOut' } }}
-                  style={{ willChange: 'transform, opacity' }}
-                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors flex flex-col justify-between shadow-xs hover:shadow-md"
+                  onClick={() => {
+                    if (diff !== 0) setActiveWorkflow(idx);
+                  }}
+                  animate={{
+                    x,
+                    y: '-50%',
+                    rotateY,
+                    scale,
+                    opacity,
+                    zIndex,
+                  }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: 'min(86vw, 420px)',
+                    height: '460px',
+                    transformStyle: 'preserve-3d',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                    cursor: isCenter ? 'default' : 'pointer',
+                  }}
+                  className={`rounded-[28px] p-8 sm:p-10 flex flex-col items-center justify-center text-center select-none transition-colors duration-300 ${
+                    isCenter
+                      ? 'bg-[#222733] border-2 border-amber-500/40 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_25px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/30'
+                      : 'bg-[#1e232d]/90 hover:bg-[#232936] border border-slate-700/50 hover:border-slate-600 shadow-2xl'
+                  }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-amber-700 dark:text-amber-400 shadow-2xs">
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                      <span className="text-2xl font-black font-mono text-slate-300 dark:text-slate-700">
-                        {wf.step}
-                      </span>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{wf.title}</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{wf.desc}</p>
+                  {/* Circular Icon Badge */}
+                  <div
+                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-300 ${
+                      isCenter
+                        ? 'bg-[#2b3242] border-2 border-amber-500/40 shadow-inner text-amber-400'
+                        : 'bg-[#262c38] border border-slate-700/60 text-amber-500/70'
+                    }`}
+                  >
+                    <IconComp className="w-9 h-9 sm:w-11 sm:h-11 stroke-[1.75]" />
                   </div>
+
+                  {/* Stage Pill */}
+                  <span className="text-[11px] font-mono font-bold tracking-widest text-amber-400 uppercase px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 inline-block">
+                    STAGE {wf.step}
+                  </span>
+
+                  {/* Title */}
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 leading-tight tracking-tight">
+                    {wf.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xs sm:max-w-sm mx-auto">
+                    {wf.desc}
+                  </p>
                 </motion.div>
               );
             })}
+          </div>
+
+          {/* Bottom Navigation: <  ● ● ● ●  > */}
+          <div className="flex items-center justify-center gap-5 mt-10">
+            <button
+              type="button"
+              onClick={handlePrevWorkflow}
+              aria-label="Previous lifecycle stage"
+              className="w-12 h-12 rounded-full bg-[#242933] hover:bg-[#2e3542] border border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Pagination Dots */}
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#202530] border border-slate-800 shadow-inner">
+              {WORKFLOW_STEPS.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveWorkflow(idx)}
+                  aria-label={`Go to stage ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full focus:outline-none ${
+                    activeWorkflow === idx
+                      ? 'w-8 h-2.5 bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
+                      : 'w-2.5 h-2.5 bg-slate-600/60 hover:bg-slate-500'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextWorkflow}
+              aria-label="Next lifecycle stage"
+              className="w-12 h-12 rounded-full bg-[#242933] hover:bg-[#2e3542] border border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
