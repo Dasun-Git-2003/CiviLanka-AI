@@ -224,6 +224,32 @@ namespace CiviLanka.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Review (Approve or Reject) a citizen hazard report (Staff / Supervisors / Directors only).
+        /// </summary>
+        [HttpPost("{id:guid}/review")]
+        [Authorize(Policy = "CanManageHazards")]
+        [ProducesResponseType(typeof(HazardResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> ReviewHazard(Guid id, [FromBody] ReviewHazardDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var reviewerName = User.FindFirst(ClaimTypes.Email)?.Value
+                ?? User.Identity?.Name
+                ?? "MunicipalOfficial";
+
+            var result = await _service.ReviewHazardAsync(id, dto, reviewerName);
+            if (result == null)
+                return NotFound(new { message = "Hazard report not found or already cancelled." });
+
+            _logger.LogInformation("Hazard {Ticket} reviewed ({Action}) by {User}", result.TicketNumber, dto.Action, reviewerName);
+            return Ok(result);
+        }
+
         // ── IMAGE UPLOAD ─────────────────────────────────────────────────────────
 
         /// <summary>

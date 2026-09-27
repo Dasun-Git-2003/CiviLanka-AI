@@ -94,7 +94,7 @@ export const MaintenanceDashboard: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
             <span>Operations &amp; Compliance</span>
             <span>&bull;</span>
-            <span className="font-semibold text-teal-600">Member 4 Module</span>
+            <span className="font-semibold text-teal-600">Field Operations &amp; Verification</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
             <Wrench className="w-7 h-7 text-teal-600" />
@@ -107,11 +107,11 @@ export const MaintenanceDashboard: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
-            to="/field-worker"
+            to="/field-inspector"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
           >
             <Smartphone className="w-4 h-4 text-slate-600" />
-            Field Worker Portal
+            Field Inspector Portal
           </Link>
           <Link
             to="/maintenance/verification"

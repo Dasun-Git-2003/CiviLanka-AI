@@ -286,10 +286,42 @@ export const CitizenDashboard: React.FC = () => {
   };
 
   // ── Image Handlers (Create) ─────────────────────────────────────────────────
+  const resetCreateForm = () => {
+    previewUrls.forEach((url) => {
+      if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    });
+    setSelectedFiles([]);
+    setPreviewUrls([]);
+    setDescription('');
+    setAddress('');
+    setCategory('Pothole');
+    setLatitude('6.927100');
+    setLongitude('79.861200');
+    setCoordinatePaste('');
+    setLocationStatus(null);
+    setError(null);
+    setSubmitSuccess(false);
+    setSubmittedTicket(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleOpenCreate = () => {
+    resetCreateForm();
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreate = () => {
+    resetCreateForm();
+    setShowCreateModal(false);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
     addFilesToSelection(files);
+    e.target.value = '';
   };
 
   const addFilesToSelection = (newFiles: File[]) => {
@@ -308,7 +340,9 @@ export const CitizenDashboard: React.FC = () => {
   };
 
   const removeSelectedFile = (index: number) => {
-    URL.revokeObjectURL(previewUrls[index]);
+    if (previewUrls[index]?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrls[index]);
+    }
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
@@ -435,17 +469,15 @@ export const CitizenDashboard: React.FC = () => {
       const newTicket = createRes.data?.ticketNumber;
       if (newTicket) setSubmittedTicket(newTicket);
       setSubmitSuccess(true);
+      previewUrls.forEach((url) => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+      setSelectedFiles([]);
+      setPreviewUrls([]);
 
       setTimeout(() => {
-        setSubmitSuccess(false);
-        setSubmittedTicket(null);
+        resetCreateForm();
         setShowCreateModal(false);
-        setDescription('');
-        setAddress('');
-        setCoordinatePaste('');
-        setLocationStatus(null);
-        setSelectedFiles([]);
-        setPreviewUrls([]);
         fetchMyHazards();
       }, 2500);
     } catch (err) {
@@ -673,7 +705,7 @@ export const CitizenDashboard: React.FC = () => {
           </p>
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleOpenCreate}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs tracking-wider uppercase transition-all shadow-md shadow-cyan-500/25 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
@@ -758,7 +790,7 @@ export const CitizenDashboard: React.FC = () => {
                 <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
               </button>
               <button
-                onClick={() => setShowCreateModal(true)}
+                onClick={handleOpenCreate}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all shadow-2xs"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
@@ -837,7 +869,7 @@ export const CitizenDashboard: React.FC = () => {
             </p>
             {hazards.length === 0 && (
               <button
-                onClick={() => setShowCreateModal(true)}
+                onClick={handleOpenCreate}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs"
               >
                 <PlusCircle className="w-4 h-4" />
@@ -1051,7 +1083,7 @@ export const CitizenDashboard: React.FC = () => {
                 <h3 className="text-sm font-bold text-slate-900">Report Municipal Hazard</h3>
               </div>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={handleCloseCreate}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-md"
               >
                 <X className="w-5 h-5" />
@@ -1264,7 +1296,7 @@ export const CitizenDashboard: React.FC = () => {
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={handleCloseCreate}
                   className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold cursor-pointer"
                 >
                   Cancel

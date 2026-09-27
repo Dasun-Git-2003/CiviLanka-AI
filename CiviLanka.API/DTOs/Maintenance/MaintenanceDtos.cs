@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -96,6 +96,7 @@ namespace CiviLanka.API.DTOs.Maintenance
         public string? WorkOrderSeverity { get; set; }
         public string? WorkOrderStatus { get; set; }
         public decimal? EstimatedCost { get; set; }
+        public string? AssignedCrew { get; set; }
         public string? Location { get; set; }
         public string? HazardCategory { get; set; }
         public string? HazardTicket { get; set; }
@@ -134,6 +135,7 @@ namespace CiviLanka.API.DTOs.Maintenance
 
         public SafetyAnalysisResponseDto? LatestSafetyAnalysis { get; set; }
         public int AuditLogCount { get; set; }
+        public List<MaintenanceAuditLogDto> AuditLogs { get; set; } = new();
     }
 
     public class SafetyAnalysisResponseDto
@@ -158,6 +160,7 @@ namespace CiviLanka.API.DTOs.Maintenance
         public Guid Id { get; set; }
         public Guid MaintenanceRecordId { get; set; }
         public string UserId { get; set; } = string.Empty;
+        public string UserEmail { get; set; } = string.Empty;
         public string Action { get; set; } = string.Empty;
         public string EntityType { get; set; } = string.Empty;
         public string EntityId { get; set; } = string.Empty;

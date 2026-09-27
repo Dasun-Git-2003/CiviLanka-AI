@@ -84,9 +84,9 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   },
   FieldWorker: {
     role: 'FieldWorker',
-    label: 'Field Operations Crew',
+    label: 'Field Inspector / Crew',
     badgeClass: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
-    defaultRoute: '/field-worker',
+    defaultRoute: '/field-inspector',
     description: 'Inspect assigned work orders, record field repairs, and upload safety evidence.',
   },
   FieldMaintenanceSupervisor: {

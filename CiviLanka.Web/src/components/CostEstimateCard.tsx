@@ -1,22 +1,51 @@
 import React from 'react';
-import { Bot, Clock, Users, Wrench, Package, ShieldAlert, Sparkles } from 'lucide-react';
+import { Bot, Clock, Users, Wrench, Package, ShieldAlert, Sparkles, Pencil, Loader2 } from 'lucide-react';
 import type { CostEstimate, WorkOrderItem } from '../types/workOrder';
 
 interface CostEstimateCardProps {
   estimate?: CostEstimate;
   items?: WorkOrderItem[];
+  onEdit?: () => void;
+  onGenerateAI?: () => void;
+  generating?: boolean;
 }
 
-export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({ estimate, items }) => {
+export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
+  estimate,
+  items,
+  onEdit,
+  onGenerateAI,
+  generating = false,
+}) => {
   if (!estimate) {
     return (
       <div className="bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center">
         <Bot className="w-12 h-12 text-slate-300 mx-auto mb-3" />
         <h4 className="text-sm font-semibold text-slate-700">No AI Cost Estimate Generated</h4>
-        <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto mb-4">
           Click &quot;Generate AI Estimate&quot; to calculate material, labour, equipment costs and repair durations with
-          Gemini 2.0.
+          Gemini 2.0. You will be able to review and customize all materials before saving.
         </p>
+        {onGenerateAI && (
+          <button
+            type="button"
+            onClick={onGenerateAI}
+            disabled={generating}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Estimating with AI...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Generate AI Estimate &amp; Preview</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     );
   }
@@ -48,10 +77,24 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({ estimate, it
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="text-xs text-slate-400">Total Estimated Cost</div>
-          <div className="text-2xl font-bold text-emerald-400 font-mono">
-            {formatLKR(estimate.estimatedCost)}
+        <div className="flex items-center gap-4">
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-all cursor-pointer shadow-2xs"
+              title="Edit costs, add or remove materials"
+            >
+              <Pencil className="w-3.5 h-3.5 text-indigo-300" />
+              <span>Edit Cost &amp; Materials</span>
+            </button>
+          )}
+
+          <div className="text-right border-l border-white/10 pl-4">
+            <div className="text-xs text-slate-400">Total Estimated Cost</div>
+            <div className="text-2xl font-bold text-emerald-400 font-mono">
+              {formatLKR(estimate.estimatedCost)}
+            </div>
           </div>
         </div>
       </div>

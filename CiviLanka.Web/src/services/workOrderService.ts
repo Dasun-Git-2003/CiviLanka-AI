@@ -5,6 +5,8 @@ import type {
   UpdateWorkOrderInput,
   CostEstimate,
   CostEstimateInput,
+  SaveWorkOrderEstimateDto,
+  CostEstimatePreviewResponse,
 } from '../types/workOrder';
 
 export const workOrderService = {
@@ -58,6 +60,21 @@ export const workOrderService = {
 
   async generateEstimate(id: string, overrideData?: CostEstimateInput): Promise<WorkOrder> {
     const res = await apiClient.post<WorkOrder>(`/api/workorders/${id}/estimate`, overrideData || {});
+    return res.data;
+  },
+
+  async previewEstimate(input: CostEstimateInput): Promise<CostEstimatePreviewResponse> {
+    const res = await apiClient.post<CostEstimatePreviewResponse>('/api/workorders/preview-estimate', input);
+    return res.data;
+  },
+
+  async previewEstimateForWorkOrder(id: string, overrideData?: CostEstimateInput): Promise<CostEstimatePreviewResponse> {
+    const res = await apiClient.post<CostEstimatePreviewResponse>(`/api/workorders/${id}/preview-estimate`, overrideData || {});
+    return res.data;
+  },
+
+  async saveCustomEstimate(id: string, data: SaveWorkOrderEstimateDto): Promise<WorkOrder> {
+    const res = await apiClient.put<WorkOrder>(`/api/workorders/${id}/estimate`, data);
     return res.data;
   },
 

@@ -81,7 +81,7 @@ export const ApprovalQueue: React.FC = () => {
           <div>
             <h1 className="text-xl font-bold text-white">Public Works Director Approval Queue</h1>
             <p className="text-xs text-slate-300 mt-0.5">
-              Review and authorize high-value (&gt; Rs. 100,000) or high-risk infrastructure work orders.
+              Review and authorize municipal infrastructure work orders prior to crew dispatch and execution.
             </p>
           </div>
         </div>
@@ -105,7 +105,7 @@ export const ApprovalQueue: React.FC = () => {
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-900">All Clear! No Pending Approvals</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            All work orders requiring director authorization have been processed. New high-budget orders will appear
+            All work orders requiring director authorization have been processed. New work orders will appear
             here automatically.
           </p>
           <Link
@@ -119,7 +119,7 @@ export const ApprovalQueue: React.FC = () => {
         <div className="space-y-4">
           <div className="text-xs font-semibold text-slate-500 flex items-center justify-between">
             <span>{pendingOrders.length} WORK ORDER{pendingOrders.length > 1 ? 'S' : ''} AWAITING AUTHORIZATION</span>
-            <span>Threshold: &gt; Rs. 100,000 LKR</span>
+            <span>Policy: Mandatory Director Sign-Off</span>
           </div>
 
           {pendingOrders.map((wo) => (

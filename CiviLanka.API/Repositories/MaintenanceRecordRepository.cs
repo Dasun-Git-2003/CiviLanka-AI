@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,6 +57,7 @@ namespace CiviLanka.API.Repositories
         public async Task<List<MaintenanceRecord>> GetAllActiveAsync() =>
             await _db.MaintenanceRecords
                 .Include(m => m.WorkOrder)
+                    .ThenInclude(w => w!.Hazard)
                 .Include(m => m.Asset)
                 .Include(m => m.SafetyAnalyses)
                 .Where(m => !m.IsDeleted)
@@ -66,6 +67,7 @@ namespace CiviLanka.API.Repositories
         public async Task<List<MaintenanceRecord>> GetByStatusAsync(string status) =>
             await _db.MaintenanceRecords
                 .Include(m => m.WorkOrder)
+                    .ThenInclude(w => w!.Hazard)
                 .Include(m => m.Asset)
                 .Include(m => m.SafetyAnalyses)
                 .Where(m => m.Status == status && !m.IsDeleted)
@@ -75,6 +77,7 @@ namespace CiviLanka.API.Repositories
         public async Task<List<MaintenanceRecord>> GetByWorkOrderIdAsync(Guid workOrderId) =>
             await _db.MaintenanceRecords
                 .Include(m => m.WorkOrder)
+                    .ThenInclude(w => w!.Hazard)
                 .Include(m => m.Asset)
                 .Include(m => m.SafetyAnalyses)
                 .Where(m => m.WorkOrderId == workOrderId && !m.IsDeleted)
@@ -84,20 +87,30 @@ namespace CiviLanka.API.Repositories
         public async Task<List<MaintenanceRecord>> GetByAssetIdAsync(string assetId) =>
             await _db.MaintenanceRecords
                 .Include(m => m.WorkOrder)
+                    .ThenInclude(w => w!.Hazard)
                 .Include(m => m.Asset)
                 .Include(m => m.SafetyAnalyses)
                 .Where(m => m.AssetId == assetId && !m.IsDeleted)
                 .OrderByDescending(m => m.CreatedAt)
                 .ToListAsync();
 
-        public async Task<List<MaintenanceRecord>> GetByWorkerAsync(string workerId) =>
-            await _db.MaintenanceRecords
+        public async Task<List<MaintenanceRecord>> GetByWorkerAsync(string workerId)
+        {
+            var lower = workerId.ToLower();
+            return await _db.MaintenanceRecords
                 .Include(m => m.WorkOrder)
+                    .ThenInclude(w => w!.Hazard)
                 .Include(m => m.Asset)
                 .Include(m => m.SafetyAnalyses)
-                .Where(m => (m.PerformedBy == workerId || m.PerformedBy.ToLower() == workerId.ToLower()) && !m.IsDeleted)
+                .Where(m => !m.IsDeleted && (
+                    m.PerformedBy == workerId ||
+                    m.PerformedBy.ToLower() == lower ||
+                    (m.WorkOrder != null && m.WorkOrder.AssignedCrew != null &&
+                     (m.WorkOrder.AssignedCrew.Contains(workerId) || m.WorkOrder.AssignedCrew.ToLower().Contains(lower)))
+                ))
                 .OrderByDescending(m => m.CreatedAt)
                 .ToListAsync();
+        }
 
         public async Task<List<MaintenanceRecord>> GetPendingVerificationAsync() =>
             await _db.MaintenanceRecords
