@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const AGENT_API_URL = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:8001';
+const AGENT_API_URL = import.meta.env.VITE_AGENT_API_URL || 'http://127.0.0.1:8001';
 
 export const agentClient = axios.create({
   baseURL: AGENT_API_URL,

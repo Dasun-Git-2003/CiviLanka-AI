@@ -97,7 +97,7 @@ python -m jupyter lab agent_testing.ipynb
 ### Step 8: Run the FastAPI REST Server
 In your activated terminal (`(.venv)`), run:
 ```powershell
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 - **Interactive Swagger Documentation**: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)

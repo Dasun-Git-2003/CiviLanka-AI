@@ -172,7 +172,7 @@ export const AgentEstimatorPage: React.FC = () => {
       setEstimatorError(
         err.response?.data?.detail ||
           err.message ||
-          'Failed to connect to the agent service at http://localhost:8001. Ensure the Python FastAPI server is running.'
+          'Failed to connect to the agent service at http://127.0.0.1:8001. Ensure the Python FastAPI server is running (uvicorn main:app --reload --host 0.0.0.0 --port 8001).'
       );
     } finally {
       setEstimating(false);

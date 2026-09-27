@@ -195,7 +195,7 @@ python -m jupyter lab agent_testing.ipynb
 #### 7. Run FastAPI REST backend server:
 
 ```powershell
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --host 0.0.0.0 --port 8001
 ```
 
 - Swagger UI: `http://127.0.0.1:8001/docs`
