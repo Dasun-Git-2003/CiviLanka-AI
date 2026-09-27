@@ -3,14 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Shield, AlertTriangle, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { authService } from '../services/authService';
 import ThemeToggle from '../components/ThemeToggle';
-import LanguageToggle from '../components/LanguageToggle';
-import { useLanguage } from '../context/LanguageContext';
-import { loginTranslations } from '../i18n/loginTranslations';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const t = loginTranslations[language];
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +25,7 @@ export const LoginPage: React.FC = () => {
       const target = authService.getRedirectPathForRole(user.role);
       navigate(target);
     } catch (err: any) {
-      setError(err.message || t.authFailed);
+      setError(err.message || 'Authentication failed. Please verify your municipal credentials.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +51,7 @@ export const LoginPage: React.FC = () => {
             />
             <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/70 border border-red-500/40 text-[10px] font-mono text-red-300 font-bold backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span>{t.craneActive}</span>
+              <span>RED CRANE AST-CR-09 &bull; 360° ROTATION ACTIVE</span>
             </div>
           </div>
         </div>
@@ -71,28 +66,28 @@ export const LoginPage: React.FC = () => {
           className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-xs font-semibold text-white backdrop-blur-md shadow-lg transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{t.backToHome}</span>
+          <span>Back to Home</span>
         </Link>
 
         {/* Left Branding Overlay */}
         <div className="absolute bottom-10 left-8 right-8 z-20 space-y-3 text-white">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-cyan-300 bg-black/60 px-3 py-1 rounded-full border border-cyan-500/40 backdrop-blur-md shadow-xs">
             <Shield className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{t.platformBadge}</span>
+            <span>COLOMBO NIGHT INFRASTRUCTURE PLATFORM</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-            {t.brandTitle}
+            CivitaGuard AI
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 font-normal max-w-md leading-relaxed">
-            {t.brandDesc1}
+            Autonomous Municipal Triage &amp;
             <br />
-            <span className="font-bold text-cyan-400">{t.brandDesc2}</span>
+            <span className="font-bold text-cyan-400">24/7 Citywide Infrastructure Safety.</span>
           </p>
 
           <div className="pt-2 flex items-center gap-3 text-[11px] font-mono text-slate-400">
-            <span>{t.telemetry}</span>
+            <span>NOCTURNAL TELEMETRY</span>
             <span>&bull;</span>
             <span className="text-emerald-400 font-bold">EPSG:4326 / WGS84</span>
           </div>
@@ -101,9 +96,8 @@ export const LoginPage: React.FC = () => {
 
       {/* ── RIGHT 50%: Form Panel (Unified with Landing Page Amber Theme & Dark Mode) ── */}
       <div className="relative md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-        {/* Top-Right Language & Theme Toggle Controls */}
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-2.5">
-          <LanguageToggle isScrolled={true} />
+        {/* Top-Right Theme Toggle Switch */}
+        <div className="absolute top-6 right-6 z-20">
           <ThemeToggle />
         </div>
 
@@ -111,10 +105,10 @@ export const LoginPage: React.FC = () => {
           {/* Header */}
           <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {t.welcomeBack}
+              Welcome Back
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal">
-              {t.signInSubtitle}
+              Sign in to your CivitaGuard AI account.
             </p>
           </div>
 
@@ -131,14 +125,14 @@ export const LoginPage: React.FC = () => {
             {/* Email Field */}
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 font-gis">
-                {t.emailLabel}
+                EMAIL ADDRESS
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.emailPlaceholder}
+                placeholder="name@municipality.gov.lk"
                 className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-amber-500 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-sans shadow-2xs"
               />
             </div>
@@ -147,17 +141,17 @@ export const LoginPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 font-gis">
-                  {t.passwordLabel}
+                  PASSWORD
                 </label>
                 <a
                   href="#forgot"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert(t.forgotAlert);
+                    alert('Password reset link will be sent to your registered municipal email address.');
                   }}
                   className="text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 transition-colors"
                 >
-                  {t.forgotPassword}
+                  Forgot password?
                 </a>
               </div>
 
@@ -173,8 +167,8 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
-                  aria-label={showPassword ? t.hidePassword : t.showPassword}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -188,10 +182,10 @@ export const LoginPage: React.FC = () => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-amber-600 focus:ring-amber-500 accent-amber-500 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-amber-600 focus:ring-amber-500 accent-amber-500"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-xs text-slate-600 dark:text-slate-400 font-medium cursor-pointer">
-                {t.rememberMe}
+              <label htmlFor="remember-me" className="ml-2 block text-xs text-slate-600 dark:text-slate-400 font-medium">
+                Remember this workstation for 30 days
               </label>
             </div>
 
@@ -204,11 +198,11 @@ export const LoginPage: React.FC = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                  <span>{t.authenticating}</span>
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
-                  <span>{t.signInButton}</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4 text-slate-950" />
                 </>
               )}
@@ -220,7 +214,7 @@ export const LoginPage: React.FC = () => {
                 <div className="w-full border-t border-slate-200 dark:border-slate-800" />
               </div>
               <div className="relative flex justify-center text-[10px] font-gis uppercase">
-                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500 font-bold">{t.orDivider}</span>
+                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500 font-bold">OR</span>
               </div>
             </div>
 
@@ -228,9 +222,9 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                alert(t.googleAlert);
+                alert('Google SSO for Municipalities is configured via SAML / OpenID Connect.');
               }}
-              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors flex items-center justify-center gap-2 shadow-2xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -250,22 +244,22 @@ export const LoginPage: React.FC = () => {
                   d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
                 />
               </svg>
-              <span>{t.googleButton}</span>
+              <span>Continue with Municipal Google ID</span>
             </button>
           </form>
 
           {/* Bottom Switcher */}
           <div className="text-center pt-2 text-xs text-slate-600 dark:text-slate-400">
-            {t.noAccount}{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="text-amber-600 dark:text-amber-400 font-bold hover:underline ml-1">
-              {t.createAccount}
+              Create an account
             </Link>
           </div>
 
           {/* Quick Demo Test Accounts for RBAC */}
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-gis text-center">
-              {t.quickCredentials}
+              Quick Test Credentials &bull; 4 RBAC Roles
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
@@ -274,9 +268,9 @@ export const LoginPage: React.FC = () => {
                   setEmail('citizen@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-left transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-left transition-colors"
               >
-                <div className="font-bold text-[11px]">{t.roles.citizen}</div>
+                <div className="font-bold text-[11px]">1. Citizen</div>
                 <div className="text-[10px] text-emerald-600 dark:text-emerald-400 truncate">citizen@test.com</div>
               </button>
 
@@ -286,9 +280,9 @@ export const LoginPage: React.FC = () => {
                   setEmail('fieldworker@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-left transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-left transition-colors"
               >
-                <div className="font-bold text-[11px]">{t.roles.fieldWorker}</div>
+                <div className="font-bold text-[11px]">2. Field Worker</div>
                 <div className="text-[10px] text-amber-600 dark:text-amber-400 truncate">fieldworker@test.com</div>
               </button>
 
@@ -298,9 +292,9 @@ export const LoginPage: React.FC = () => {
                   setEmail('supervisor@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/60 text-blue-800 dark:text-blue-300 text-left transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/60 text-blue-800 dark:text-blue-300 text-left transition-colors"
               >
-                <div className="font-bold text-[11px]">{t.roles.supervisor}</div>
+                <div className="font-bold text-[11px]">3. Supervisor</div>
                 <div className="text-[10px] text-blue-600 dark:text-blue-400 truncate">supervisor@test.com</div>
               </button>
 
@@ -310,9 +304,9 @@ export const LoginPage: React.FC = () => {
                   setEmail('director@test.com');
                   setPassword('Director123!');
                 }}
-                className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 text-purple-800 dark:text-purple-300 text-left transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/60 text-purple-800 dark:text-purple-300 text-left transition-colors"
               >
-                <div className="font-bold text-[11px]">{t.roles.director}</div>
+                <div className="font-bold text-[11px]">4. PW Director</div>
                 <div className="text-[10px] text-purple-600 dark:text-purple-400 truncate">director@test.com</div>
               </button>
             </div>
