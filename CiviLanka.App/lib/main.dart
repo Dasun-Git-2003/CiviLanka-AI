@@ -4,6 +4,7 @@ import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/hazard_service.dart';
 import 'services/location_service.dart';
+import 'services/work_order_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 
@@ -21,6 +22,7 @@ class CiviLankaApp extends StatelessWidget {
     final authService = AuthService(apiService);
     final hazardService = HazardService(apiService);
     final locationService = LocationService();
+    final workOrderService = WorkOrderService(apiService);
 
     return MultiProvider(
       providers: [
@@ -28,6 +30,7 @@ class CiviLankaApp extends StatelessWidget {
         Provider<AuthService>.value(value: authService),
         Provider<HazardService>.value(value: hazardService),
         Provider<LocationService>.value(value: locationService),
+        Provider<WorkOrderService>.value(value: workOrderService),
         ChangeNotifierProvider(
           create: (_) => AuthState(authService),
         ),
@@ -113,8 +116,6 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthState>();
-    return authState.isLoggedIn
-        ? const DashboardScreen()
-        : const LoginScreen();
+    return authState.isLoggedIn ? const DashboardScreen() : const LoginScreen();
   }
 }

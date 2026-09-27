@@ -36,4 +36,12 @@ class User {
       };
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
+
+  /// Whether this user's role is authorized to view municipal Work Orders on the backend.
+  bool get canAccessWorkOrders =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff' ||
+      role == 'FieldWorker';
 }
