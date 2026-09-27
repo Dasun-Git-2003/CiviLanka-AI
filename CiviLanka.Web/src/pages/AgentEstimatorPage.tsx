@@ -68,9 +68,9 @@ const PRESETS = [
   },
 ];
 
-const formatLKR = (val: number | null | undefined): string => {
-  if (val === null || val === undefined || isNaN(Number(val))) return '0';
-  return Number(val).toLocaleString();
+const formatLKR = (val: number | string | undefined | null): string => {
+  const num = typeof val === 'number' ? val : Number(val);
+  return isNaN(num) ? '0' : num.toLocaleString();
 };
 
 export const AgentEstimatorPage: React.FC = () => {
@@ -577,7 +577,7 @@ export const AgentEstimatorPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {estimateResult.estimate.materials.map((m, idx) => (
+                        {(estimateResult.estimate.materials || []).map((m, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
                             <td className="p-2.5">
                               <div className="font-semibold text-slate-800">{m.item_name}</div>
@@ -589,7 +589,7 @@ export const AgentEstimatorPage: React.FC = () => {
                               {m.quantity} {m.unit}
                             </td>
                             <td className="p-2.5 text-right font-mono text-slate-600">
-                              {formatLKR(m.unit_rate_lkr ?? m.unit_cost_lkr)}
+                              {formatLKR(m.unit_rate_lkr ?? (m as any).unit_cost_lkr)}
                             </td>
                             <td className="p-2.5 text-right font-mono font-bold text-slate-900">
                               {formatLKR(m.total_cost_lkr)}
@@ -618,12 +618,12 @@ export const AgentEstimatorPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {estimateResult.estimate.labor_and_equipment.map((l, idx) => (
+                        {(estimateResult.estimate.labor_and_equipment || []).map((l, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
                             <td className="p-2.5 font-semibold text-slate-800">{l.role_or_machine}</td>
                             <td className="p-2.5 text-center font-mono">{l.days}</td>
                             <td className="p-2.5 text-right font-mono text-slate-600">
-                              {formatLKR(l.daily_rate_lkr)}
+                              {formatLKR(l.daily_rate_lkr ?? (l as any).rate_lkr)}
                             </td>
                             <td className="p-2.5 text-right font-mono font-bold text-slate-900">
                               {formatLKR(l.total_cost_lkr)}
@@ -645,7 +645,7 @@ export const AgentEstimatorPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-slate-500">
-                      Contingency ({estimateResult.estimate.contingency_percentage}%):
+                      Contingency ({estimateResult.estimate.contingency_percentage || 0}%):
                     </span>
                     <span className="font-bold text-slate-900 ml-1.5 font-mono">
                       LKR {formatLKR(estimateResult.estimate.contingency_cost_lkr)}
