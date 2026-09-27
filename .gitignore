@@ -1,50 +1,37 @@
 # =============================================================================
 # CiviLanka Master .gitignore
-# Comprehensive protection for:
-# - ASP.NET Core backend (CiviLanka.API)
-# - Node.js Express operations backend (backend/)
-# - React / Vite Web platforms (CiviLanka.Web, frontend_director_dashboard/)
-# - Flutter Mobile applications (CiviLanka.App, mobile_fieldworker_flutter/)
-# - Python Agentic AI (CiviLanka.Agent)
-# - Database credentials, environment secrets, and runtime artifacts
+# Comprehensive protection for .NET backend, React Web, Flutter Mobile,
+# Python Agentic AI (CiviLanka.Agent), database credentials, and secrets.
 # =============================================================================
 
-# ── Environment & Secret Configurations ───────────────────────────────────────
+# ── Environment & Secrets ────────────────────────────────────────────────────
 .env
 .env.*
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 *.env
-*.env.*
 *.env.local
-**/.env
-**/.env.*
-**/*.env
-!**/.env.example
-!.env.example
-!**/.env.template
-!.env.template
-!**/.env.sample
-!.env.sample
-
-# Secret & credential storage
 secrets.json
 connectionstrings.json
 *.secret
 *.secrets
 *.token
-*credentials*.json
-*secret*.json
-*token*.json
-service-account*.json
+*.bak
+*.backup
+*.old
+
+# ── ASP.NET Core Configuration & Database Credentials ────────────────────────
+appsettings.json
+appsettings.*.json
+appsettings.local.json
+appsettings*.bak
+!appsettings.example.json
+
+# ── Cloud, Google & Service Account Keys ─────────────────────────────────────
 *service-account*.json
-firebase-adminsdk*.json
 google-services.json
 GoogleService-Info.plist
-client_secrets*.json
-oauth-credentials*.json
+*.credentials.json
+client_secrets.json
 
 # ── Certificates, Private Keys & Keystores ───────────────────────────────────
 *.key
@@ -53,30 +40,11 @@ oauth-credentials*.json
 *.crt
 *.pfx
 *.p12
-*.pkcs12
-*.der
-*.cer
-*.asc
 *.keystore
 *.jks
 *.pub
 id_rsa*
 id_ed25519*
-
-# ── Backup & Temporary Files ──────────────────────────────────────────────────
-*.bak
-*.backup
-*.old
-*.swp
-*.swo
-*~
-
-# ── ASP.NET Core Configuration & Database Credentials ────────────────────────
-appsettings.json
-appsettings.*.json
-appsettings.local.json
-appsettings*.bak
-!appsettings.example.json
 
 # ── IDE & Local Workspace Settings ───────────────────────────────────────────
 .vs/
@@ -106,12 +74,6 @@ TestResults/
 *.tmp
 *.log
 *.pdb
-*.dll
-*.exe
-*.cache
-*.suo
-*.user
-*.userosscache
 
 # ── Python / Agent Artifacts (CiviLanka.Agent) ──────────────────────────────
 __pycache__/
@@ -124,13 +86,8 @@ __pycache__/
 *-checkpoint.ipynb
 chroma_db/
 **/chroma_db/
-vector_store/
-**/vector_store/
-*.sqlite
 *.sqlite3
 *.db
-*.db-shm
-*.db-wal
 .venv/
 **/.venv/
 venv/
@@ -141,15 +98,11 @@ ENV/
 **/ENV/
 .pytest_cache/
 **/.pytest_cache/
-.mypy_cache/
-**/.mypy_cache/
-.ruff_cache/
-**/.ruff_cache/
 .coverage
 htmlcov/
 **/.uv/
 
-# ── Node.js / React / Vite Web Artifacts ─────────────────────────────────────
+# ── Node.js / React Web Artifacts (CiviLanka.Web) ────────────────────────────
 node_modules/
 **/node_modules/
 dist/
@@ -160,20 +113,13 @@ build/
 **/build/
 .next/
 out/
-.vite/
-**/.vite/
-**/.vite-temp/
-.cache/
-**/.cache/
-**/.parcel-cache/
-**/.turbo/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .eslintcache
 
-# ── Flutter / Mobile Build Artifacts ─────────────────────────────────────────
+# ── Flutter / Mobile Build Artifacts (CiviLanka.App) ─────────────────────────
 .dart_tool/
 **/.dart_tool/
 .packages
@@ -182,8 +128,6 @@ pnpm-debug.log*
 **/.pub-cache/
 .pub/
 **/.pub/
-pubspec.lock
-**/pubspec.lock
 flutter_*.png
 android/.gradle
 android/captures/
@@ -201,15 +145,7 @@ ios/Flutter/flutter_assets/
 ios/ServiceDefinitions.json
 ios/Runner/GeneratedPluginRegistrant.h
 ios/Runner/GeneratedPluginRegistrant.m
-
-# ── Runtime Uploads (Exclude uploaded hazard/maintenance images) ──────────────
-uploads/
-**/uploads/*
-!**/uploads/.gitkeep
-!**/uploads/sample_*.jpg
-!**/uploads/sample_*.png
-!public/uploads/sample_*.jpg
-!public/sample_*.jpg
+build/
 
 # ── OS Generated Files ───────────────────────────────────────────────────────
 .DS_Store
@@ -219,4 +155,3 @@ uploads/
 .Trashes
 ehthumbs.db
 Thumbs.db
-desktop.ini

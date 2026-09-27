@@ -23,7 +23,7 @@ export const loginTranslations = {
     quickCredentials: 'Quick Test Credentials • 4 RBAC Roles',
     roles: {
       citizen: '1. Citizen',
-      fieldWorker: '2. Field Inspector',
+      fieldWorker: '2. Field Worker',
       supervisor: '3. Supervisor',
       director: '4. PW Director',
     },
@@ -57,7 +57,7 @@ export const loginTranslations = {
     quickCredentials: 'පරීක්ෂණ පිවිසුම් තොරතුරු • පරිපාලන භූමිකාවන් 4ක්',
     roles: {
       citizen: '1. පුරවැසි',
-      fieldWorker: '2. ක්ෂේත්‍ර පරීක්ෂක',
+      fieldWorker: '2. ක්ෂේත්‍ර සේවක',
       supervisor: '3. අධීක්ෂක',
       director: '4. ප්‍රධාන අධ්‍යක්ෂ',
     },
