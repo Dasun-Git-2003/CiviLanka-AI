@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Shield,
   AlertTriangle,
   ArrowRight,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
-  Sparkles,
   Scan,
   TrendingUp,
   Coins,
@@ -20,7 +21,17 @@ import {
 import CiviLankaLogo from '../components/CiviLankaLogo';
 import ColomboNightHero from '../components/ColomboNightHero';
 import ThemeToggle from '../components/ThemeToggle';
+import LanguageToggle from '../components/LanguageToggle';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import { landingTranslations } from '../i18n/landingTranslations';
+
+// Apple iOS fluid momentum curve (cubic-bezier matching native iOS SpringBoard & Sheet physics)
+// Executes directly on the GPU compositor thread for silky smooth 60fps/120fps scrolling
+const IOS_TRANSITION = {
+  duration: 0.65,
+  ease: [0.16, 1, 0.3, 1] as const,
+};
 
 const AI_AGENTS = [
   {
@@ -29,6 +40,9 @@ const AI_AGENTS = [
     title: 'Hazard Classification Agent',
     badge: 'VISION & DEFECT TRIAGE',
     icon: Scan,
+    image: '/images/fredrik-posse-LVqjs1bDGFs-unsplash.jpg',
+    actionText: 'REPORT & CLASSIFY',
+    link: '/report-defect',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
@@ -45,6 +59,9 @@ const AI_AGENTS = [
     title: 'Asset Risk Prediction Agent',
     badge: 'STRUCTURAL HEALTH',
     icon: TrendingUp,
+    image: '/images/Asserts%20agent.jpg',
+    actionText: 'VIEW PREDICTIONS',
+    link: '/ai-intelligence',
     borderColor: 'border-blue-200 hover:border-blue-400',
     iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -61,6 +78,9 @@ const AI_AGENTS = [
     title: 'BOQ Cost & Material Estimator',
     badge: 'FISCAL GOVERNANCE',
     icon: Coins,
+    image: '/images/yuheng-ouyang-2r0Eo89ZSQk-unsplash.jpg',
+    actionText: 'ESTIMATE MATERIALS',
+    link: '/work-orders',
     borderColor: 'border-amber-200 hover:border-amber-400',
     iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
     badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -77,6 +97,9 @@ const AI_AGENTS = [
     title: 'Safety & Compliance Verifier',
     badge: 'EVIDENCE AUDIT',
     icon: ShieldCheck,
+    image: '/images/pexels-jan-van-der-wolf-11680885-29114485.jpg',
+    actionText: 'VERIFY COMPLIANCE',
+    link: '/work-orders',
     borderColor: 'border-emerald-200 hover:border-emerald-400',
     iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -94,50 +117,95 @@ const WORKFLOW_STEPS = [
     step: '01',
     title: 'Citizen Report & AI Triage',
     icon: Camera,
-    desc: 'Citizens capture photos and GPS coordinates without creating an account. The vision model classifies defect severity, priority, and response SLA within seconds.',
+    desc: 'Citizens capture geotagged defect photos without creating an account. Gemini vision classifies defect severity, priority, and response SLA within seconds.',
   },
   {
     step: '02',
+    title: 'Asset Risk & Health Forecast',
+    icon: TrendingUp,
+    desc: 'Predictive neural models calculate asset degradation indices, flood exposure, and structural fatigue to prioritize preventative interventions.',
+  },
+  {
+    step: '03',
     title: 'BOQ Estimation & Approval',
     icon: Coins,
     desc: 'The estimator agent generates exact material quantities, labour hours, and costs in LKR. High-value work orders automatically route to directors for authorization.',
   },
   {
-    step: '03',
+    step: '04',
     title: 'Field Execution & Verification',
     icon: Wrench,
     desc: 'Contractors receive dispatched work orders with turn-by-turn routing. AI compares before/after photographic evidence before the municipality disburses payment.',
   },
 ];
 
-const IMPACT_METRICS = [
+
+const PARTNER_AGENCIES = [
   {
-    stat: '98.4%',
-    label: 'Defect Classification Accuracy',
-    desc: 'Trained on municipal infrastructure imagery across road and utility networks.',
+    name: 'Democratic Socialist Republic of Sri Lanka',
+    short: 'Government of Sri Lanka',
+    logo: '/images/gov.png',
   },
   {
-    stat: '< 24h',
-    label: 'Emergency SLA Response',
-    desc: 'Rapid mobilization for critical water mains, sewer blockages, and deep road hazards.',
+    name: 'Road Development Authority',
+    short: 'RDA',
+    logo: '/images/rda_trans.png',
   },
   {
-    stat: '10,000+',
-    label: 'Monitored Public Assets',
-    desc: 'Bridges, road corridors, culverts, and streetlights tracked across municipal wards.',
+    name: 'Ceylon Electricity Board',
+    short: 'CEB',
+    logo: '/images/ceb.png',
   },
   {
-    stat: '100%',
-    label: 'Audit Trail Transparency',
-    desc: 'Every triage decision, cost estimate, and supervisor sign-off is immutably logged.',
+    name: 'National Water Supply & Drainage Board',
+    short: 'NWSDB',
+    logo: '/images/water_trans.png',
+  },
+  {
+    name: 'Sri Lanka Transport Board',
+    short: 'SLTB',
+    logo: '/images/sltb_trans.png',
+  },
+  {
+    name: 'Lanka Metro Transit Authority',
+    short: 'Metro Transit',
+    logo: '/images/metro_trans.png',
   },
 ];
 
 export default function LandingPage() {
   const { isDark } = useTheme();
+  const { language, isSinhala } = useLanguage();
+  const t = landingTranslations[language];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollKey, setScrollKey] = useState(0);
+  const [activeWorkflow, setActiveWorkflow] = useState(0);
+  const [workflowTouchStart, setWorkflowTouchStart] = useState<number | null>(null);
+
+  const handlePrevWorkflow = () => {
+    setActiveWorkflow((prev) => (prev - 1 + WORKFLOW_STEPS.length) % WORKFLOW_STEPS.length);
+  };
+
+  const handleNextWorkflow = () => {
+    setActiveWorkflow((prev) => (prev + 1) % WORKFLOW_STEPS.length);
+  };
+
+  const handleWorkflowTouchStart = (e: React.TouchEvent) => {
+    setWorkflowTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleWorkflowTouchEnd = (e: React.TouchEvent) => {
+    if (workflowTouchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = workflowTouchStart - touchEnd;
+    if (diff > 45) {
+      handleNextWorkflow();
+    } else if (diff < -45) {
+      handlePrevWorkflow();
+    }
+    setWorkflowTouchStart(null);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -211,7 +279,7 @@ export default function LandingPage() {
                   : 'text-white/90 hover:text-amber-300 drop-shadow-xs'
               }`}
             >
-              AI Architecture
+              {t.nav.aiArchitecture}
             </a>
             <a
               href="#pipeline"
@@ -223,7 +291,7 @@ export default function LandingPage() {
                   : 'text-white/90 hover:text-amber-300 drop-shadow-xs'
               }`}
             >
-              How It Works
+              {t.nav.howItWorks}
             </a>
             <a
               href="#impact"
@@ -235,7 +303,7 @@ export default function LandingPage() {
                   : 'text-white/90 hover:text-amber-300 drop-shadow-xs'
               }`}
             >
-              Measurable Impact
+              {t.nav.measurableImpact}
             </a>
             <Link
               to="/ai-intelligence"
@@ -247,13 +315,16 @@ export default function LandingPage() {
                   : 'text-white/90 hover:text-amber-300 drop-shadow-xs'
               }`}
             >
-              <span>AI Console</span>
+              <span>{t.nav.aiConsole}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
             </Link>
           </nav>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Language Switcher (EN <-> සිං) */}
+            <LanguageToggle isScrolled={isScrolled} />
+
             {/* Theme Toggle Switch */}
             <ThemeToggle />
 
@@ -268,7 +339,7 @@ export default function LandingPage() {
               }`}
             >
               <Shield className={`w-3.5 h-3.5 ${isScrolled ? (isDark ? 'text-amber-400' : 'text-amber-600') : 'text-amber-400'}`} />
-              <span>Sign-In</span>
+              <span>{t.nav.signIn}</span>
             </Link>
 
             <Link
@@ -276,7 +347,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 shadow-md transition-all active:scale-[0.98]"
             >
               <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
-              <span>Report</span>
+              <span>{t.nav.report}</span>
             </Link>
 
             {/* Mobile Menu Button */}
@@ -319,7 +390,7 @@ export default function LandingPage() {
                   : 'text-slate-200 hover:text-amber-400 hover:bg-white/5'
               }`}
             >
-              AI Architecture
+              {t.nav.aiArchitecture}
             </a>
             <a
               href="#pipeline"
@@ -332,7 +403,7 @@ export default function LandingPage() {
                   : 'text-slate-200 hover:text-amber-400 hover:bg-white/5'
               }`}
             >
-              How It Works
+              {t.nav.howItWorks}
             </a>
             <a
               href="#impact"
@@ -345,7 +416,7 @@ export default function LandingPage() {
                   : 'text-slate-200 hover:text-amber-400 hover:bg-white/5'
               }`}
             >
-              Measurable Impact
+              {t.nav.measurableImpact}
             </a>
             <Link
               to="/ai-intelligence"
@@ -358,8 +429,20 @@ export default function LandingPage() {
                   : 'text-amber-400 hover:bg-white/5'
               }`}
             >
-              AI Intelligence Console
+              {t.nav.aiConsole}
             </Link>
+
+            {/* Mobile Language Switcher */}
+            <div
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${
+                isScrolled && !isDark
+                  ? 'bg-slate-50 border-slate-200 text-slate-700'
+                  : 'bg-white/5 border-white/10 text-slate-200'
+              }`}
+            >
+              <span className="text-xs font-semibold">{t.nav.language}</span>
+              <LanguageToggle isScrolled={isScrolled} />
+            </div>
 
             {/* Mobile Theme Switch */}
             <div
@@ -369,7 +452,7 @@ export default function LandingPage() {
                   : 'bg-white/5 border-white/10 text-slate-200'
               }`}
             >
-              <span className="text-xs font-semibold">Theme Mode</span>
+              <span className="text-xs font-semibold">{t.nav.themeMode}</span>
               <ThemeToggle />
             </div>
 
@@ -400,26 +483,31 @@ export default function LandingPage() {
           <ColomboNightHero />
         </div>
 
-        {/* Hero Content (Centered) */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center">
+        {/* Hero Content (Centered) with iOS Smooth Entrance */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex flex-col items-center text-center"
+        >
           {/* Platform Tagline (Pure Text, No Background) */}
           <p className="text-xs sm:text-sm font-medium tracking-wide text-amber-300 mb-6 drop-shadow-sm select-none">
-            National Municipal Infrastructure Intelligence Platform
+            {t.hero.tagline}
           </p>
 
           {/* Editorial Headline */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white font-display leading-[1.08] max-w-4xl drop-shadow-md">
-            Smarter Infrastructure.
+            {t.hero.headlinePart1}
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-sm">
-              Safer Cities.
+              {t.hero.headlinePart2}
             </span>
           </h1>
 
           {/* Supporting Text */}
           <p className="mt-6 text-base sm:text-lg text-slate-200 max-w-2xl leading-relaxed font-normal">
-            CiviLanka AI accelerates municipal maintenance response from citizen reports to verified repairs
-            with neural defect classification, predictive asset risk, and transparent fiscal governance.
+            {t.hero.supportingText}
           </p>
 
           {/* Action CTAs */}
@@ -429,7 +517,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-950/50 transition-all duration-200 active:scale-[0.98]"
             >
               <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
-              <span>Report</span>
+              <span>{t.hero.reportBtn}</span>
               <ArrowRight className="w-4 h-4 shrink-0 text-slate-950" />
             </Link>
 
@@ -437,11 +525,11 @@ export default function LandingPage() {
               href="#ai-agents"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/95 hover:bg-white text-slate-900 hover:border-amber-400/50 font-semibold text-sm border border-slate-200 shadow-md backdrop-blur-md transition-all duration-200 active:scale-[0.98]"
             >
-              <span>Explore Platform</span>
+              <span>{t.hero.exploreBtn}</span>
               <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── Scroll to Explore Indicator (iOS Unlock Shimmer Animation) ─── */}
         <a
@@ -449,13 +537,13 @@ export default function LandingPage() {
           onClick={handleScrollToExplore}
           onMouseLeave={() => setScrollKey((k) => k + 1)}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 group cursor-pointer select-none transition-transform hover:scale-105"
-          aria-label="Scroll to explore"
+          aria-label={t.hero.scrollToExplore}
         >
           <span
             key={scrollKey}
             className="text-[10px] sm:text-[11px] font-mono font-bold tracking-[0.28em] uppercase animate-ios-unlock drop-shadow-sm group-hover:drop-shadow-[0_0_12px_rgba(251,191,36,0.6)] transition-all"
           >
-            Scroll to Explore
+            {t.hero.scrollToExplore}
           </span>
           <ChevronDown
             className="w-4 h-4 text-amber-500/90 group-hover:text-amber-300 animate-ios-chevron transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]"
@@ -464,146 +552,443 @@ export default function LandingPage() {
         </a>
       </section>
 
-      {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
-      <section id="ai-agents" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-              <span>CORE ARCHITECTURE</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
-              Four Specialized AI Agents
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-              Autonomous domain agents powered by Google Gemini, operating synchronously across triage, asset health, financial calculation, and field compliance.
-            </p>
-          </div>
+      {/* ── 1.5 INTEGRATED PUBLIC AUTHORITIES HORIZONTAL SLIDESHOW ──────────── */}
+      <section className="py-7 sm:py-8 bg-white dark:bg-slate-950 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 relative overflow-hidden select-none">
+        <style>{`
+          @keyframes civilankaLogoMarquee {
+            0% {
+              transform: translate3d(0, 0, 0);
+            }
+            100% {
+              transform: translate3d(-50%, 0, 0);
+            }
+          }
+          .civilanka-slider-track {
+            display: flex;
+            width: max-content;
+            animation: civilankaLogoMarquee 42s linear infinite;
+            will-change: transform;
+          }
+          .civilanka-slider-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {AI_AGENTS.map((agent) => {
-              const IconComp = agent.icon;
-              return (
-                <div
-                  key={agent.id}
-                  className={`bg-white dark:bg-slate-900 rounded-2xl p-6 border ${
-                    isDark ? 'border-slate-800 hover:border-amber-500/50 shadow-slate-950/40' : agent.borderColor
-                  } shadow-xs hover:shadow-md transition-all flex flex-col justify-between`}
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl border ${agent.iconBg} dark:bg-slate-800 dark:border-slate-700`}>
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">
-                        AGENT {agent.number}
-                      </span>
-                    </div>
+        {/* Gradient blur overlays for smooth left/right fade-in and fade-out */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-slate-950 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
 
-                    <div>
-                      <span className={`inline-block text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${agent.badgeBg} mb-2`}>
-                        {agent.badge}
-                      </span>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{agent.title}</h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{agent.summary}</p>
-                    </div>
-
-                    <ul className="space-y-1.5 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
-                      {agent.features.map((feat, fIdx) => (
-                        <li key={fIdx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                          <span className="text-[11px] leading-tight">{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-10 text-center">
-            <Link
-              to="/ai-intelligence"
-              className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 transition-colors"
-            >
-              <span>View live AI telemetry and testing console</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+        {/* Continuous Horizontal Infinite Marquee */}
+        <div className="overflow-hidden flex items-center min-h-[56px] sm:min-h-[64px] md:min-h-[72px]">
+          <div className="civilanka-slider-track flex items-center gap-12 sm:gap-16 lg:gap-24 shrink-0 pr-12 sm:pr-16 lg:pr-24">
+            {[...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES, ...PARTNER_AGENCIES].map((partner, index) => (
+              <div
+                key={index}
+                className="shrink-0 flex items-center justify-center cursor-pointer group/logo py-2"
+                title={`${partner.name} (${partner.short})`}
+              >
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className={`${
+                    partner.short === 'Metro Transit'
+                      ? 'h-8 sm:h-9 md:h-10 max-w-[125px] sm:max-w-[150px]'
+                      : partner.short === 'NWSDB'
+                      ? 'h-10 sm:h-11 md:h-12 max-w-[130px] sm:max-w-[155px]'
+                      : 'h-9 sm:h-10 md:h-11 max-w-[110px] sm:max-w-[135px]'
+                  } w-auto object-contain filter grayscale opacity-50 group-hover/logo:grayscale-0 group-hover/logo:opacity-100 group-hover/logo:scale-110 transition-all duration-300 select-none pointer-events-none`}
+                  loading="lazy"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── 3. HOW IT WORKS: THE 3-STAGE LIFECYCLE ─────────────────────────── */}
-      <section id="pipeline" className="py-20 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      {/* ── 2. CORE AI ARCHITECTURE (4 SPECIALIZED AGENTS) ─────────────────── */}
+      <section id="ai-agents" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono font-bold mb-3">
-              <span>HOW IT WORKS</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
-              From Citizen Report to Verified Repair
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-3xl mx-auto mb-16 sm:mb-20"
+          >
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-4">
+              {t.aiAgentsSection.tag}
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+              {t.aiAgentsSection.title}
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-              A transparent, automated municipal lifecycle designed to eliminate paperwork friction and enforce human accountability.
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+              {t.aiAgentsSection.subtitle}
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {WORKFLOW_STEPS.map((wf) => {
-              const IconComp = wf.icon;
+          <div className="space-y-20 sm:space-y-28 lg:space-y-36">
+            {t.aiAgentsSection.agents.map((agent, index) => {
+              const staticAgent = AI_AGENTS[index];
+              const isEven = index % 2 === 0;
+
               return (
                 <div
-                  key={wf.step}
-                  className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+                  key={agent.id}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center"
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-amber-700 dark:text-amber-400 shadow-2xs">
-                        <IconComp className="w-5 h-5" />
-                      </div>
-                      <span className="text-2xl font-black font-mono text-slate-300 dark:text-slate-700">
-                        {wf.step}
-                      </span>
+                  {/* Text Column - Bidirectional smooth entrance from left or right */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? -24 : 24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={IOS_TRANSITION}
+                    style={{ willChange: 'transform, opacity' }}
+                    className={`space-y-6 ${
+                      isEven ? 'lg:col-span-7' : 'lg:col-span-7 lg:order-2'
+                    }`}
+                  >
+                    {/* Eyebrow badge */}
+                    <div className="flex items-center gap-2.5 text-xs font-mono font-bold tracking-[0.2em] text-slate-500 dark:text-slate-400 uppercase">
+                      <span>{isSinhala ? `නියෝජිතයා ${agent.number}` : `AGENT ${agent.number}`}</span>
+                      <span className="text-slate-300 dark:text-slate-700">•</span>
+                      <span className="text-slate-800 dark:text-slate-200">{agent.badge}</span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{wf.title}</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{wf.desc}</p>
-                  </div>
+                    {/* Headline */}
+                    <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase font-display leading-tight">
+                      {agent.title}
+                    </h3>
+
+                    {/* Summary */}
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+                      {agent.summary}
+                    </p>
+
+                    {/* Features */}
+                    <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                        {agent.features.map((feat, fIdx) => (
+                          <li key={fIdx} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                            <span className="leading-snug">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Action Button (Editorial Outline Style) */}
+                    <div className="pt-2">
+                      <Link
+                        to={staticAgent?.link || '/citizen'}
+                        className="inline-flex items-center justify-center gap-3 px-6 py-3 border-2 border-slate-900 dark:border-white text-slate-900 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 font-mono text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 group"
+                      >
+                        <span>{isSinhala ? 'පරීක්ෂා කරන්න' : staticAgent?.actionText}</span>
+                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                      </Link>
+                    </div>
+                  </motion.div>
+
+                  {/* Image Column - Bidirectional smooth entrance from opposite side */}
+                  <motion.div
+                    initial={{ opacity: 0, x: isEven ? 24 : -24, y: 16 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={{ ...IOS_TRANSITION, delay: 0.04 }}
+                    style={{ willChange: 'transform, opacity' }}
+                    className={`${
+                      isEven ? 'lg:col-span-5' : 'lg:col-span-5 lg:order-1'
+                    }`}
+                  >
+                    <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl aspect-4/3 sm:aspect-16/10 lg:aspect-4/3 w-full bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={staticAgent?.image}
+                        alt={agent.title}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
+
+                      {/* Floating Metadata Pills on Photo */}
+                      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                        <span className="px-3 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-white border border-white/15">
+                          {agent.badge}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md text-[10px] sm:text-xs font-mono font-bold text-white/90 border border-white/15">
+                          {agent.number} / 04
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
               );
             })}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-40px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="mt-16 text-center"
+          >
+            <Link
+              to="/ai-intelligence"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+            >
+              <span>{t.aiAgentsSection.viewConsoleLink}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── 3. HOW IT WORKS: 3D PARALLAX LIFECYCLE CAROUSEL ─────────────────── */}
+      <section id="pipeline" className="py-16 sm:py-20 bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 relative overflow-hidden select-none">
+        {/* Ambient radial glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[440px] bg-amber-500/[0.05] dark:bg-amber-500/[0.04] rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-10 sm:mb-12"
+          >
+            <span className="block text-xs font-mono font-bold text-amber-600 dark:text-amber-400 tracking-[0.25em] uppercase mb-2.5">
+              {t.howItWorksSection.tag}
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
+              {t.howItWorksSection.title}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-xl mx-auto">
+              {t.howItWorksSection.subtitle}
+            </p>
+          </motion.div>
+
+          {/* 3D Perspective Coverflow Carousel */}
+          <div
+            className="relative w-full max-w-5xl mx-auto h-[410px] sm:h-[430px] flex items-center justify-center"
+            style={{ perspective: '1200px' }}
+            onTouchStart={handleWorkflowTouchStart}
+            onTouchEnd={handleWorkflowTouchEnd}
+          >
+            {t.howItWorksSection.steps.map((wf, idx) => {
+              const IconComp = WORKFLOW_STEPS[idx].icon;
+              const diff = idx - activeWorkflow;
+              const isCenter = diff === 0;
+
+              // 3D Coverflow transform calculation matching reference design
+              let x = '-50%';
+              let rotateY = 0;
+              let scale = 1;
+              let opacity = 1;
+              let zIndex = 30;
+
+              if (diff === 0) {
+                x = '-50%';
+                rotateY = 0;
+                scale = 1;
+                opacity = 1;
+                zIndex = 30;
+              } else if (diff === -1) {
+                x = '-122%';
+                rotateY = 20;
+                scale = 0.86;
+                opacity = 0.45;
+                zIndex = 20;
+              } else if (diff === 1) {
+                x = '22%';
+                rotateY = -20;
+                scale = 0.86;
+                opacity = 0.45;
+                zIndex = 20;
+              } else if (diff === -2) {
+                x = '-188%';
+                rotateY = 26;
+                scale = 0.74;
+                opacity = 0.22;
+                zIndex = 10;
+              } else if (diff === 2) {
+                x = '88%';
+                rotateY = -26;
+                scale = 0.74;
+                opacity = 0.22;
+                zIndex = 10;
+              } else {
+                x = diff > 0 ? '160%' : '-260%';
+                rotateY = diff > 0 ? -35 : 35;
+                scale = 0.6;
+                opacity = 0;
+                zIndex = 0;
+              }
+
+              return (
+                <motion.div
+                  key={wf.step}
+                  onClick={() => {
+                    if (diff !== 0) setActiveWorkflow(idx);
+                  }}
+                  animate={{
+                    x,
+                    y: '-50%',
+                    rotateY,
+                    scale,
+                    opacity,
+                    zIndex,
+                  }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: 'min(82vw, 340px)',
+                    height: '380px',
+                    transformStyle: 'preserve-3d',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
+                    cursor: isCenter ? 'default' : 'pointer',
+                  }}
+                  className={`rounded-2xl p-6 sm:p-7 flex flex-col items-center justify-center text-center select-none transition-colors duration-300 ${
+                    isCenter
+                      ? 'bg-white dark:bg-[#222733] border-2 border-amber-500 dark:border-amber-500/50 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.12),0_0_20px_rgba(245,158,11,0.18)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/20'
+                      : 'bg-slate-50/95 dark:bg-[#1e232d]/90 hover:bg-slate-100/90 dark:hover:bg-[#232936] border border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 shadow-md dark:shadow-xl'
+                  }`}
+                >
+                  {/* Circular Icon Badge */}
+                  <div
+                    className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 ${
+                      isCenter
+                        ? 'bg-amber-50 dark:bg-[#2b3242] border-2 border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-inner'
+                        : 'bg-slate-100 dark:bg-[#262c38] border border-slate-200 dark:border-slate-700/60 text-amber-600/70 dark:text-amber-500/70'
+                    }`}
+                  >
+                    <IconComp className="w-7 h-7 sm:w-8 sm:h-8 stroke-[1.75]" />
+                  </div>
+
+                  {/* Stage Label */}
+                  <span
+                    className={`text-[11px] font-mono font-bold tracking-[0.2em] uppercase mb-1.5 inline-block transition-colors duration-300 ${
+                      isCenter
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-slate-400 dark:text-slate-500'
+                    }`}
+                  >
+                    {t.howItWorksSection.stagePrefix} {wf.step}
+                  </span>
+
+                  {/* Title */}
+                  <h3
+                    className={`text-lg sm:text-xl font-bold mb-2.5 leading-tight tracking-tight transition-colors duration-300 ${
+                      isCenter
+                        ? 'text-slate-900 dark:text-white'
+                        : 'text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    {wf.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p
+                    className={`text-xs sm:text-[13px] leading-relaxed max-w-[270px] sm:max-w-[290px] mx-auto transition-colors duration-300 ${
+                      isCenter
+                        ? 'text-slate-600 dark:text-slate-300'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    {wf.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Bottom Navigation: <  ● ● ● ●  > */}
+          <div className="flex items-center justify-center gap-4 mt-6 sm:mt-8">
+            <button
+              type="button"
+              onClick={handlePrevWorkflow}
+              aria-label={t.howItWorksSection.prevStage}
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Pagination Dots */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-slate-100/90 dark:bg-[#202530] border border-slate-200 dark:border-slate-800 shadow-inner">
+              {t.howItWorksSection.steps.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveWorkflow(idx)}
+                  aria-label={`${t.howItWorksSection.goToStage} ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full focus:outline-none ${
+                    activeWorkflow === idx
+                      ? 'w-6 h-2 bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]'
+                      : 'w-2 h-2 bg-slate-300 dark:bg-slate-600/60 hover:bg-slate-400 dark:hover:bg-slate-500'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextWorkflow}
+              aria-label={t.howItWorksSection.nextStage}
+              className="w-10 h-10 rounded-full bg-white dark:bg-[#242933] hover:bg-slate-50 dark:hover:bg-[#2e3542] border border-slate-200 dark:border-slate-700/60 hover:border-amber-500/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-200 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </section>
 
       {/* ── 4. MEASURABLE CIVIC IMPACT ─────────────────────────────────────── */}
-      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <section id="impact" className="py-20 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 text-xs font-mono font-bold mb-3">
-              <span>PROVEN METRICS</span>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-50px' }}
+            transition={IOS_TRANSITION}
+            style={{ willChange: 'transform, opacity' }}
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
+            <span className="block text-xs font-mono font-bold text-slate-500 dark:text-slate-400 tracking-[0.25em] uppercase mb-3">
+              {t.impactSection.tag}
+            </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display">
-              Measurable Civic Impact
+              {t.impactSection.title}
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-              Quantifiable performance, speed, and governance standards powering modern smart cities.
+              {t.impactSection.subtitle}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {IMPACT_METRICS.map((metric, idx) => (
-              <div
+            {t.impactSection.metrics.map((metric, idx) => (
+              <motion.div
                 key={idx}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between"
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-50px' }}
+                transition={{ ...IOS_TRANSITION, delay: idx * 0.04 }}
+                whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
+                style={{ willChange: 'transform, opacity' }}
+                className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
               >
                 <div>
                   <div className="text-3xl font-black font-mono text-slate-900 dark:text-white">{metric.stat}</div>
                   <div className="text-xs font-bold text-amber-800 dark:text-amber-400 mt-2">{metric.label}</div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">{metric.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -611,12 +996,19 @@ export default function LandingPage() {
 
       {/* ── 5. CLEAN CALL TO ACTION BANNER ─────────────────────────────────── */}
       <section className="py-20 bg-slate-900 text-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, margin: '-50px' }}
+          transition={IOS_TRANSITION}
+          style={{ willChange: 'transform, opacity' }}
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6"
+        >
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight font-display">
-            Build Safer, Smarter Cities.
+            {t.ctaSection.title}
           </h2>
           <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-            Connect citizens, municipal engineers, and contractors through one unified intelligent maintenance platform.
+            {t.ctaSection.description}
           </p>
 
           <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
@@ -625,7 +1017,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-[0.98]"
             >
               <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
-              <span>Report</span>
+              <span>{t.ctaSection.reportBtn}</span>
             </Link>
 
             <Link
@@ -633,10 +1025,10 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 hover:border-amber-400/40 transition-all active:scale-[0.98]"
             >
               <Shield className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Sign-In</span>
+              <span>{t.ctaSection.signInBtn}</span>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── 6. ENTERPRISE FOOTER ──────────────────────────────────────────── */}
@@ -647,34 +1039,34 @@ export default function LandingPage() {
             <div className="lg:col-span-2 space-y-3">
               <CiviLankaLogo size={34} showText={true} lightText={true} />
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-                National civic infrastructure intelligence platform connecting citizens, field workers, and municipal engineers through AI-assisted defect triage and public works governance.
+                {t.footer.description}
               </p>
             </div>
 
             {/* Municipal Services */}
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-white mb-3 font-mono">
-                Services
+                {t.footer.services}
               </div>
               <ul className="space-y-2 text-xs">
                 <li>
                   <Link to="/citizen" className="hover:text-white transition-colors">
-                    Report Pothole / Road Hazard
+                    {t.footer.reportRoad}
                   </Link>
                 </li>
                 <li>
                   <Link to="/citizen" className="hover:text-white transition-colors">
-                    Report Water Main Leak
+                    {t.footer.reportWater}
                   </Link>
                 </li>
                 <li>
                   <Link to="/citizen" className="hover:text-white transition-colors">
-                    Report Streetlight Outage
+                    {t.footer.reportStreetlight}
                   </Link>
                 </li>
                 <li>
                   <Link to="/citizen" className="hover:text-white transition-colors">
-                    Track Report Status
+                    {t.footer.trackStatus}
                   </Link>
                 </li>
               </ul>
@@ -683,27 +1075,27 @@ export default function LandingPage() {
             {/* Administration */}
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-white mb-3 font-mono">
-                Portals
+                {t.footer.portals}
               </div>
               <ul className="space-y-2 text-xs">
                 <li>
                   <Link to="/login" className="hover:text-white transition-colors">
-                    Officer Sign-In
+                    {t.footer.citizenPortal}
                   </Link>
                 </li>
                 <li>
                   <Link to="/login" className="hover:text-white transition-colors">
-                    Contractor Dispatch
+                    {t.footer.contractorPortal}
                   </Link>
                 </li>
                 <li>
                   <Link to="/ai-intelligence" className="hover:text-white transition-colors">
-                    AI Intelligence Console
+                    {t.nav.aiConsole}
                   </Link>
                 </li>
                 <li>
                   <Link to="/login" className="hover:text-white transition-colors">
-                    Director Approvals
+                    {t.footer.municipalPortal}
                   </Link>
                 </li>
               </ul>
@@ -712,23 +1104,23 @@ export default function LandingPage() {
             {/* National Helplines */}
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-white mb-3 font-mono">
-                National Helplines
+                {isSinhala ? 'ජාතික හදිසි ඇමතුම්' : 'National Helplines'}
               </div>
               <ul className="space-y-2 text-xs font-mono">
                 <li className="flex justify-between">
-                  <span>Govt Info:</span>
+                  <span>{isSinhala ? 'රාජ්‍ය තොරතුරු:' : 'Govt Info:'}</span>
                   <span className="text-emerald-400 font-bold">1919</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Police:</span>
+                  <span>{isSinhala ? 'පොලිස් හදිසි:' : 'Police:'}</span>
                   <span className="text-amber-400 font-bold">119</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Water Board:</span>
+                  <span>{isSinhala ? 'ජල මණ්ඩලය:' : 'Water Board:'}</span>
                   <span className="text-amber-400 font-bold">1939</span>
                 </li>
                 <li className="flex justify-between">
-                  <span>Electricity Board:</span>
+                  <span>{isSinhala ? 'විදුලිබල මණ්ඩලය:' : 'Electricity:'}</span>
                   <span className="text-indigo-400 font-bold">1987</span>
                 </li>
               </ul>
@@ -738,15 +1130,15 @@ export default function LandingPage() {
           {/* Sub-Footer */}
           <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
             <div>
-              &copy; {new Date().getFullYear()} CiviLanka AI. Modern Municipal Infrastructure Platform.
+              &copy; {new Date().getFullYear()} {isSinhala ? 'CiviLanka AI වේදිකාව. ශ්‍රී ලංකා නාගරික යටිතල පහසුකම් පද්ධතිය.' : 'CiviLanka AI. Modern Municipal Infrastructure Platform.'}
             </div>
 
             <div className="flex items-center gap-4">
-              <span>Right to Information (RTI)</span>
+              <span>{isSinhala ? 'තොරතුරු දැනගැනීමේ අයිතිය (RTI)' : 'Right to Information (RTI)'}</span>
               <span>&bull;</span>
-              <span>Privacy Policy</span>
+              <span>{t.footer.privacyPolicy}</span>
               <span>&bull;</span>
-              <span>Open Data Standards</span>
+              <span>{isSinhala ? 'විවෘත දත්ත ප්‍රමිති' : 'Open Data Standards'}</span>
             </div>
           </div>
         </div>
@@ -754,3 +1146,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
