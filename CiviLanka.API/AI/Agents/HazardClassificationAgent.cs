@@ -41,10 +41,10 @@ namespace CiviLanka.API.AI.Agents
 
             if (!_gemini.IsConfigured)
             {
-                _logger.LogInformation("Gemini is not configured. Running CiviLanka Local Multimodal Expert Classifier for hazard {Id}.", input.HazardId);
-                var expertResult = BuildLocalExpertClassification(input);
-                await PersistAnalysisAsync(input.HazardId, expertResult);
-                return expertResult;
+                _logger.LogWarning("Gemini is not configured. Creating AI_FAILED record for hazard {Id}.", input.HazardId);
+                var fallback = BuildUnavailableFallback(input);
+                await PersistAnalysisAsync(input.HazardId, fallback);
+                return fallback;
             }
 
             try
@@ -57,8 +57,8 @@ namespace CiviLanka.API.AI.Agents
                 var jsonResponse = await _gemini.GenerateStructuredJsonAsync(systemPrompt, userPrompt);
                 if (string.IsNullOrWhiteSpace(jsonResponse))
                 {
-                    _logger.LogWarning("Gemini returned empty or invalid response. Utilizing Local Expert Classifier.");
-                    var failureResult = BuildLocalExpertClassification(input);
+                    _logger.LogWarning("Gemini returned empty or invalid response. Returning AI_FAILED.");
+                    var failureResult = BuildUnavailableFallback(input);
                     await PersistAnalysisAsync(input.HazardId, failureResult);
                     return failureResult;
                 }
@@ -69,7 +69,7 @@ namespace CiviLanka.API.AI.Agents
                 if (result == null)
                 {
                     _logger.LogWarning("Failed to deserialize Gemini output: {Raw}", jsonResponse);
-                    var failureResult = BuildLocalExpertClassification(input);
+                    var failureResult = BuildUnavailableFallback(input);
                     await PersistAnalysisAsync(input.HazardId, failureResult);
                     return failureResult;
                 }
@@ -85,8 +85,8 @@ namespace CiviLanka.API.AI.Agents
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in HazardClassificationAgent for {Id}. Falling back to Local Expert Classifier.", input.HazardId);
-                var errResult = BuildLocalExpertClassification(input);
+                _logger.LogError(ex, "Unexpected error in HazardClassificationAgent for {Id}", input.HazardId);
+                var errResult = BuildUnavailableFallback(input);
                 await PersistAnalysisAsync(input.HazardId, errResult);
                 return errResult;
             }
@@ -267,6 +267,25 @@ namespace CiviLanka.API.AI.Agents
                 EstimatedResponseHours = responseHours,
                 ModelName = _gemini.IsConfigured ? _gemini.ModelName : "CiviLanka-HazardBERT-Vision-v2.5 (Local Expert Mode)",
                 Status = "AI_ANALYZED",
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        private HazardClassificationResult BuildUnavailableFallback(HazardClassificationInput input)
+        {
+            return new HazardClassificationResult
+            {
+                Category = input.CategorySupplied,
+                Severity = "MEDIUM",
+                RiskLevel = "MEDIUM",
+                Priority = "NORMAL",
+                Confidence = 0.0,
+                Reason = "Gemini LLM inference service is currently unavailable. Report flagged for human manual review.",
+                RecommendedAction = "Manual inspection by field supervisor.",
+                RecommendedCrewSize = 2,
+                EstimatedResponseHours = 24,
+                ModelName = _gemini.ModelName,
+                Status = "AI_FAILED",
                 Timestamp = DateTime.UtcNow
             };
         }
