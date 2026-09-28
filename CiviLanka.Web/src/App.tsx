@@ -27,8 +27,9 @@ import {
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-// Theme Support
+// Theme & Language Support
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import ThemeToggle from './components/ThemeToggle';
 
 // Public Pages
@@ -360,7 +361,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
+      <LanguageProvider>
+        <Router>
         <Routes>
         {/* ── Public & Authenticated Core Routes ────────────────────────────── */}
         <Route path="/" element={<LandingPage />} />
@@ -688,6 +690,7 @@ function App() {
         <Route path="*" element={<AccessDeniedPage />} />
       </Routes>
     </Router>
+    </LanguageProvider>
   </ThemeProvider>
   );
 }
