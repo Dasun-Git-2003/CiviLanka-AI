@@ -7,6 +7,7 @@ namespace CiviLanka.API.AI.Interfaces
     public interface IAIAgentOrchestrator
     {
         Task<HazardClassificationResult> AnalyzeHazardAsync(Guid hazardId, string? triggeredByUserId = null);
+        Task<HazardClassificationResult> ClassifyLiveHazardAsync(HazardClassificationInput input, string? triggeredByUserId = null);
         Task<AssetRiskResult> AnalyzeAssetRiskAsync(string assetId, string? triggeredByUserId = null);
         Task<CostEstimateResult> EstimateWorkOrderAsync(Guid workOrderId, string? triggeredByUserId = null);
         Task<SafetyComplianceResult> AnalyzeSafetyAsync(Guid maintenanceRecordId, string stage = "BeforeMaintenance", string? triggeredByUserId = null);

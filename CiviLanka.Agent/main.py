@@ -82,9 +82,11 @@ class AskRequest(BaseModel):
 
 
 class HazardClassifyRequest(BaseModel):
-    title: str = Field(..., example="Deep pothole causing accidents near school", description="Report title")
-    description: str = Field(..., example="Severe crater-sized pothole on Galle Road outside St. Thomas College, breaking vehicle axles.", description="Detailed incident description")
-    location: str = Field(default="Colombo", example="Galle Road, Mount Lavinia", description="Reported location")
+    title: str = Field(default="Municipal Hazard Report", example="Burst water pipe near school", description="Report title")
+    description: str = Field(..., example="Major water main burst with high-pressure flooding outside school gates.", description="Detailed incident description")
+    location: str = Field(default="Colombo", example="Vajira Road, outside Visakha Vidyalaya, Colombo 04", description="Reported location")
+    category_supplied: Optional[str] = Field(default="Other", description="Citizen-supplied category e.g. Other, Pothole, Water Leak")
+    metadata: Optional[Any] = Field(default="", description="Contextual flags like school hours, heavy rainfall, high pedestrian volume")
     image_url: Optional[str] = Field(default=None, description="Citizen uploaded photo URL")
     thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
 
@@ -262,6 +264,8 @@ def classify_hazard_endpoint(request: HazardClassifyRequest):
             title=request.title,
             description=request.description,
             location=request.location,
+            category_supplied=request.category_supplied or "Other",
+            metadata=str(request.metadata) if request.metadata is not None else "",
             image_url=request.image_url,
             thread_id=request.thread_id or str(uuid4()),
         )

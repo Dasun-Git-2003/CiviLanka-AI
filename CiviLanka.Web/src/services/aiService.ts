@@ -185,8 +185,61 @@ export interface AIOverrideRequestDto {
   overrideReason: string;
 }
 
+export interface LiveHazardClassificationRequest {
+  description: string;
+  location: string;
+  categorySupplied: string;
+  proximityZone?: string;
+  metadata?: string;
+  imageUrl?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export const aiService = {
   // ── Hazard Agent ──────────────────────────────────────────
+  async classifyLiveHazard(request: LiveHazardClassificationRequest): Promise<HazardClassificationResult> {
+    try {
+      const response = await apiClient.post<HazardClassificationResult>('/api/ai/hazards/classify-live', request);
+      return response.data;
+    } catch (error) {
+      // Direct LangGraph fallback on port 8001
+      try {
+        const pyRes = await fetch('http://127.0.0.1:8001/api/agent/hazard/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: request.description,
+            location: request.proximityZone ? `${request.location} (${request.proximityZone})` : request.location,
+            category_supplied: request.categorySupplied,
+            metadata: { proximity_zone: request.proximityZone, notes: request.metadata },
+          }),
+        });
+        const pyData = await pyRes.json();
+        if (pyData?.result) {
+          const r = pyData.result;
+          return {
+            category: r.primary_category || request.categorySupplied || 'Hazard',
+            severity: r.assigned_severity || 'HIGH',
+            riskLevel: r.assigned_severity || 'HIGH',
+            priority: r.assigned_severity === 'CRITICAL' ? 'URGENT' : r.assigned_severity === 'HIGH' ? 'HIGH' : 'NORMAL',
+            confidence: r.confidence_score || 0.95,
+            reason: r.reasoning || r.safety_risk_assessment || 'Classified by LangGraph Workflow',
+            recommendedAction: `Rapid dispatch response according to SLA (§14: ${r.sla_resolution_hours || 12}h)`,
+            recommendedCrewSize: r.assigned_severity === 'CRITICAL' ? 6 : r.assigned_severity === 'HIGH' ? 4 : 2,
+            estimatedResponseHours: r.sla_resolution_hours || 12,
+            modelName: 'LangGraph (gemini-3.8-flash)',
+            status: 'AI_ANALYZED',
+            timestamp: new Date().toISOString(),
+          };
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(getErrorMessage(error));
+    }
+  },
+
   async analyzeHazard(hazardId: string): Promise<HazardClassificationResult> {
     try {
       const response = await apiClient.post<HazardClassificationResult>(`/api/ai/hazards/${hazardId}/analyze`);

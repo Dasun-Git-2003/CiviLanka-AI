@@ -7,7 +7,7 @@ import {
   FileClock,
   Users,
   ShieldCheck,
-  GitBranch,
+  CheckCircle2,
   Smartphone,
   ClipboardList,
   PlusCircle,
@@ -16,11 +16,13 @@ import {
   History,
   BarChart3,
   User,
-  DollarSign,
   FileText,
   Bot,
   MapPin,
   ClipboardCheck,
+  Wallet,
+  ShieldAlert,
+  Activity,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -68,7 +70,8 @@ import { UserProfilePage } from './pages/UserProfilePage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { BudgetManagementPage } from './pages/BudgetManagementPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
-import { AIIntelligencePage } from './pages/AIIntelligencePage';
+import { HazardClassificationAIPage } from './pages/HazardClassificationAIPage';
+import { AssetRiskAIPage } from './pages/AssetRiskAIPage';
 
 // RBAC
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -77,8 +80,6 @@ import { normalizeRole, getRoleMeta } from './utils/rbac';
 
 // Autonomous Municipal Operations & Audit
 import SafetyAuditCenter from './pages/SafetyAuditCenter';
-import WorkOrderLifecycle from './pages/WorkOrderLifecycle';
-import FieldWorkerSimulator from './pages/FieldWorkerSimulator';
 
 function Sidebar() {
   const location = useLocation();
@@ -113,12 +114,10 @@ function Sidebar() {
           title: 'Field Operations',
           items: [
             { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-            { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
             { name: 'Assigned Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
-            { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-            { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-            { name: 'Visual Analytics', path: '/analytics', icon: BarChart3 },
+            { name: 'Asset GIS Map', path: '/dashboard', icon: MapPin },
+            { name: 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
           ],
         },
         {
@@ -133,49 +132,53 @@ function Sidebar() {
     if (role === 'FieldMaintenanceSupervisor') {
       return [
         {
-          title: 'Navigation',
+          title: 'Overview & Analytics',
           items: [
-            { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-            { name: 'Visual Analytics', path: '/analytics', icon: BarChart3 },
+            { name: 'Asset GIS Map', path: '/dashboard', icon: MapPin },
+            { name: 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
+          ],
+        },
+        {
+          title: 'Work Orders & Triage',
+          items: [
+            { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+            { name: 'Work Orders Dashboard', path: '/work-orders-dashboard', icon: LayoutDashboard },
+            { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
+            { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+          ],
+        },
+        {
+          title: 'Field Operations & Sign-Off',
+          items: [
+            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
+            { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
+            { name: 'Create Maintenance Record', path: '/maintenance/create', icon: PlusCircle },
+            { name: 'Verification Queue', path: '/maintenance/verification', icon: CheckCircle2 },
+            { name: 'Maintenance History', path: '/maintenance/history', icon: History },
           ],
         },
         {
           title: 'Infrastructure & Assets',
           items: [
             { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
-            { name: 'Contractors', path: '/contractors', icon: Users },
+            { name: 'Contractors Directory', path: '/contractors', icon: Users },
             { name: 'Repair History', path: '/repairs', icon: FileClock },
-            { name: 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
           ],
         },
         {
-          title: 'Work Orders & AI Triage',
+          title: 'Autonomous AI Models',
           items: [
-            { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
-            { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
-            { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
-            { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+            { name: 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
+            { name: 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
+            { name: 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+            { name: 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
           ],
         },
         {
-          title: 'Field Operations & Safety',
+          title: 'Governance & Ledger',
           items: [
-            { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
-            { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
-            { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-            { name: 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
-            { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
-            { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
-            { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-            { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-          ],
-        },
-        {
-          title: 'Executive & AI Hub',
-          items: [
-            { name: 'Operational Budget', path: '/budget', icon: DollarSign },
-            { name: 'AI Intelligence Hub', path: '/ai', icon: Bot },
-            { name: 'Audit Logs', path: '/audit', icon: FileText },
+            { name: 'Operational Budget', path: '/budget', icon: Wallet },
+            { name: 'Security Audit Ledger', path: '/audit', icon: FileText },
           ],
         },
         {
@@ -192,49 +195,52 @@ function Sidebar() {
       {
         title: 'Executive Governance',
         items: [
-          { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-          { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+          { name: 'Asset GIS Map', path: '/dashboard', icon: MapPin },
           { name: 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
-          { name: 'Treasury Budget', path: '/budget', icon: DollarSign },
-          { name: 'User Management', path: '/users', icon: Users },
-          { name: 'Security Audit Ledger', path: '/audit', icon: FileText },
-          { name: 'AI Intelligence Hub', path: '/ai', icon: Bot },
-          { name: 'City Analytics', path: '/analytics', icon: BarChart3 },
+          { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+          { name: 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
+          { name: 'Treasury & Operational Budget', path: '/budget', icon: Wallet },
+        ],
+      },
+      {
+        title: 'Work Orders & Triage',
+        items: [
+          { name: 'Work Orders Dashboard', path: '/work-orders-dashboard', icon: LayoutDashboard },
+          { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
+          { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+        ],
+      },
+      {
+        title: 'Field Operations & Sign-Off',
+        items: [
+          { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
+          { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
+          { name: 'Verification Queue', path: '/maintenance/verification', icon: CheckCircle2 },
+          { name: 'Maintenance History', path: '/maintenance/history', icon: History },
         ],
       },
       {
         title: 'Infrastructure & Assets',
         items: [
           { name: 'Infrastructure Assets', path: '/assets', icon: Building2 },
-          { name: 'Contractors', path: '/contractors', icon: Users },
+          { name: 'Contractors Directory', path: '/contractors', icon: Users },
           { name: 'Repair History', path: '/repairs', icon: FileClock },
-          { name: 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
         ],
       },
       {
-        title: 'Work Orders & AI Triage',
+        title: 'Autonomous AI Models',
         items: [
-          { name: 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
-          { name: 'All Work Orders', path: '/work-orders', icon: ClipboardList },
-          { name: 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+          { name: 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
+          { name: 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
+          { name: 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+          { name: 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
         ],
       },
       {
-        title: 'Field Operations & Safety',
+        title: 'Security & Administration',
         items: [
-          { name: 'Maintenance Records', path: '/maintenance', icon: Wrench },
-          { name: 'Create Record', path: '/maintenance/create', icon: PlusCircle },
-          { name: 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-          { name: 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
-          { name: 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
-          { name: 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
-          { name: 'Maintenance History', path: '/maintenance/history', icon: History },
-          { name: 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-        ],
-      },
-      {
-        title: 'Administration',
-        items: [
+          { name: 'Security Audit Ledger', path: '/audit', icon: FileText },
+          { name: 'User Directory & Access Control', path: '/users', icon: Users },
           { name: 'My Profile', path: '/profile', icon: User },
         ],
       },
@@ -582,16 +588,28 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* ── Dedicated AI Modules: Member 1, 2, 3, 4 ────────────────────── */}
         <Route
-          path="/ai"
+          path="/hazard-classification-ai"
           element={
             <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
-                <AIIntelligencePage />
+                <HazardClassificationAIPage />
               </Layout>
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/asset-risk-ai"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <AssetRiskAIPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/ai" element={<Navigate to="/hazard-classification-ai" replace />} />
 
         {/* ── Visual Analytics & Executive Intelligence ──────────────────────── */}
         <Route
@@ -642,26 +660,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/lifecycle"
-          element={
-            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <WorkOrderLifecycle />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/field-simulator"
-          element={
-            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <FieldWorkerSimulator />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/lifecycle" element={<Navigate to="/work-orders-dashboard" replace />} />
+        <Route path="/field-simulator" element={<Navigate to="/field-inspector" replace />} />
 
         {/* Fallback to 403 or Home */}
         <Route path="*" element={<AccessDeniedPage />} />
