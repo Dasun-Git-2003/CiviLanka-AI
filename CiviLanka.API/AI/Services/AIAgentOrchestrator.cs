@@ -62,6 +62,17 @@ namespace CiviLanka.API.AI.Services
             return result;
         }
 
+        public async Task<HazardClassificationResult> ClassifyLiveHazardAsync(HazardClassificationInput input, string? triggeredByUserId = null)
+        {
+            var result = await _hazardAgent.ExecuteAsync(input);
+
+            await LogAuditActionAsync("HazardClassificationAgent", "LiveHazardClassification", input.TicketNumber ?? "LIVE",
+                $"Live classified as {result.Category} ({result.Severity} severity, {result.RiskLevel} safety risk, {result.Confidence:P0} confidence)",
+                result.Confidence, triggeredByUserId);
+
+            return result;
+        }
+
         public async Task<AssetRiskResult> AnalyzeAssetRiskAsync(string assetId, string? triggeredByUserId = null)
         {
             var context = await _contextBuilder.BuildAssetRiskContextAsync(assetId);

@@ -33,6 +33,7 @@ export interface CreateAssetDto {
   name: string;
   type: string;
   status: string;
+  condition?: string;
   location: string;
   installationDate?: string;
   latitude: number;
@@ -44,6 +45,7 @@ export interface UpdateAssetDto {
   name: string;
   type: string;
   status: string;
+  condition?: string;
   location: string;
   installationDate?: string;
   latitude: number;

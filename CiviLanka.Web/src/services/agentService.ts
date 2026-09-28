@@ -24,7 +24,8 @@ export interface MaterialItem {
   specification?: string;
   quantity: number;
   unit: string;
-  unit_rate_lkr: number;
+  unit_rate_lkr?: number;
+  unit_cost_lkr?: number;
   total_cost_lkr: number;
   bsr_code?: string;
 }

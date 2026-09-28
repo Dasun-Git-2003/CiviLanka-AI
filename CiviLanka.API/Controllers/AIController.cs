@@ -29,11 +29,48 @@ namespace CiviLanka.API.Controllers
 
         /// <summary>Trigger deep AI classification on a reported hazard.</summary>
         [HttpPost("hazards/{hazardId:guid}/analyze")]
-        [Authorize(Roles = "FieldMaintenanceSupervisor,PublicWorksDirector,Director,MunicipalStaff")]
+        [Authorize(Roles = "Citizen,FieldWorker,FieldMaintenanceSupervisor,PublicWorksDirector,Director,MunicipalStaff")]
         public async Task<IActionResult> AnalyzeHazard(Guid hazardId)
         {
             var userId = GetUserId();
             var result = await _orchestrator.AnalyzeHazardAsync(hazardId, userId);
+            return Ok(result);
+        }
+
+        /// <summary>Trigger live interactive AI classification on custom multimodal hazard inputs (photo, description, location, category, metadata).</summary>
+        [HttpPost("hazards/classify-live")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ClassifyLiveHazard([FromBody] LiveHazardClassificationRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Description))
+            {
+                return BadRequest(new { message = "Hazard description is required." });
+            }
+
+            var locationText = !string.IsNullOrWhiteSpace(request.ProximityZone)
+                ? $"{request.Location} (Proximity: {request.ProximityZone})"
+                : request.Location;
+
+            var input = new HazardClassificationInput
+            {
+                HazardId = Guid.Empty,
+                TicketNumber = $"LIVE-{DateTime.UtcNow:MMddHHmm}",
+                CategorySupplied = string.IsNullOrWhiteSpace(request.CategorySupplied) ? "Other" : request.CategorySupplied,
+                Description = request.Description,
+                Address = locationText,
+                Latitude = request.Latitude ?? 6.9271,
+                Longitude = request.Longitude ?? 79.8612,
+                ImageUrl = request.ImageUrl,
+                NearbyHazardsSummary = !string.IsNullOrWhiteSpace(request.Metadata)
+                    ? new List<string> { request.Metadata }
+                    : new List<string>(),
+                RelatedAssetSummary = !string.IsNullOrWhiteSpace(request.ProximityZone)
+                    ? $"Designated Zone: {request.ProximityZone}"
+                    : "Municipal Corridor"
+            };
+
+            var userId = GetUserId();
+            var result = await _orchestrator.ClassifyLiveHazardAsync(input, userId);
             return Ok(result);
         }
 
@@ -232,5 +269,17 @@ namespace CiviLanka.API.Controllers
             User.FindFirst(ClaimTypes.Role)?.Value
             ?? User.FindFirst("role")?.Value
             ?? "Citizen";
+    }
+
+    public class LiveHazardClassificationRequest
+    {
+        public string Description { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string CategorySupplied { get; set; } = "Other";
+        public string? ProximityZone { get; set; }
+        public string? Metadata { get; set; }
+        public string? ImageUrl { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }
