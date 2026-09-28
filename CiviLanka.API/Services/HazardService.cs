@@ -69,36 +69,39 @@ namespace CiviLanka.API.Services
                 Longitude = dto.Longitude,
                 Address = address,
                 ImageUrl = dto.ImageUrl,
-                Status = HazardStatus.PendingAIAnalysis
+                Status = HazardStatus.Submitted
             };
 
-            var created = await _repo.CreateAsync(hazard);
-            _logger.LogInformation("Hazard {Ticket} created by citizen {CitizenId}", ticket, citizenId);
-
-            // Fire-and-forget AI analysis (runs in isolated background scope)
-            if (_scopeFactory != null)
+            // Run AI analysis synchronously at submission time (immediate triage, no pending state)
+            HazardAIAnalysis? aiAnalysis = null;
+            try
             {
-                _ = Task.Run(async () =>
+                aiAnalysis = await _agent.ClassifyAsync(hazard);
+                if (aiAnalysis != null)
                 {
-                    try
+                    hazard.Severity = aiAnalysis.Severity;
+                    hazard.RiskLevel = aiAnalysis.RiskLevel;
+                    hazard.Priority = aiAnalysis.Priority;
+                    if (!string.IsNullOrWhiteSpace(aiAnalysis.Category) && aiAnalysis.Category != "Other")
                     {
-                        using var scope = _scopeFactory.CreateScope();
-                        var scopedService = scope.ServiceProvider.GetRequiredService<IHazardService>();
-                        await scopedService.TriggerAnalysisAsync(created.Id);
+                        hazard.Category = aiAnalysis.Category;
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Background AI analysis failed for {HazardId}", created.Id);
-                    }
-                });
+                    hazard.Status = HazardStatus.AnalysisComplete;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _ = Task.Run(async () =>
-                {
-                    try { await RunAnalysisAsync(created.Id); }
-                    catch (Exception ex) { _logger.LogError(ex, "Background AI analysis failed for {HazardId}", created.Id); }
-                });
+                _logger.LogWarning(ex, "Synchronous AI analysis encountered an error for ticket {Ticket}. Setting status to Submitted.", ticket);
+            }
+
+            var created = await _repo.CreateAsync(hazard);
+            _logger.LogInformation("Hazard {Ticket} created by citizen {CitizenId} with Status={Status}, Severity={Severity}",
+                ticket, citizenId, hazard.Status, hazard.Severity);
+
+            if (aiAnalysis != null)
+            {
+                aiAnalysis.HazardId = created.Id;
+                await _repo.AddAnalysisAsync(aiAnalysis);
             }
 
             return await MapToResponseAsync(created);
