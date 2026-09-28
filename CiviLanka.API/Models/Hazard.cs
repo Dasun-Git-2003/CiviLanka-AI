@@ -91,6 +91,8 @@ namespace CiviLanka.API.Models
         public const string PendingAIAnalysis = "PendingAIAnalysis";
         public const string AnalysisComplete = "AnalysisComplete";
         public const string UnderReview = "UnderReview";
+        public const string Approved = "Approved";
+        public const string Rejected = "Rejected";
         public const string InProgress = "InProgress";
         public const string Resolved = "Resolved";
         public const string Cancelled = "Cancelled";

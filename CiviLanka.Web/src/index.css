@@ -1,13 +1,74 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   html {
     scroll-behavior: smooth;
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   body {
-    @apply bg-slate-50 text-slate-900 antialiased selection:bg-cyan-500/20 selection:text-cyan-950;
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300;
+  }
+
+  /* ── Universal Dark Theme Legibility for Headings & Text ── */
+  html.dark h1,
+  html.dark h2,
+  html.dark h3,
+  html.dark h4,
+  html.dark h5,
+  html.dark h6 {
+    color: #ffffff;
+  }
+
+  html.dark .text-slate-900:not([class*="dark:text-"]) {
+    color: #f8fafc;
+  }
+
+  html.dark .text-slate-800:not([class*="dark:text-"]) {
+    color: #f1f5f9;
+  }
+
+  html.dark .text-slate-700:not([class*="dark:text-"]) {
+    color: #e2e8f0;
+  }
+
+  html.dark .text-slate-600:not([class*="dark:text-"]) {
+    color: #cbd5e1;
+  }
+
+  html.dark .text-slate-500:not([class*="dark:text-"]) {
+    color: #94a3b8;
+  }
+
+  /* ── Universal Dark Theme Surfaces for Cards & Tables ── */
+  html.dark .bg-white:not([class*="dark:bg-"]) {
+    background-color: #0f172a;
+  }
+
+  html.dark .bg-slate-50:not([class*="dark:bg-"]) {
+    background-color: #020617;
+  }
+
+  html.dark .border-slate-200:not([class*="dark:border-"]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .border-slate-100:not([class*="dark:border-"]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .border-slate-300:not([class*="dark:border-"]) {
+    border-color: #334155;
+  }
+
+  html.dark .divide-slate-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
+  }
+
+  html.dark .divide-slate-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: #1e293b;
   }
 }
 
@@ -106,8 +167,12 @@
   .animate-panorama-360,
   .animate-float-3d,
   .animate-laser-scan,
-  .animate-beacon-pulse {
+  .animate-beacon-pulse,
+  .animate-ios-unlock {
     animation: none !important;
+  }
+  .animate-ios-unlock {
+    -webkit-text-fill-color: #f59e0b !important;
   }
 }
 
@@ -194,5 +259,66 @@
   border: 1px solid rgba(232, 135, 30, 0.35);
   box-shadow: 0 25px 50px -12px rgba(7, 13, 26, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
+
+/* ── iOS Unlock Screen Text Shimmer ("Slide to Unlock" Authentic Cadence) ─── */
+@keyframes iosUnlockShimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+.animate-ios-unlock {
+  display: inline-block;
+  color: #f59e0b;
+  background: linear-gradient(
+    90deg,
+    rgba(217, 119, 6, 0.45) 0%,
+    rgba(217, 119, 6, 0.45) 32%,
+    rgba(251, 191, 36, 0.75) 44%,
+    #ffffff 50%,
+    rgba(251, 191, 36, 0.75) 56%,
+    rgba(217, 119, 6, 0.45) 68%,
+    rgba(217, 119, 6, 0.45) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: iosUnlockShimmer 3.6s ease-in-out infinite;
+  will-change: background-position;
+}
+
+/* iOS Smooth Floating Chevron */
+@keyframes iosChevronFloat {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(5px);
+    opacity: 1;
+  }
+}
+
+.animate-ios-chevron {
+  animation: iosChevronFloat 2.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Pause animation when cursor points to element */
+.animate-ios-unlock:hover,
+.group:hover .animate-ios-unlock {
+  animation-play-state: paused;
+}
+
+.animate-ios-chevron:hover,
+.group:hover .animate-ios-chevron {
+  animation-play-state: paused;
+}
+
+
 
 

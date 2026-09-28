@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/hazard_service.dart';
 import 'my_reports_screen.dart';
 import 'report_hazard_screen.dart';
+import 'field_worker_screen.dart';
 import 'work_order_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -258,7 +259,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-
               // ── Municipal Work Orders (Authorized roles only) ─────────────
               if (canAccessWorkOrders) ...[
                 const SizedBox(height: 16),
@@ -322,6 +322,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ],
+
+              const SizedBox(height: 12),
+
+              // ── Member 4: Field Worker Mode ──────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FieldWorkerScreen()),
+                  ),
+                  icon: const Icon(Icons.handyman_outlined),
+                  label: const Text('Field Worker Execution Mode (M4)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
             ],
           ),

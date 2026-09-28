@@ -407,9 +407,8 @@ namespace CiviLanka.API.Tests
             Assert.NotNull(estimated);
             // Must NOT be approved by AI. Human director approval remains the sole authority.
             Assert.NotEqual(ApprovalStatus.Approved, estimated.ApprovalStatus);
-            Assert.NotEqual(WorkOrderStatus.Approved, estimated.Status);
-            Assert.Equal(ApprovalStatus.NotRequired, estimated.ApprovalStatus);
-            Assert.Equal(WorkOrderStatus.AiGenerated, estimated.Status);
+            Assert.Equal(ApprovalStatus.Pending, estimated.ApprovalStatus);
+            Assert.Equal(WorkOrderStatus.PendingApproval, estimated.Status);
         }
 
         [Fact]

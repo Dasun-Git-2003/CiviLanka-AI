@@ -561,13 +561,13 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900">City GIS Infrastructure Map</h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">City GIS Infrastructure Map</h1>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live GIS
             </span>
           </div>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Real-time interactive map plotting active citizen hazard reports and municipal infrastructure assets.
           </p>
         </div>
@@ -577,19 +577,19 @@ export default function Dashboard() {
           <button
             onClick={() => fetchMapData(true)}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all shadow-xs disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             title="Refresh map pins with latest database records"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-amber-500' : 'text-slate-500 dark:text-slate-400'}`} />
             <span>{refreshing ? 'Refreshing...' : 'Refresh Pins'}</span>
-            {lastUpdated && <span className="text-[10px] text-slate-400 font-normal">({lastUpdated})</span>}
+            {lastUpdated && <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">({lastUpdated})</span>}
           </button>
 
           <Link
             to="/citizen"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold transition-all shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] cursor-pointer"
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
+            <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
             <span>Report Hazard</span>
           </Link>
         </div>
@@ -597,57 +597,57 @@ export default function Dashboard() {
 
       {/* ── Metric Summary Cards ────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-xs">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-            <MapPin className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0">
+            <MapPin className="w-5 h-5 text-amber-500" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">{allMarkers.length}</div>
-            <div className="text-xs font-medium text-slate-500">Total Active Map Pins</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{allMarkers.length}</div>
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Active Map Pins</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-xs">
-          <div className="w-11 h-11 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-700 shrink-0">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">{totalHazardCount}</div>
-            <div className="text-xs font-medium text-slate-500">Citizen Hazard Reports</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalHazardCount}</div>
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Citizen Hazard Reports</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-xs">
-          <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600 shrink-0">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-red-600">{criticalHazardCount}</div>
-            <div className="text-xs font-medium text-slate-500">Critical / Urgent Hazards</div>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{criticalHazardCount}</div>
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Critical / Urgent Hazards</div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 shadow-xs">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">{repairNeededCount}</div>
-            <div className="text-xs font-medium text-slate-500">Repair Attention Needed</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{repairNeededCount}</div>
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Repair Attention Needed</div>
           </div>
         </div>
       </div>
 
       {/* ── Error Banner if API Fails ────────────────────────────────────────── */}
       {fetchError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700 flex items-center justify-between">
+        <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl p-4 text-xs text-red-700 dark:text-red-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
             <span>Failed to load live pins: {fetchError}</span>
           </div>
           <button
             onClick={() => fetchMapData(true)}
-            className="px-3 py-1 bg-white border border-red-200 rounded-lg text-red-700 hover:bg-red-50 font-semibold"
+            className="px-3 py-1 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-slate-800 font-semibold cursor-pointer"
           >
             Retry
           </button>
@@ -655,52 +655,52 @@ export default function Dashboard() {
       )}
 
       {/* ── Main Map Card & Inspector Panel ─────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
         {/* Layer Filters & Search Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100 dark:border-slate-800">
           {/* Layer Selector Chips */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Layer:</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Layer:</span>
             <button
               onClick={() => setLayerFilter('all')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
                 layerFilter === 'all'
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
+                  ? 'bg-slate-900 dark:bg-slate-800 text-white border-slate-900 dark:border-slate-700 shadow-xs'
+                  : 'bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
               }`}
             >
               <span>All Pins</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'all' ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'all' ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
                 {allMarkers.length}
               </span>
             </button>
 
             <button
               onClick={() => setLayerFilter('hazard')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
                 layerFilter === 'hazard'
-                  ? 'bg-cyan-700 text-white border-cyan-700 shadow-xs'
-                  : 'bg-white text-cyan-800 border-cyan-200 hover:border-cyan-400'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-500 font-bold shadow-xs'
+                  : 'bg-white dark:bg-slate-950 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800/60 hover:border-amber-400'
               }`}
             >
-              <AlertTriangle className="w-3.5 h-3.5" />
+              <AlertTriangle className={`w-3.5 h-3.5 ${layerFilter === 'hazard' ? 'text-slate-950' : 'text-amber-500'}`} />
               <span>Citizen Reports</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'hazard' ? 'bg-white/20' : 'bg-cyan-50 text-cyan-800'}`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'hazard' ? 'bg-slate-950/20 text-slate-950' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'}`}>
                 {totalHazardCount}
               </span>
             </button>
 
             <button
               onClick={() => setLayerFilter('asset')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
                 layerFilter === 'asset'
-                  ? 'bg-blue-700 text-white border-blue-700 shadow-xs'
-                  : 'bg-white text-blue-700 border-blue-200 hover:border-blue-400'
+                  ? 'bg-slate-800 dark:bg-slate-700 text-white border-slate-700 shadow-xs'
+                  : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
               <span>Assets Registry</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'asset' ? 'bg-white/20' : 'bg-blue-50 text-blue-700'}`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${layerFilter === 'asset' ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
                 {totalAssetCount}
               </span>
             </button>
@@ -708,20 +708,20 @@ export default function Dashboard() {
 
           {/* Condition / Urgency Chips & Search */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Condition:</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Condition:</span>
             {([
-              { key: 'all',  label: 'All',           dot: 'bg-slate-400',   color: 'text-slate-700' },
-              { key: 'poor', label: 'Critical / Poor', dot: 'bg-red-500',    color: 'text-red-700' },
-              { key: 'fair', label: 'Moderate',      dot: 'bg-amber-400',  color: 'text-amber-700' },
-              { key: 'good', label: 'Good / Safe',   dot: 'bg-emerald-500', color: 'text-emerald-700' },
+              { key: 'all',  label: 'All',           dot: 'bg-slate-400',   color: 'text-slate-700 dark:text-slate-300' },
+              { key: 'poor', label: 'Critical / Poor', dot: 'bg-red-500',    color: 'text-red-700 dark:text-red-400' },
+              { key: 'fair', label: 'Moderate',      dot: 'bg-amber-400',  color: 'text-amber-700 dark:text-amber-400' },
+              { key: 'good', label: 'Good / Safe',   dot: 'bg-emerald-500', color: 'text-emerald-700 dark:text-emerald-400' },
             ] as const).map((c) => (
               <button
                 key={c.key}
                 onClick={() => setConditionFilter(c.key)}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                   conditionFilter === c.key
-                    ? 'bg-slate-100 border-slate-400 text-slate-900 font-bold shadow-2xs'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    ? 'bg-slate-100 dark:bg-slate-800 border-slate-400 dark:border-slate-600 text-slate-900 dark:text-white font-bold shadow-2xs'
+                    : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <span className={`w-2 h-2 rounded-full ${c.dot}`} />
@@ -731,18 +731,18 @@ export default function Dashboard() {
 
             {/* Quick Search */}
             <div className="relative ml-auto sm:ml-2">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search pins or tickets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-44 sm:w-52"
+                className="pl-8 pr-3 py-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 w-44 sm:w-52 transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -752,14 +752,14 @@ export default function Dashboard() {
         </div>
 
         {/* Showing Count Indicator */}
-        <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
           <div className="flex items-center gap-2">
             <span>
-              Showing <strong>{filteredMarkers.length}</strong> of {allMarkers.length} markers on Colombo map
+              Showing <strong className="text-slate-800 dark:text-slate-200">{filteredMarkers.length}</strong> of {allMarkers.length} markers on Colombo map
             </span>
             {focusParam && (
-              <span className="inline-flex items-center gap-1 text-[11px] bg-cyan-50 border border-cyan-200 text-cyan-800 px-2 py-0.5 rounded-full font-semibold">
-                <Sparkles className="w-3 h-3 text-cyan-600" />
+              <span className="inline-flex items-center gap-1 text-[11px] bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full font-semibold">
+                <Sparkles className="w-3 h-3 text-amber-500" />
                 Focused: {focusParam}
               </span>
             )}
@@ -774,12 +774,12 @@ export default function Dashboard() {
         {/* ── Map Canvas & Inspector Panel Grid ────────────────────────────── */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Map Container */}
-          <div className="flex-1 rounded-2xl border border-slate-200 overflow-hidden relative shadow-inner" style={{ height: '560px' }}>
+          <div className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative shadow-inner" style={{ height: '560px' }}>
             {loading ? (
-              <div className="h-full flex flex-col items-center justify-center bg-slate-50 text-slate-500">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-                <p className="text-sm font-semibold text-slate-700">Loading live Colombo GIS map coordinates...</p>
-                <p className="text-xs text-slate-400">Fetching citizen reports and municipal asset pins</p>
+              <div className="h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950/70 text-slate-500 dark:text-slate-400">
+                <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-2" />
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Loading live Colombo GIS map coordinates...</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Fetching citizen reports and municipal asset pins</p>
               </div>
             ) : mapApiKey ? (
               <APIProvider apiKey={mapApiKey}>
@@ -795,11 +795,11 @@ export default function Dashboard() {
                 />
               </APIProvider>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
-                <MapPin className="w-12 h-12 text-slate-400 mb-3" />
-                <h3 className="font-semibold text-slate-700 text-lg mb-1">Google Maps API Key Required</h3>
+              <div className="h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 p-6 text-center">
+                <MapPin className="w-12 h-12 text-slate-400 dark:text-slate-500 mb-3" />
+                <h3 className="font-semibold text-slate-700 dark:text-slate-200 text-lg mb-1">Google Maps API Key Required</h3>
                 <p className="max-w-md text-sm">
-                  Add <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs font-mono">VITE_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs font-mono">.env</code> file to enable Google Maps tiles.
+                  Add <code className="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono text-slate-800 dark:text-slate-200">VITE_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono text-slate-800 dark:text-slate-200">.env</code> file to enable Google Maps tiles.
                 </p>
               </div>
             )}
@@ -809,24 +809,24 @@ export default function Dashboard() {
           <div className="w-full lg:w-80 flex flex-col gap-3">
             {/* Empty Selection Prompt */}
             {!selectedMarker && !routeTarget && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-slate-400 space-y-3 min-h-[300px]">
-                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs text-cyan-600">
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 text-slate-400 space-y-3 min-h-[300px]">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-2xs text-amber-500">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-700">Select any Map Marker</p>
-                  <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Select any Map Marker</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
                     Click a pin on the map to inspect citizen hazard reports, attached photographic evidence, triage status, and generate driving navigation.
                   </p>
                 </div>
-                <div className="pt-2 border-t border-slate-200 w-full text-left space-y-1.5 text-[11px] text-slate-500">
-                  <div className="font-semibold text-slate-700 uppercase tracking-wider text-[10px]">Quick Tips:</div>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 w-full text-left space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  <div className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Quick Tips:</div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-500" />
                     <span>Red pins indicate critical or urgent road hazards.</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-cyan-600" />
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
                     <span>Newly reported citizen tickets appear instantly.</span>
                   </div>
                 </div>
@@ -835,23 +835,23 @@ export default function Dashboard() {
 
             {/* Selected Marker Details Card */}
             {selectedMarker && !routeTarget && (
-              <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white animate-in fade-in">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm bg-white dark:bg-slate-900 animate-in fade-in">
                 {/* Header with Type & Status */}
-                <div className={`${selectedMarker.pointType === 'hazard' ? 'bg-cyan-900' : 'bg-slate-900'} px-4 py-3.5 text-white`}>
+                <div className={`${selectedMarker.pointType === 'hazard' ? 'bg-slate-950 border-b border-amber-500/30' : 'bg-slate-900 dark:bg-slate-950 border-b border-slate-800'} px-4 py-3.5 text-white`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       {selectedMarker.pointType === 'hazard' ? (
-                        <AlertTriangle className="w-4 h-4 text-cyan-400 shrink-0" />
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                       ) : (
-                        <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
+                        <Building2 className="w-4 h-4 text-slate-300 shrink-0" />
                       )}
-                      <span className="font-mono text-xs font-bold text-cyan-200">
+                      <span className="font-mono text-xs font-bold text-amber-400">
                         {selectedMarker.ticketNumber || selectedMarker.id}
                       </span>
                     </div>
                     <button
                       onClick={() => setSelectedMarker(null)}
-                      className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white"
+                      className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -866,21 +866,21 @@ export default function Dashboard() {
                     {selectedMarker.severity && (
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                         selectedMarker.severity === 'CRITICAL' || selectedMarker.severity === 'HIGH'
-                          ? 'bg-red-50 text-red-700 border-red-200'
+                          ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                           : selectedMarker.severity === 'MEDIUM'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
+                          ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                       }`}>
                         {selectedMarker.severity} Severity
                       </span>
                     )}
                     {selectedMarker.status && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                         {selectedMarker.status}
                       </span>
                     )}
                     {selectedMarker.pointType === 'hazard' && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                         Citizen Submission
                       </span>
                     )}
@@ -889,8 +889,8 @@ export default function Dashboard() {
                   {/* Photographic Evidence */}
                   {selectedMarker.imageUrl && (
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600">
-                        <Camera className="w-3.5 h-3.5 text-cyan-600" />
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                        <Camera className="w-3.5 h-3.5 text-amber-500" />
                         <span>Photographic Evidence</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -908,7 +908,7 @@ export default function Dashboard() {
                                 key={i}
                                 type="button"
                                 onClick={() => setActiveLightboxImg(resolvedUrl)}
-                                className="group relative h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs hover:border-cyan-500 transition-all cursor-zoom-in"
+                                className="group relative h-24 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-2xs hover:border-amber-500 dark:hover:border-amber-400 transition-all cursor-zoom-in"
                               >
                                 <img
                                   src={resolvedUrl}
@@ -928,8 +928,8 @@ export default function Dashboard() {
                   {/* Description */}
                   {selectedMarker.description && (
                     <div className="space-y-0.5">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Description</div>
-                      <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Description</div>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200/70 dark:border-slate-800">
                         {selectedMarker.description}
                       </p>
                     </div>
@@ -937,17 +937,17 @@ export default function Dashboard() {
 
                   {/* Address & GPS */}
                   <div className="space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Location</div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Location</div>
                     {selectedMarker.address && (
-                      <p className="text-xs text-slate-700 font-medium line-clamp-2">
+                      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium line-clamp-2">
                         {selectedMarker.address}
                       </p>
                     )}
-                    <div className="flex items-center justify-between text-xs font-mono text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/60 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                       <span>{selectedMarker.lat.toFixed(5)}° N, {selectedMarker.lng.toFixed(5)}° E</span>
                       <button
                         onClick={() => copyCoordinates(selectedMarker.lat, selectedMarker.lng)}
-                        className="text-slate-400 hover:text-slate-700 inline-flex items-center gap-1"
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 inline-flex items-center gap-1 cursor-pointer"
                         title="Copy coordinates"
                       >
                         {copiedCoords ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -961,24 +961,24 @@ export default function Dashboard() {
                       href={googleMapsUrl(selectedMarker)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-xs"
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg shadow-amber-500/20 active:scale-[0.98] cursor-pointer"
                     >
-                      <Navigation className="w-3.5 h-3.5" />
+                      <Navigation className="w-3.5 h-3.5 text-slate-950" />
                       <span>Navigate via Google Maps</span>
-                      <ExternalLink className="w-3 h-3 text-blue-200 ml-0.5" />
+                      <ExternalLink className="w-3 h-3 text-slate-950 ml-0.5" />
                     </a>
 
                     <button
                       onClick={handleGetDirections}
                       disabled={!liveLocation}
-                      className="w-full flex items-center justify-center gap-2 border border-slate-300 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 text-xs font-bold py-2.5 rounded-xl transition-all"
+                      className="w-full flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 dark:text-slate-200 text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer"
                     >
-                      <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                      <Navigation className="w-3.5 h-3.5 text-amber-500" />
                       <span>Calculate In-App Route</span>
                     </button>
 
                     {!liveLocation && (
-                      <p className="text-[10px] text-slate-400 text-center">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
                         Enable browser GPS location to calculate live route.
                       </p>
                     )}
@@ -989,46 +989,46 @@ export default function Dashboard() {
 
             {/* Active Route Details Card */}
             {routeTarget && (
-              <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white animate-in fade-in">
-                <div className="bg-blue-600 px-4 py-3 flex items-center justify-between text-white">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm bg-white dark:bg-slate-900 animate-in fade-in">
+                <div className="bg-slate-950 border-b border-amber-500/30 px-4 py-3 flex items-center justify-between text-white">
                   <div className="flex items-center gap-2">
-                    <Navigation className="w-4 h-4 text-white" />
-                    <p className="font-bold text-xs uppercase tracking-wider">Driving Directions</p>
+                    <Navigation className="w-4 h-4 text-amber-400" />
+                    <p className="font-bold text-xs uppercase tracking-wider text-amber-400">Driving Directions</p>
                   </div>
-                  <button onClick={clearRoute} className="p-1 text-blue-200 hover:text-white rounded-lg transition-colors">
+                  <button onClick={clearRoute} className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="p-4 space-y-3">
-                  <div className="text-xs text-slate-500">
-                    <div className="font-semibold text-slate-700 mb-0.5">Target Destination:</div>
-                    <div className="font-bold text-slate-900 line-clamp-1">{routeTarget.title}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Target Destination:</div>
+                    <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{routeTarget.title}</div>
                   </div>
 
                   {routeLoading && (
-                    <div className="flex items-center justify-center gap-2 text-xs text-slate-500 py-3">
-                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 py-3">
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
                       <span>Calculating optimal driving route...</span>
                     </div>
                   )}
 
                   {routeInfo && (
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
-                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Distance</div>
-                        <div className="text-base font-extrabold text-slate-900">{routeInfo.distance}</div>
+                      <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-center">
+                        <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-0.5">Distance</div>
+                        <div className="text-base font-extrabold text-slate-900 dark:text-white">{routeInfo.distance}</div>
                       </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
-                        <div className="text-[10px] uppercase font-bold text-blue-600 mb-0.5">Est. Time</div>
-                        <div className="text-base font-extrabold text-blue-700">{routeInfo.duration}</div>
+                      <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3 text-center">
+                        <div className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 mb-0.5">Est. Time</div>
+                        <div className="text-base font-extrabold text-amber-700 dark:text-amber-300">{routeInfo.duration}</div>
                       </div>
                     </div>
                   )}
 
                   {routeError && (
-                    <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
+                    <div className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl p-3 space-y-1">
                       <p className="font-bold">Directions Error ({routeError})</p>
-                      <p className="text-[11px] text-red-600">
+                      <p className="text-[11px] text-red-600 dark:text-red-300">
                         Ensure Google Cloud Directions API is enabled on your API key.
                       </p>
                     </div>
@@ -1038,7 +1038,7 @@ export default function Dashboard() {
                     href={googleMapsUrl(routeTarget)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition-all"
+                    className="w-full flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Open in Google Maps App</span>
@@ -1058,34 +1058,34 @@ export default function Dashboard() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-3xl max-h-[85vh] bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-2xl flex flex-col"
+            className="relative max-w-3xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col"
           >
-            <div className="p-3 bg-slate-900 text-white flex items-center justify-between text-xs font-bold">
+            <div className="p-3 bg-slate-900 border-b border-slate-800 text-white flex items-center justify-between text-xs font-bold">
               <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-cyan-400" />
+                <Camera className="w-4 h-4 text-amber-400" />
                 <span>Hazard Photographic Evidence</span>
               </div>
               <button
                 onClick={() => setActiveLightboxImg(null)}
-                className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white"
+                className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-2 bg-slate-100 flex items-center justify-center overflow-auto max-h-[75vh]">
+            <div className="p-2 bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-auto max-h-[75vh]">
               <img
                 src={activeLightboxImg}
                 alt="Enlarged Hazard Evidence"
                 className="max-h-[70vh] max-w-full rounded-lg object-contain shadow-md"
               />
             </div>
-            <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
+            <div className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
               <span>Captured by citizen and verified on GIS registry</span>
               <a
                 href={activeLightboxImg}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-cyan-700 hover:underline font-semibold flex items-center gap-1"
+                className="text-amber-600 dark:text-amber-400 hover:underline font-semibold flex items-center gap-1"
               >
                 <span>Open Original Image</span>
                 <ExternalLink className="w-3 h-3" />

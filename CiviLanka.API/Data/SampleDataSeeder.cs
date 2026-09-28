@@ -368,19 +368,19 @@ namespace CiviLanka.API.Data
                     {
                         MaintenanceRecordId = mr1.Id,
                         Action = "RECORD_CREATED",
-                        UserId = workerId,
+                        UserId = workerEmail,
                         EntityType = "MaintenanceRecord",
                         EntityId = mr1.Id.ToString(),
                         PreviousStatus = null,
                         NewStatus = MaintenanceStatus.VerificationPending,
-                        Description = "Maintenance record MR-DEMO-001 submitted by fieldworker@test.com",
+                        Description = $"Maintenance record MR-DEMO-001 submitted by {workerEmail}",
                         Timestamp = mr1.CreatedAt
                     },
                     new MaintenanceAuditLog
                     {
                         MaintenanceRecordId = mr1.Id,
                         Action = "SAFETY_AI_ANALYSIS",
-                        UserId = "SYSTEM",
+                        UserId = "safety-agent@civilanka.gov.lk",
                         EntityType = "MaintenanceRecord",
                         EntityId = mr1.Id.ToString(),
                         PreviousStatus = MaintenanceStatus.VerificationPending,
@@ -392,7 +392,7 @@ namespace CiviLanka.API.Data
                     {
                         MaintenanceRecordId = mr2.Id,
                         Action = "RECORD_CREATED",
-                        UserId = workerId,
+                        UserId = workerEmail,
                         EntityType = "MaintenanceRecord",
                         EntityId = mr2.Id.ToString(),
                         PreviousStatus = null,

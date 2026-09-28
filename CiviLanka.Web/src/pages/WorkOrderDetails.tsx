@@ -18,7 +18,8 @@ import { StatusBadge } from '../components/StatusBadge';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { CostEstimateCard } from '../components/CostEstimateCard';
 import { ApprovalPanel } from '../components/ApprovalPanel';
-import type { WorkOrder } from '../types/workOrder';
+import { CostEstimateEditorModal } from '../components/CostEstimateEditorModal';
+import type { WorkOrder, SaveWorkOrderEstimateDto, CostEstimatePreviewResponse } from '../types/workOrder';
 
 export const WorkOrderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +41,11 @@ export const WorkOrderDetails: React.FC = () => {
   const [selectedContractor, setSelectedContractor] = useState<number | undefined>();
   const [assignedCrew, setAssignedCrew] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
+
+  // Cost & Materials Estimate Editor modal states
+  const [showEstimateModal, setShowEstimateModal] = useState(false);
+  const [savingEstimate, setSavingEstimate] = useState(false);
+  const [previewEstimateData, setPreviewEstimateData] = useState<CostEstimatePreviewResponse | null>(null);
 
   const fetchDetails = async () => {
     if (!id) return;
@@ -69,15 +75,38 @@ export const WorkOrderDetails: React.FC = () => {
     if (!id) return;
     setEstimating(true);
     try {
-      const updated = await workOrderService.generateEstimate(id);
-      setWorkOrder(updated);
+      const preview = await workOrderService.previewEstimateForWorkOrder(id);
+      setPreviewEstimateData(preview);
+      setShowEstimateModal(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'AI estimation failed. Please check Gemini API key configuration.';
+      const msg = err?.response?.data?.message || err?.message || 'AI estimation preview failed. Please check Gemini API configuration.';
       alert(msg);
       console.error('AI Estimation error:', err);
     } finally {
       setEstimating(false);
     }
+  };
+
+  const handleSaveCustomEstimate = async (data: SaveWorkOrderEstimateDto) => {
+    if (!id) return;
+    setSavingEstimate(true);
+    try {
+      const updated = await workOrderService.saveCustomEstimate(id, data);
+      setWorkOrder(updated);
+      setShowEstimateModal(false);
+      setPreviewEstimateData(null);
+    } catch (err) {
+      alert('Failed to save customized estimate.');
+      console.error(err);
+    } finally {
+      setSavingEstimate(false);
+    }
+  };
+
+  const handleRegenerateAIEstimate = async () => {
+    if (!id) return;
+    const preview = await workOrderService.previewEstimateForWorkOrder(id);
+    setPreviewEstimateData(preview);
   };
 
   const handleApprove = async (notes: string) => {
@@ -259,12 +288,12 @@ export const WorkOrderDetails: React.FC = () => {
 
       {/* Grid: Context Information (Hazard + Asset) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Hazard Information (Member 1) */}
+        {/* Hazard Information */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              Member 1 Hazard Origin
+              Originating Citizen Hazard
             </h3>
             {workOrder.hazardTicket && (
               <span className="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
@@ -308,12 +337,12 @@ export const WorkOrderDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Infrastructure Asset Information (Member 2) */}
+        {/* Infrastructure Asset Information */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-blue-500" />
-              Member 2 Infrastructure Asset
+              Target Infrastructure Asset
             </h3>
             {workOrder.assetId && (
               <span className="text-[11px] font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
@@ -377,7 +406,16 @@ export const WorkOrderDetails: React.FC = () => {
 
       {/* AI Cost & Material Estimation Component */}
       <div>
-        <CostEstimateCard estimate={workOrder.latestCostEstimate} items={workOrder.items} />
+        <CostEstimateCard
+          estimate={workOrder.latestCostEstimate}
+          items={workOrder.items}
+          onEdit={() => {
+            setPreviewEstimateData(null);
+            setShowEstimateModal(true);
+          }}
+          onGenerateAI={handleGenerateEstimate}
+          generating={estimating}
+        />
       </div>
 
       {/* Director Approval Panel (Section 21, 22, 23) */}
@@ -513,6 +551,26 @@ export const WorkOrderDetails: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* AI Cost & Materials Estimation Review & Editor Modal */}
+      <CostEstimateEditorModal
+        isOpen={showEstimateModal}
+        onClose={() => {
+          setShowEstimateModal(false);
+          setPreviewEstimateData(null);
+        }}
+        initialEstimate={previewEstimateData || workOrder.latestCostEstimate}
+        initialItems={previewEstimateData ? previewEstimateData.items : workOrder.items}
+        onSave={handleSaveCustomEstimate}
+        onRegenerateAI={handleRegenerateAIEstimate}
+        saving={savingEstimate}
+        title={previewEstimateData ? 'Review & Customize AI Estimate' : 'Edit Work Order Cost & Materials'}
+        subtitle={
+          previewEstimateData
+            ? 'Gemini 2.0 suggested the following materials and budget. You can adjust costs, add or remove items before saving.'
+            : 'Modify estimated budget, labour/equipment costs, or add/remove materials from this work order.'
+        }
+      />
     </div>
   );
 };

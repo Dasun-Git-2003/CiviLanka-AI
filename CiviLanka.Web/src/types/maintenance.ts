@@ -38,6 +38,7 @@ export interface MaintenanceAuditLog {
   id: string;
   maintenanceRecordId: string;
   userId: string;
+  userEmail?: string;
   action: string;
   entityType: string;
   entityId: string;
@@ -59,6 +60,7 @@ export interface MaintenanceRecord {
   location?: string;
   hazardCategory?: string;
   hazardTicket?: string;
+  assignedCrew?: string;
 
   assetId?: string;
   assetName?: string;

@@ -47,7 +47,7 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({ workOrder, onAppro
         return {
           title: 'Cost Threshold Exceeded + Arterial Road Risk',
           description:
-            `Estimated cost (Rs. ${(workOrder.estimatedCost || 0).toLocaleString()}) exceeds the Rs. 100,000 threshold AND this site is on a high-risk arterial road with heavy traffic flow. Mandatory Director authorization required.`,
+            `Estimated cost (Rs. ${(workOrder.estimatedCost || 0).toLocaleString()}) exceeds the configured municipal approval threshold and this site is on a high-risk arterial road with heavy traffic flow.`,
         };
       case 'ArterialRoadRisk':
         return {
@@ -59,7 +59,7 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({ workOrder, onAppro
         return {
           title: 'Cost Exceeds Director Approval Threshold',
           description:
-            `Estimated cost (Rs. ${(workOrder.estimatedCost || 0).toLocaleString()}) exceeds the configured municipal threshold of Rs. 100,000. Formal Director authorization required.`,
+            `Estimated cost (Rs. ${(workOrder.estimatedCost || 0).toLocaleString()}) exceeds the configured municipal approval threshold.`,
         };
       default:
         return null;
@@ -117,13 +117,23 @@ export const ApprovalPanel: React.FC<ApprovalPanelProps> = ({ workOrder, onAppro
         </div>
       </div>
 
-      {/* Approval Reason Notice */}
-      {workOrder.approvalRequired && reasonInfo && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3.5 text-xs flex items-start gap-2.5 mb-5">
-          <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold">{reasonInfo.title}:</span> {reasonInfo.description}
+      {/* Director Approval Notice */}
+      {workOrder.approvalRequired && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3.5 text-xs flex flex-col gap-2 mb-5">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold">Director Authorization Mandatory:</span> Formal electronic authorization by the Public Works Director is mandatory for all municipal work orders (Estimated: <strong>Rs. {(workOrder.estimatedCost || 0).toLocaleString()}</strong>) prior to crew mobilization and budget disbursement.
+            </div>
           </div>
+          {reasonInfo && (
+            <div className="flex items-start gap-2.5 pl-6 border-t border-amber-200/60 pt-2 text-[11px] text-amber-800">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">{reasonInfo.title}:</span> {reasonInfo.description}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

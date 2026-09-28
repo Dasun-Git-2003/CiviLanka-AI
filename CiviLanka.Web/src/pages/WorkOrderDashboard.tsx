@@ -62,7 +62,7 @@ export const WorkOrderDashboard: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
-            Member 3 — Work Order &amp; Cost Estimation
+            Work Order &amp; Cost Estimation Hub
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Work Orders Dashboard</h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -166,7 +166,7 @@ export const WorkOrderDashboard: React.FC = () => {
                 {pendingApproval} Work Order{pendingApproval > 1 ? 's' : ''} Require Director Approval
               </h3>
               <p className="text-xs text-amber-100 mt-0.5">
-                These work orders exceed the Rs. 100,000 threshold or flag high-risk municipal assets.
+                Executive Director authorization is mandatory prior to crew dispatch and municipal budget release.
               </p>
             </div>
           </div>
