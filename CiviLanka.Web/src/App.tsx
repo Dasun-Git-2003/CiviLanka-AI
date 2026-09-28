@@ -1,13 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Building2,
   Wrench,
   FileClock,
   Users,
-  FileCheck,
-  Coins,
   ShieldCheck,
   GitBranch,
   Smartphone,
@@ -77,9 +75,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { authService } from './services/authService';
 import { normalizeRole, getRoleMeta } from './utils/rbac';
 
-// Member 4 Pages (Maintenance Operations & Audit)
-import DirectorApprovals from './pages/DirectorApprovals';
-import BudgetManagement from './pages/BudgetManagement';
+// Autonomous Municipal Operations & Audit
 import SafetyAuditCenter from './pages/SafetyAuditCenter';
 import WorkOrderLifecycle from './pages/WorkOrderLifecycle';
 import FieldWorkerSimulator from './pages/FieldWorkerSimulator';
@@ -178,7 +174,6 @@ function Sidebar() {
           title: 'Executive & AI Hub',
           items: [
             { name: 'Operational Budget', path: '/budget', icon: DollarSign },
-            { name: 'Budget Operations', path: '/budgets', icon: Coins },
             { name: 'AI Intelligence Hub', path: '/ai', icon: Bot },
             { name: 'Audit Logs', path: '/audit', icon: FileText },
           ],
@@ -199,9 +194,7 @@ function Sidebar() {
         items: [
           { name: 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
           { name: 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
-          { name: 'Director Approvals', path: '/approvals', icon: FileCheck },
           { name: 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
-          { name: 'Budget Operations', path: '/budgets', icon: Coins },
           { name: 'Treasury Budget', path: '/budget', icon: DollarSign },
           { name: 'User Management', path: '/users', icon: Users },
           { name: 'Security Audit Ledger', path: '/audit', icon: FileText },
@@ -634,27 +627,11 @@ function App() {
           }
         />
 
-        {/* ── Member 4 Dedicated Operational & Audit Portal ─────────────────── */}
-        <Route
-          path="/approvals"
-          element={
-            <ProtectedRoute allowedRoles={['PublicWorksDirector']}>
-              <Layout>
-                <DirectorApprovals />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/budgets"
-          element={
-            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <BudgetManagement />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        {/* ── Redirect legacy duplicate paths to canonical routes ────────────── */}
+        <Route path="/approvals" element={<Navigate to="/approval-queue" replace />} />
+        <Route path="/budgets" element={<Navigate to="/budget" replace />} />
+
+        {/* ── Autonomous Municipal Operations & Audit ────────────────────────── */}
         <Route
           path="/audits"
           element={
