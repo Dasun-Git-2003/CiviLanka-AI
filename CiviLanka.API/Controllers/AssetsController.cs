@@ -142,6 +142,18 @@ namespace CiviLanka.API.Controllers
             };
 
             _context.InfrastructureAssets.Add(asset);
+
+            // Record initial baseline inspection with specified condition (defaulting to Good)
+            var initialInspection = new AssetInspection
+            {
+                AssetId = asset.Id,
+                InspectorName = "System",
+                Condition = !string.IsNullOrWhiteSpace(dto.Condition) ? dto.Condition.Trim() : "Good",
+                Notes = "Initial asset registration baseline condition",
+                NextInspectionDue = DateTime.UtcNow.AddMonths(6)
+            };
+            _context.AssetInspections.Add(initialInspection);
+
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Asset registered successfully: {AssetId} - {AssetName}", asset.Id, asset.Name);
@@ -178,6 +190,24 @@ namespace CiviLanka.API.Controllers
             asset.Longitude = dto.Longitude;
             asset.Description = dto.Description?.Trim();
             asset.UpdatedAt = DateTime.UtcNow;
+
+            // If a new condition was specified and differs from latest condition, log an updated inspection record
+            if (!string.IsNullOrWhiteSpace(dto.Condition))
+            {
+                var latestCondition = asset.Inspections?.OrderByDescending(i => i.InspectionDate).FirstOrDefault()?.Condition;
+                if (!string.Equals(latestCondition, dto.Condition.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    var updatedInspection = new AssetInspection
+                    {
+                        AssetId = asset.Id,
+                        InspectorName = "System",
+                        Condition = dto.Condition.Trim(),
+                        Notes = "Condition updated via Asset Registry",
+                        NextInspectionDue = DateTime.UtcNow.AddMonths(6)
+                    };
+                    _context.AssetInspections.Add(updatedInspection);
+                }
+            }
 
             await _context.SaveChangesAsync();
 

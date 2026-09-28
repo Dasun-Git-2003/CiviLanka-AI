@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   Activity,
   ShieldAlert,
+  Navigation,
+  Loader2,
 } from 'lucide-react';
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
 import { assetService } from '../services/assetService';
@@ -157,6 +159,24 @@ function MapPanner({ target }: { target: { lat: number; lng: number } | null }) 
     map.setZoom(15);
   }, [map, target]);
   return null;
+}
+
+/** Reverse geocodes lat/lng into a human-readable address string using OpenStreetMap Nominatim */
+async function reverseGeocode(lat: number, lon: number): Promise<string> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+    const res = await fetch(url, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'CiviLanka-App' },
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    if (data && data.display_name) {
+      return data.display_name.split(',').slice(0, 3).join(', ');
+    }
+    return '';
+  } catch {
+    return '';
+  }
 }
 
 // ─── Constants & Styles ───────────────────────────────────────────────────────
@@ -306,6 +326,9 @@ export default function InfrastructureAssets() {
   const handleRegister = async (dto: CreateAssetDto) => {
     try {
       const created = await assetService.create(dto);
+      if (!created.latestCondition && dto.condition) {
+        created.latestCondition = dto.condition;
+      }
       setAssets((prev) => [created, ...prev]);
       setShowRegisterModal(false);
     } catch (err: any) {
@@ -316,6 +339,9 @@ export default function InfrastructureAssets() {
   const handleUpdate = async (id: string, dto: UpdateAssetDto) => {
     try {
       const updated = await assetService.update(id, dto);
+      if (dto.condition) {
+        updated.latestCondition = dto.condition;
+      }
       setAssets((prev) => prev.map((a) => (a.id === id ? updated : a)));
       setEditTarget(null);
       if (detailsTarget?.id === id) {
@@ -806,6 +832,7 @@ function RegisterAssetModal({
     name: '',
     type: 'Water',
     status: 'Active',
+    condition: 'Good',
     location: '',
     installationDate: new Date().toISOString().split('T')[0],
     latitude: 6.9271,
@@ -815,6 +842,68 @@ function RegisterAssetModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [mapTarget, setMapTarget] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
+
+  const detectCurrentLocation = (isInitial = false) => {
+    if (!navigator.geolocation) {
+      if (!isInitial) {
+        alert('Geolocation is not supported by your browser.');
+      }
+      return;
+    }
+
+    setLocating(true);
+    setLocationStatus(isInitial ? 'Detecting current GPS location...' : 'Acquiring GPS position...');
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(6));
+        const lng = parseFloat(pos.coords.longitude.toFixed(6));
+
+        setForm((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+        }));
+        setMapTarget({ lat, lng });
+
+        try {
+          setLocationStatus('Resolving location address...');
+          const addr = await reverseGeocode(lat, lng);
+          if (addr) {
+            setForm((prev) => ({
+              ...prev,
+              location: addr,
+            }));
+            setErrors((prev) => ({ ...prev, location: '' }));
+          }
+        } catch (e) {
+          console.warn('Reverse geocoding error:', e);
+        } finally {
+          setLocating(false);
+          setLocationStatus(null);
+        }
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        setLocating(false);
+        setLocationStatus(null);
+        if (!isInitial) {
+          alert(`Could not detect current location: ${err.message}. You can pick on the map or type an address.`);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      }
+    );
+  };
+
+  useEffect(() => {
+    detectCurrentLocation(true);
+  }, []);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -877,7 +966,7 @@ function RegisterAssetModal({
             {errors.name && <p className="text-[11px] text-rose-500 mt-1">{errors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Asset Type <span className="text-rose-500">*</span>
@@ -911,12 +1000,48 @@ function RegisterAssetModal({
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Asset Condition <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={form.condition || 'Good'}
+                onChange={(e) => setForm({ ...form, condition: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+              >
+                <option value="Good">🟢 Good (Operational)</option>
+                <option value="Moderate">🟡 Moderate (Fair)</option>
+                <option value="Poor">🟠 Poor (Degraded)</option>
+                <option value="Critical">🔴 Critical (Hazard)</option>
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Location Address <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Location Address <span className="text-rose-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => detectCurrentLocation(false)}
+                disabled={locating}
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline cursor-pointer disabled:opacity-50"
+              >
+                {locating ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Detecting GPS...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    <span>My Current Location</span>
+                  </>
+                )}
+              </button>
+            </div>
             <LocationSearchBox
               value={form.location}
               onChange={(val) => {
@@ -931,13 +1056,22 @@ function RegisterAssetModal({
               }}
               error={errors.location}
             />
+            {locationStatus && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mt-1.5">
+                <Loader2 className="w-3 h-3 animate-spin flex-shrink-0" />
+                <span>{locationStatus}</span>
+              </p>
+            )}
           </div>
 
           {/* Interactive Map Picker */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Pin GIS Coordinates on Map
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Pin GIS Coordinates on Map
+              </label>
+              <span className="text-[11px] text-slate-400">Click anywhere on map to re-pin</span>
+            </div>
             <div className="rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden" style={{ height: '180px' }}>
               <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
                 <Map
@@ -945,16 +1079,29 @@ function RegisterAssetModal({
                   defaultCenter={{ lat: 6.9271, lng: 79.8612 }}
                   mapId="ASSET_REGISTER_MAP"
                   style={{ width: '100%', height: '100%' }}
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     const lat = e.detail.latLng?.lat;
                     const lng = e.detail.latLng?.lng;
                     if (lat !== undefined && lng !== undefined) {
+                      const fixedLat = parseFloat(lat.toFixed(6));
+                      const fixedLng = parseFloat(lng.toFixed(6));
                       setForm((prev) => ({
                         ...prev,
-                        latitude: parseFloat(lat.toFixed(6)),
-                        longitude: parseFloat(lng.toFixed(6)),
+                        latitude: fixedLat,
+                        longitude: fixedLng,
                       }));
                       setMapTarget(null);
+
+                      setLocationStatus('Resolving clicked location...');
+                      const addr = await reverseGeocode(fixedLat, fixedLng);
+                      setLocationStatus(null);
+                      if (addr) {
+                        setForm((prev) => ({
+                          ...prev,
+                          location: addr,
+                        }));
+                        setErrors((prev) => ({ ...prev, location: '' }));
+                      }
                     }
                   }}
                 >
@@ -1051,6 +1198,7 @@ function EditAssetModal({
     name: asset.name,
     type: asset.type,
     status: asset.status,
+    condition: asset.latestCondition || 'Good',
     location: asset.location,
     installationDate: asset.installationDate
       ? new Date(asset.installationDate).toISOString().split('T')[0]
@@ -1106,7 +1254,7 @@ function EditAssetModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Asset Type
@@ -1138,6 +1286,22 @@ function EditAssetModal({
                     {st}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Asset Condition
+              </label>
+              <select
+                value={form.condition || 'Good'}
+                onChange={(e) => setForm({ ...form, condition: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium"
+              >
+                <option value="Good">🟢 Good (Operational)</option>
+                <option value="Moderate">🟡 Moderate (Fair)</option>
+                <option value="Poor">🟠 Poor (Degraded)</option>
+                <option value="Critical">🔴 Critical (Hazard)</option>
               </select>
             </div>
           </div>
