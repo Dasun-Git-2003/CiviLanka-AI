@@ -149,8 +149,7 @@ namespace CiviLanka.API.Controllers
                 AssetId = asset.Id,
                 InspectorName = "System",
                 Condition = !string.IsNullOrWhiteSpace(dto.Condition) ? dto.Condition.Trim() : "Good",
-                Notes = "Initial asset registration baseline condition",
-                NextInspectionDue = DateTime.UtcNow.AddMonths(6)
+                Notes = "Initial asset registration baseline condition"
             };
             _context.AssetInspections.Add(initialInspection);
 
@@ -202,8 +201,7 @@ namespace CiviLanka.API.Controllers
                         AssetId = asset.Id,
                         InspectorName = "System",
                         Condition = dto.Condition.Trim(),
-                        Notes = "Condition updated via Asset Registry",
-                        NextInspectionDue = DateTime.UtcNow.AddMonths(6)
+                        Notes = "Condition updated via Asset Registry"
                     };
                     _context.AssetInspections.Add(updatedInspection);
                 }
