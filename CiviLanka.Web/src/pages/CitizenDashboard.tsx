@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { apiClient, getErrorMessage } from '../services/apiService';
 import { authService } from '../services/authService';
+import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
 
 export interface HazardAIAnalysisDto {
@@ -73,17 +74,18 @@ const COLOMBO_HOTSPOTS = [
 ];
 
 const HAZARD_CATEGORIES = [
-  { value: 'Pothole', label: 'Pothole / Road Surface Crater' },
-  { value: 'DamagedRoad', label: 'Damaged Road / Shoulder Subsidence' },
-  { value: 'WaterLeak', label: 'Water Leak / Burst Main Pipe' },
-  { value: 'BrokenTrafficSignal', label: 'Broken Traffic Signal / Junction Lights' },
-  { value: 'FallenTree', label: 'Fallen Tree / Road Obstruction' },
-  { value: 'DrainageProblem', label: 'Drainage Problem / Monsoon Culvert Clog' },
-  { value: 'StreetLightProblem', label: 'Street Light Outage / Dark Corridor' },
-  { value: 'Other', label: 'Other Municipal Hazard' },
+  { value: 'Pothole', label: 'Pothole / Road Surface Crater', labelSi: 'වලවල් / මාර්ග මතුපිට හානි' },
+  { value: 'DamagedRoad', label: 'Damaged Road / Shoulder Subsidence', labelSi: 'හානි වූ මාර්ගය / බැම්ම ගිලාබැසීම' },
+  { value: 'WaterLeak', label: 'Water Leak / Burst Main Pipe', labelSi: 'ජල කාන්දුව / ප්‍රධාන නළය පිපිරීම' },
+  { value: 'BrokenTrafficSignal', label: 'Broken Traffic Signal / Junction Lights', labelSi: 'අක්‍රිය මාර්ග සංඥා / මංසන්ධි විදුලි පහන්' },
+  { value: 'FallenTree', label: 'Fallen Tree / Road Obstruction', labelSi: 'කඩා වැටුණු ගස් / මාර්ග බාධා' },
+  { value: 'DrainageProblem', label: 'Drainage Problem / Monsoon Culvert Clog', labelSi: 'කානු ගැටළු / ජල කානු අවහිරතා' },
+  { value: 'StreetLightProblem', label: 'Street Light Outage / Dark Corridor', labelSi: 'වීදි ලාම්පු අක්‍රිය වීම' },
+  { value: 'Other', label: 'Other Municipal Hazard', labelSi: 'වෙනත් නාගරික උපද්‍රව' },
 ];
 
 export const CitizenDashboard: React.FC = () => {
+  const { isSinhala } = useLanguage();
   const user = authService.getCurrentUser();
   const [hazards, setHazards] = useState<HazardDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -650,6 +652,26 @@ export const CitizenDashboard: React.FC = () => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    if (!isSinhala) return status;
+    switch (status.toLowerCase()) {
+      case 'submitted': return 'ඉදිරිපත් කළා';
+      case 'pendingaianalysis': return 'AI විශ්ලේෂණය අපේක්ෂාවෙන්';
+      case 'analysiscomplete': return 'විශ්ලේෂණය සම්පූර්ණයි';
+      case 'underreview': return 'සමාලෝචනය වෙමින්';
+      case 'inprogress': return 'ක්‍රියාත්මක වෙමින්';
+      case 'resolved': return 'විසඳන ලදි';
+      case 'cancelled': return 'අවලංගු කළා';
+      default: return status;
+    }
+  };
+
+  const getCategoryText = (cat: string) => {
+    if (!isSinhala) return cat;
+    const found = HAZARD_CATEGORIES.find((c) => c.value.toLowerCase() === (cat || '').toLowerCase());
+    return found?.labelSi || cat;
+  };
+
   // ── Filtered Hazards List ──────────────────────────────────────────────────
   const filteredHazards = hazards.filter((h) => {
     // Status tab filter
@@ -693,15 +715,17 @@ export const CitizenDashboard: React.FC = () => {
         <div className="relative z-10 max-w-2xl space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-200">
             <Shield className="w-3.5 h-3.5 text-cyan-400" />
-            <span>CITIZEN INFRASTRUCTURE DESK &bull; COLOMBO MUNICIPALITY</span>
+            <span>
+              {isSinhala ? 'පුරවැසි යටිතල පහසුකම් අංශය • කොළඹ මහ නගර සභාව' : 'CITIZEN INFRASTRUCTURE DESK • COLOMBO MUNICIPALITY'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome, {user?.fullName || 'Citizen'}
+            {isSinhala ? `ආයුබෝවන්, ${user?.fullName || 'පුරවැසියනි'}` : `Welcome, ${user?.fullName || 'Citizen'}`}
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-            Report broken infrastructure, potholes, damaged signals, and water leaks. CivitaGuard AI
-            triages reports with computer vision and coordinates field repair crews with transparent
-            updates.
+            {isSinhala
+              ? 'විනාශ වූ යටිතල පහසුකම්, වලවල්, හානි වූ සංඥා පුවරු සහ ජල කාන්දුවීම් වාර්තා කරන්න. CivitaGuard AI මඟින් වාර්තා වර්ගීකරණය කර ක්ෂේත්‍ර අලුත්වැඩියා කණ්ඩායම් සම්බන්ධීකරණය කරයි.'
+              : 'Report broken infrastructure, potholes, damaged signals, and water leaks. CivitaGuard AI triages reports with computer vision and coordinates field repair crews with transparent updates.'}
           </p>
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
@@ -709,20 +733,20 @@ export const CitizenDashboard: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs tracking-wider uppercase transition-all shadow-md shadow-cyan-500/25 cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Report New Hazard</span>
+              <span>{isSinhala ? 'නව උපද්‍රවයක් වාර්තා කරන්න' : 'Report New Hazard'}</span>
             </button>
             <Link
               to="/dashboard"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-colors border border-white/10"
             >
               <MapPin className="w-4 h-4 text-cyan-300" />
-              <span>View City GIS Map</span>
+              <span>{isSinhala ? 'නාගරික GIS සිතියම බලන්න' : 'View City GIS Map'}</span>
             </Link>
             <Link
               to="/analytics"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs transition-colors border border-white/10"
             >
-              <span>View Safety Analytics</span>
+              <span>{isSinhala ? 'ආරක්ෂණ විශ්ලේෂණ බලන්න' : 'View Safety Analytics'}</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -733,38 +757,54 @@ export const CitizenDashboard: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">My Submissions</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              {isSinhala ? 'මගේ ඉදිරිපත් කිරීම්' : 'My Submissions'}
+            </span>
             <AlertTriangle className="w-4 h-4 text-cyan-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{totalCount}</div>
-          <p className="text-[11px] text-slate-500">Total hazards logged by you</p>
+          <p className="text-[11px] text-slate-500">
+            {isSinhala ? 'ඔබ විසින් වාර්තා කරන ලද උපද්‍රව' : 'Total hazards logged by you'}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Under Review</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              {isSinhala ? 'සමාලෝචනය වෙමින්' : 'Under Review'}
+            </span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{underReviewCount}</div>
-          <p className="text-[11px] text-slate-500">AI triage & municipal verification</p>
+          <p className="text-[11px] text-slate-500">
+            {isSinhala ? 'AI වර්ගීකරණය සහ නාගරික තහවුරු කිරීම' : 'AI triage & municipal verification'}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Field Repair</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              {isSinhala ? 'ක්ෂේත්‍ර අලුත්වැඩියාව' : 'Field Repair'}
+            </span>
             <Sparkles className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{inProgressCount}</div>
-          <p className="text-[11px] text-slate-500">Assigned crew actively fixing</p>
+          <p className="text-[11px] text-slate-500">
+            {isSinhala ? 'කණ්ඩායම අලුත්වැඩියා කරමින් සිටී' : 'Assigned crew actively fixing'}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Resolved</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">
+              {isSinhala ? 'විසඳන ලද' : 'Resolved'}
+            </span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{resolvedCount}</div>
-          <p className="text-[11px] text-slate-500">Completed and supervisor verified</p>
+          <p className="text-[11px] text-slate-500">
+            {isSinhala ? 'අවසන් කර අධීක්ෂක විසින් තහවුරු කළ' : 'Completed and supervisor verified'}
+          </p>
         </div>
       </div>
 
@@ -774,9 +814,13 @@ export const CitizenDashboard: React.FC = () => {
         <div className="p-5 border-b border-slate-200 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">My Hazard Reports</h2>
+              <h2 className="text-base font-bold text-slate-900">
+                {isSinhala ? 'මගේ උපද්‍රව වාර්තා' : 'My Hazard Reports'}
+              </h2>
               <p className="text-xs text-slate-500">
-                View, update, or cancel municipal infrastructure hazards submitted from your account.
+                {isSinhala
+                  ? 'ඔබගේ ගිණුමෙන් ඉදිරිපත් කරන ලද නාගරික යටිතල පහසුකම් උපද්‍රව බලන්න, යාවත්කාලීන කරන්න හෝ අවලංගු කරන්න.'
+                  : 'View, update, or cancel municipal infrastructure hazards submitted from your account.'}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -784,17 +828,17 @@ export const CitizenDashboard: React.FC = () => {
                 onClick={() => fetchMyHazards(true)}
                 disabled={refreshing}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50"
-                title="Refresh table records"
+                title={isSinhala ? 'වගු වාර්තා නැවුම් කරන්න' : 'Refresh table records'}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-cyan-600' : ''}`} />
-                <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+                <span>{refreshing ? (isSinhala ? 'නැවුම් වෙමින්...' : 'Refreshing...') : (isSinhala ? 'නැවුම් කරන්න' : 'Refresh')}</span>
               </button>
               <button
                 onClick={handleOpenCreate}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all shadow-2xs"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
-                <span>Report Hazard</span>
+                <span>{isSinhala ? 'උපද්‍රවයක් වාර්තා කරන්න' : 'Report Hazard'}</span>
               </button>
             </div>
           </div>
@@ -804,16 +848,16 @@ export const CitizenDashboard: React.FC = () => {
             {/* Status Tabs */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {([
-                { key: 'all', label: 'All Reports', count: hazards.length },
-                { key: 'active', label: 'Active', count: hazards.filter((h) => h.status !== 'Resolved' && h.status !== 'Cancelled').length },
-                { key: 'in_progress', label: 'In Progress', count: inProgressCount },
-                { key: 'resolved', label: 'Resolved', count: resolvedCount },
-                { key: 'cancelled', label: 'Cancelled', count: hazards.filter((h) => h.status === 'Cancelled').length },
+                { key: 'all', label: isSinhala ? 'සියලු වාර්තා' : 'All Reports', count: hazards.length },
+                { key: 'active', label: isSinhala ? 'සක්‍රීය' : 'Active', count: hazards.filter((h) => h.status !== 'Resolved' && h.status !== 'Cancelled').length },
+                { key: 'in_progress', label: isSinhala ? 'ක්‍රියාත්මක වෙමින්' : 'In Progress', count: inProgressCount },
+                { key: 'resolved', label: isSinhala ? 'විසඳන ලද' : 'Resolved', count: resolvedCount },
+                { key: 'cancelled', label: isSinhala ? 'අවලංගු කළ' : 'Cancelled', count: hazards.filter((h) => h.status === 'Cancelled').length },
               ] as const).map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setStatusTabFilter(tab.key)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     statusTabFilter === tab.key
                       ? 'bg-cyan-700 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -832,7 +876,7 @@ export const CitizenDashboard: React.FC = () => {
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search ticket, category, street..."
+                placeholder={isSinhala ? 'ප්‍රවේශපත්‍රය, වර්ගය, වීදිය සොයන්න...' : 'Search ticket, category, street...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white"
@@ -852,7 +896,7 @@ export const CitizenDashboard: React.FC = () => {
         {loading ? (
           <div className="p-12 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-cyan-600" />
-            <span>Connecting to municipal hazard records...</span>
+            <span>{isSinhala ? 'නාගරික උපද්‍රව වාර්තා සමඟ සම්බන්ධ වෙමින්...' : 'Connecting to municipal hazard records...'}</span>
           </div>
         ) : filteredHazards.length === 0 ? (
           <div className="p-12 text-center space-y-3">
@@ -860,20 +904,26 @@ export const CitizenDashboard: React.FC = () => {
               <CheckCircle2 className="w-6 h-6 text-emerald-500" />
             </div>
             <h3 className="text-sm font-bold text-slate-800">
-              {hazards.length === 0 ? 'No Reported Hazards Yet' : 'No Matching Hazard Reports'}
+              {hazards.length === 0
+                ? (isSinhala ? 'තවම කිසිදු උපද්‍රවයක් වාර්තා කර නැත' : 'No Reported Hazards Yet')
+                : (isSinhala ? 'ගැලපෙන උපද්‍රව වාර්තා හමු නොවීය' : 'No Matching Hazard Reports')}
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
               {hazards.length === 0
-                ? 'When you notice a pothole, broken streetlight, or burst pipe, report it here for prompt municipal dispatch!'
-                : 'No reports match your current filter or search keyword. Try clearing search filters.'}
+                ? (isSinhala
+                    ? 'වලක්, කැඩුණු වීදි ලාම්පුවක් හෝ ජල නළ කාන්දුවක් දුටු විට, නාගරික කණ්ඩායම් වෙත ක්ෂණිකව යැවීමට මෙහි වාර්තා කරන්න!'
+                    : 'When you notice a pothole, broken streetlight, or burst pipe, report it here for prompt municipal dispatch!')
+                : (isSinhala
+                    ? 'ඔබගේ සෙවුමට ගැලපෙන වාර්තා නොමැත. සෙවුම් පෙරහන් ඉවත් කර නැවත බලන්න.'
+                    : 'No reports match your current filter or search keyword. Try clearing search filters.')}
             </p>
             {hazards.length === 0 && (
               <button
                 onClick={handleOpenCreate}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>Submit First Report</span>
+                <span>{isSinhala ? 'පළමු වාර්තාව ඉදිරිපත් කරන්න' : 'Submit First Report'}</span>
               </button>
             )}
           </div>
@@ -882,12 +932,12 @@ export const CitizenDashboard: React.FC = () => {
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-200">
                 <tr>
-                  <th className="px-5 py-3">Ticket #</th>
-                  <th className="px-5 py-3">Category & Severity</th>
-                  <th className="px-5 py-3">Description & Location</th>
-                  <th className="px-5 py-3">Reported Date</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
+                  <th className="px-5 py-3">{isSinhala ? 'ප්‍රවේශපත්‍ර අංකය' : 'Ticket #'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'වර්ගය සහ බරපතලකම' : 'Category & Severity'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'විස්තරය සහ ස්ථානය' : 'Description & Location'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'වාර්තා කළ දිනය' : 'Reported Date'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'තත්ත්වය' : 'Status'}</th>
+                  <th className="px-5 py-3 text-right">{isSinhala ? 'ක්‍රියාමාර්ග' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -906,14 +956,14 @@ export const CitizenDashboard: React.FC = () => {
 
                       {/* Category & Severity */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="font-semibold text-slate-800">{h.category}</div>
+                        <div className="font-semibold text-slate-800">{getCategoryText(h.category)}</div>
                         {h.severity && (
                           <span
                             className={`mt-1 inline-flex items-center px-1.5 py-0.2 rounded-md text-[9px] font-bold uppercase border ${getSeverityBadge(
                               h.severity
                             )}`}
                           >
-                            {h.severity}
+                            {h.severity} {isSinhala ? 'බරපතලකම' : ''}
                           </span>
                         )}
                       </td>
@@ -936,10 +986,10 @@ export const CitizenDashboard: React.FC = () => {
                             <Link
                               to={`/dashboard?focus=${h.ticketNumber}`}
                               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 font-sans font-bold text-[10px] transition-colors shadow-2xs"
-                              title="View this report pinned on City GIS Map"
+                              title={isSinhala ? 'මෙම වාර්තාව නාගරික GIS සිතියමේ බලන්න' : 'View this report pinned on City GIS Map'}
                             >
                               <MapPin className="w-2.5 h-2.5 text-cyan-700" />
-                              <span>View on Map</span>
+                              <span>{isSinhala ? 'සිතියමේ බලන්න' : 'View on Map'}</span>
                             </Link>
                           </div>
                         )}
@@ -956,7 +1006,7 @@ export const CitizenDashboard: React.FC = () => {
                                   key={i}
                                   type="button"
                                   onClick={() => setActiveLightboxImage(resolvedUrl)}
-                                  className="relative group w-8 h-8 rounded-md overflow-hidden border border-slate-200 hover:border-cyan-500 transition-all shrink-0 shadow-2xs"
+                                  className="relative group w-8 h-8 rounded-md overflow-hidden border border-slate-200 hover:border-cyan-500 transition-all shrink-0 shadow-2xs cursor-pointer"
                                   title="Click to view full photo evidence"
                                 >
                                   <img
@@ -990,7 +1040,7 @@ export const CitizenDashboard: React.FC = () => {
                             h.status
                           )}`}
                         >
-                          {h.status}
+                          {getStatusText(h.status)}
                         </span>
                       </td>
 
@@ -1001,11 +1051,11 @@ export const CitizenDashboard: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setDetailsHazard(h)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
-                            title="View Full Report Details & AI Triage"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                            title={isSinhala ? 'සම්පූර්ණ වාර්තා විස්තර සහ AI වර්ගීකරණය බලන්න' : 'View Full Report Details & AI Triage'}
                           >
                             <Eye className="w-3 h-3 text-slate-600" />
-                            <span>Details</span>
+                            <span>{isSinhala ? 'විස්තර' : 'Details'}</span>
                           </button>
 
                           {/* 2. Edit (Update) */}
@@ -1015,13 +1065,13 @@ export const CitizenDashboard: React.FC = () => {
                             disabled={!editable}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
                               editable
-                                ? 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200'
+                                ? 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 cursor-pointer'
                                 : 'bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed'
                             }`}
-                            title={editable ? 'Edit Report' : 'Locked from editing (under dispatch or resolved)'}
+                            title={editable ? (isSinhala ? 'වාර්තාව සංස්කරණය කරන්න' : 'Edit Report') : (isSinhala ? 'සංස්කරණය කළ නොහැක' : 'Locked from editing')}
                           >
                             <Edit2 className="w-3 h-3" />
-                            <span>Edit</span>
+                            <span>{isSinhala ? 'සංස්කරණය' : 'Edit'}</span>
                           </button>
 
                           {/* 3. Delete / Cancel (Delete) */}
@@ -1031,13 +1081,13 @@ export const CitizenDashboard: React.FC = () => {
                             disabled={!cancellable}
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
                               cancellable
-                                ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                                ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 cursor-pointer'
                                 : 'bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed'
                             }`}
-                            title={cancellable ? 'Cancel or Delete Report' : 'Already in progress or closed'}
+                            title={cancellable ? (isSinhala ? 'වාර්තාව අවලංගු කරන්න හෝ ඉවත් කරන්න' : 'Cancel or Delete Report') : (isSinhala ? 'දැනටමත් ක්‍රියාත්මකයි' : 'Already in progress')}
                           >
                             <Trash2 className="w-3 h-3" />
-                            <span>Delete</span>
+                            <span>{isSinhala ? 'අවලංගු' : 'Delete'}</span>
                           </button>
                         </div>
                       </td>
@@ -1058,16 +1108,17 @@ export const CitizenDashboard: React.FC = () => {
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900">
-              Immediate Emergency / Life-Threatening Road Hazards?
+              {isSinhala ? 'හදිසි අනතුරු / ජීවිතයට තර්ජනයක් වන මාර්ග උපද්‍රව?' : 'Immediate Emergency / Life-Threatening Road Hazards?'}
             </h4>
             <p className="text-[11px] text-slate-500">
-              For collapsed bridges, live exposed powerlines, or major gas leaks, contact Colombo
-              Municipal Disaster Response.
+              {isSinhala
+                ? 'කඩා වැටුණු පාලම්, සජීවී විදුලි රැහැන් හෝ විශාල ගෑස් කාන්දුවීම් සඳහා කොළඹ ආපදා ප්‍රතිචාර අංශය අමතන්න.'
+                : 'For collapsed bridges, live exposed powerlines, or major gas leaks, contact Colombo Municipal Disaster Response.'}
             </p>
           </div>
         </div>
         <div className="text-xs font-mono font-bold text-slate-900 bg-white px-4 py-2 rounded-xl border border-slate-200">
-          Emergency Hotline: <span className="text-cyan-700">1990 / 011-2691111</span>
+          {isSinhala ? 'හදිසි ඇමතුම් අංකය:' : 'Emergency Hotline:'} <span className="text-cyan-700">1990 / 011-2691111</span>
         </div>
       </div>
 
@@ -1080,11 +1131,13 @@ export const CitizenDashboard: React.FC = () => {
             <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-cyan-600" />
-                <h3 className="text-sm font-bold text-slate-900">Report Municipal Hazard</h3>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {isSinhala ? 'නාගරික උපද්‍රවයක් වාර්තා කරන්න' : 'Report Municipal Hazard'}
+                </h3>
               </div>
               <button
                 onClick={handleCloseCreate}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-md"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1095,10 +1148,14 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl space-y-1.5 animate-in fade-in">
                   <div className="flex items-center gap-1.5 font-bold">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Report Registered Successfully! {submittedTicket ? `(${submittedTicket})` : ''}</span>
+                    <span>
+                      {isSinhala ? 'වාර්තාව සාර්ථකව ලියාපදිංචි කරන ලදි!' : 'Report Registered Successfully!'} {submittedTicket ? `(${submittedTicket})` : ''}
+                    </span>
                   </div>
                   <p className="text-[11px] text-emerald-700">
-                    Your hazard has been saved with GPS coordinates and pinned live to the City GIS Map.
+                    {isSinhala
+                      ? 'ඔබගේ උපද්‍රව වාර්තාව GPS ඛණ්ඩාංක සමඟ සුරකින ලද අතර සජීවී නාගරික GIS සිතියමට එක් කරන ලදි.'
+                      : 'Your hazard has been saved with GPS coordinates and pinned live to the City GIS Map.'}
                   </p>
                   {submittedTicket && (
                     <Link
@@ -1106,7 +1163,7 @@ export const CitizenDashboard: React.FC = () => {
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-800 hover:text-cyan-900 bg-white border border-emerald-300 px-3 py-1.5 rounded-lg shadow-2xs transition-all mt-1"
                     >
                       <MapPin className="w-3.5 h-3.5 text-cyan-600" />
-                      <span>View Live Pin on GIS Map &rarr;</span>
+                      <span>{isSinhala ? 'GIS සිතියමෙන් සජීවීව බලන්න →' : 'View Live Pin on GIS Map →'}</span>
                     </Link>
                   )}
                 </div>
@@ -1119,7 +1176,9 @@ export const CitizenDashboard: React.FC = () => {
               )}
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Hazard Category</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  {isSinhala ? 'උපද්‍රව වර්ගය' : 'Hazard Category'}
+                </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -1127,7 +1186,7 @@ export const CitizenDashboard: React.FC = () => {
                 >
                   {HAZARD_CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value}>
-                      {cat.label}
+                      {isSinhala ? cat.labelSi : cat.label}
                     </option>
                   ))}
                 </select>
@@ -1135,24 +1194,30 @@ export const CitizenDashboard: React.FC = () => {
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Description <span className="text-red-500">*</span>
+                  {isSinhala ? 'විස්තරය' : 'Description'} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Provide precise details: size, road damage depth, safety hazards to pedestrians..."
+                  placeholder={
+                    isSinhala
+                      ? 'නිශ්චිත තොරතුරු සපයන්න: ප්‍රමාණය, මාර්ග හානියේ ගැඹුර, පදිකයන්ට ඇති අවදානම...'
+                      : 'Provide precise details: size, road damage depth, safety hazards to pedestrians...'
+                  }
                   className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Street Address or Landmark</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  {isSinhala ? 'වීදියේ ලිපිනය හෝ ආසන්න සලකුණ' : 'Street Address or Landmark'}
+                </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. Galle Road near Kollupitiya Junction, Colombo 03"
+                  placeholder={isSinhala ? 'උදා: ගාලු පාර, කොල්ලුපිටිය මංසන්ධිය අසල, කොළඹ 03' : 'e.g. Galle Road near Kollupitiya Junction, Colombo 03'}
                   className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
                 />
               </div>
@@ -1162,10 +1227,10 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800">
                     <Camera className="w-4 h-4 text-cyan-600" />
-                    <span>Upload Hazard Images / Photographic Evidence</span>
+                    <span>{isSinhala ? 'උපද්‍රව ඡායාරූප / සාක්ෂි උඩුගත කරන්න' : 'Upload Hazard Images / Photographic Evidence'}</span>
                   </div>
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Max 10MB each
+                    {isSinhala ? 'උපරිම 10MB බැගින්' : 'Max 10MB each'}
                   </span>
                 </div>
 
@@ -1188,8 +1253,12 @@ export const CitizenDashboard: React.FC = () => {
                   className="border-2 border-dashed border-slate-300 hover:border-cyan-500 bg-white rounded-xl p-4 text-center cursor-pointer transition-colors"
                 >
                   <UploadCloud className="w-7 h-7 text-cyan-600 mx-auto mb-1.5" />
-                  <p className="text-xs font-bold text-slate-700">Drag & drop photos or click to browse</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Supports single or multi-photo uploads</p>
+                  <p className="text-xs font-bold text-slate-700">
+                    {isSinhala ? 'ඡායාරූප මෙතැනට ඇද දමන්න හෝ බ්‍රවුස් කිරීමට ක්ලික් කරන්න' : 'Drag & drop photos or click to browse'}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {isSinhala ? 'තනි හෝ බහුවිධ ඡායාරූප උඩුගත කිරීම් සඳහා සහය දක්වයි' : 'Supports single or multi-photo uploads'}
+                  </p>
                 </div>
 
                 {previewUrls.length > 0 && (
@@ -1200,7 +1269,7 @@ export const CitizenDashboard: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeSelectedFile(idx)}
-                          className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md opacity-90 hover:opacity-100"
+                          className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md opacity-90 hover:opacity-100 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -1210,20 +1279,22 @@ export const CitizenDashboard: React.FC = () => {
                 )}
 
                 <div className="pt-1 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Test Presets:</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                    {isSinhala ? 'පරීක්ෂණ සාම්පල:' : 'Test Presets:'}
+                  </span>
                   <button
                     type="button"
                     onClick={() => addSamplePhoto('Pothole Asphalt Damage', '#334155')}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold"
+                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
                   >
-                    + Pothole Photo
+                    {isSinhala ? '+ වලවල් ඡායාරූපය' : '+ Pothole Photo'}
                   </button>
                   <button
                     type="button"
                     onClick={() => addSamplePhoto('Water Main Pipe Burst', '#0284c7')}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold"
+                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
                   >
-                    + Water Burst Photo
+                    {isSinhala ? '+ ජල කාන්දු ඡායාරූපය' : '+ Water Burst Photo'}
                   </button>
                 </div>
               </div>
@@ -1233,16 +1304,16 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800">
                     <Compass className="w-4 h-4 text-cyan-600" />
-                    <span>GIS Geodetic Location</span>
+                    <span>{isSinhala ? 'GIS භූගෝලීය ස්ථානය' : 'GIS Geodetic Location'}</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleDetectLocation}
                     disabled={detectingLocation}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800 cursor-pointer"
                   >
                     {detectingLocation ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
-                    <span>{detectingLocation ? 'Locating...' : 'Auto-Detect GPS'}</span>
+                    <span>{detectingLocation ? (isSinhala ? 'ස්ථානය සොයමින්...' : 'Locating...') : (isSinhala ? 'ස්වයංක්‍රීය GPS' : 'Auto-Detect GPS')}</span>
                   </button>
                 </div>
 
@@ -1259,7 +1330,9 @@ export const CitizenDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Latitude (°N)</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                      {isSinhala ? 'අක්ෂාංශය (°N)' : 'Latitude (°N)'}
+                    </label>
                     <input
                       type="text"
                       value={latitude}
@@ -1269,7 +1342,9 @@ export const CitizenDashboard: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Longitude (°E)</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                      {isSinhala ? 'දේශාංශය (°E)' : 'Longitude (°E)'}
+                    </label>
                     <input
                       type="text"
                       value={longitude}
@@ -1284,7 +1359,7 @@ export const CitizenDashboard: React.FC = () => {
                   type="text"
                   value={coordinatePaste}
                   onChange={(e) => handleCoordinatePaste(e.target.value)}
-                  placeholder="Paste Google Maps URL or lat, lng..."
+                  placeholder={isSinhala ? 'Google Maps සබැඳිය හෝ lat, lng මෙහි අලවන්න...' : 'Paste Google Maps URL or lat, lng...'}
                   className="w-full p-2 rounded-lg border border-slate-300 bg-white text-[11px]"
                 />
 
@@ -1299,7 +1374,7 @@ export const CitizenDashboard: React.FC = () => {
                   onClick={handleCloseCreate}
                   className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold cursor-pointer"
                 >
-                  Cancel
+                  {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -1309,10 +1384,10 @@ export const CitizenDashboard: React.FC = () => {
                   {submitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Submitting...</span>
+                      <span>{isSinhala ? 'ඉදිරිපත් කරමින්...' : 'Submitting...'}</span>
                     </>
                   ) : (
-                    <span>Submit Report</span>
+                    <span>{isSinhala ? 'වාර්තාව ඉදිරිපත් කරන්න' : 'Submit Report'}</span>
                   )}
                 </button>
               </div>
@@ -1349,23 +1424,25 @@ export const CitizenDashboard: React.FC = () => {
               {/* Badges row */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${getStatusBadge(detailsHazard.status)}`}>
-                  Status: {detailsHazard.status}
+                  {isSinhala ? 'තත්ත්වය:' : 'Status:'} {getStatusText(detailsHazard.status)}
                 </span>
                 {detailsHazard.severity && (
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${getSeverityBadge(detailsHazard.severity)}`}>
-                    {detailsHazard.severity} Severity
+                    {detailsHazard.severity} {isSinhala ? 'බරපතලකම' : 'Severity'}
                   </span>
                 )}
                 {detailsHazard.priority && (
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                    Priority: {detailsHazard.priority}
+                    {isSinhala ? 'ප්‍රමුඛතාව:' : 'Priority:'} {detailsHazard.priority}
                   </span>
                 )}
               </div>
 
               {/* Description */}
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Description</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {isSinhala ? 'විස්තරය' : 'Description'}
+                </label>
                 <p className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs leading-relaxed whitespace-pre-wrap">
                   {detailsHazard.description}
                 </p>
@@ -1376,14 +1453,14 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-bold text-slate-700 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-cyan-600" />
-                    <span>Location Details</span>
+                    <span>{isSinhala ? 'ස්ථාන තොරතුරු' : 'Location Details'}</span>
                   </span>
                   {detailsHazard.latitude && detailsHazard.longitude && (
                     <Link
                       to={`/dashboard?focus=${detailsHazard.ticketNumber}`}
                       className="text-cyan-700 hover:text-cyan-800 font-bold inline-flex items-center gap-1"
                     >
-                      <span>Focus on GIS Map &rarr;</span>
+                      <span>{isSinhala ? 'GIS සිතියම වෙත යන්න →' : 'Focus on GIS Map →'}</span>
                     </Link>
                   )}
                 </div>
@@ -1404,7 +1481,7 @@ export const CitizenDashboard: React.FC = () => {
                       title="Copy coordinates"
                     >
                       {copiedCoords ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      <span>{copiedCoords ? 'Copied' : 'Copy'}</span>
+                      <span>{copiedCoords ? (isSinhala ? 'පිටපත් කළා' : 'Copied') : (isSinhala ? 'පිටපත් කරන්න' : 'Copy')}</span>
                     </button>
                   </div>
                 )}
@@ -1415,7 +1492,7 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                     <Camera className="w-3 h-3 text-cyan-600" />
-                    <span>Attached Photos ({detailsHazard.imageUrl.split(',').filter(Boolean).length})</span>
+                    <span>{isSinhala ? `අමුණා ඇති ඡායාරූප (${detailsHazard.imageUrl.split(',').filter(Boolean).length})` : `Attached Photos (${detailsHazard.imageUrl.split(',').filter(Boolean).length})`}</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {detailsHazard.imageUrl.split(',').filter(Boolean).map((imgUrl, i) => {
@@ -1446,19 +1523,19 @@ export const CitizenDashboard: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 font-bold text-cyan-900">
                       <Sparkles className="w-4 h-4 text-cyan-600" />
-                      <span>CivitaGuard AI Computer Vision Triage</span>
+                      <span>{isSinhala ? 'CivitaGuard AI පරිගණක දෘශ්‍ය විශ්ලේෂණය' : 'CivitaGuard AI Computer Vision Triage'}</span>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-cyan-800 border border-cyan-200">
-                      {(detailsHazard.latestAIAnalysis.confidence * 100).toFixed(0)}% Confidence
+                      {(detailsHazard.latestAIAnalysis.confidence * 100).toFixed(0)}% {isSinhala ? 'විශ්වාසනීයත්වය' : 'Confidence'}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-700 leading-relaxed">
                     {detailsHazard.latestAIAnalysis.reason}
                   </p>
                   <div className="flex items-center gap-2 pt-1 text-[10px] text-slate-500 font-mono">
-                    <span>Model: {detailsHazard.latestAIAnalysis.modelName}</span>
+                    <span>{isSinhala ? 'මාදිලිය:' : 'Model:'} {detailsHazard.latestAIAnalysis.modelName}</span>
                     <span>&bull;</span>
-                    <span>Risk: {detailsHazard.latestAIAnalysis.riskLevel}</span>
+                    <span>{isSinhala ? 'අවදානම:' : 'Risk:'} {detailsHazard.latestAIAnalysis.riskLevel}</span>
                   </div>
                 </div>
               )}
@@ -1467,7 +1544,7 @@ export const CitizenDashboard: React.FC = () => {
             {/* Footer */}
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
               <div className="text-[11px] text-slate-400">
-                Logged on {new Date(detailsHazard.createdAt).toLocaleString()}
+                {isSinhala ? 'ලියාපදිංචි කළ දිනය:' : 'Logged on'} {new Date(detailsHazard.createdAt).toLocaleString(isSinhala ? 'si-LK' : undefined)}
               </div>
               <div className="flex items-center gap-2">
                 {isHazardEditable(detailsHazard.status) && (
@@ -1481,7 +1558,7 @@ export const CitizenDashboard: React.FC = () => {
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition-colors"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
-                    <span>Edit Report</span>
+                    <span>{isSinhala ? 'වාර්තාව සංස්කරණය' : 'Edit Report'}</span>
                   </button>
                 )}
                 {isHazardCancellable(detailsHazard.status) && (
@@ -1495,15 +1572,15 @@ export const CitizenDashboard: React.FC = () => {
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold text-xs transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete / Cancel</span>
+                    <span>{isSinhala ? 'මකන්න / අවලංගු කරන්න' : 'Delete / Cancel'}</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setDetailsHazard(null)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs"
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs cursor-pointer"
                 >
-                  Close
+                  {isSinhala ? 'වසන්න' : 'Close'}
                 </button>
               </div>
             </div>
@@ -1521,13 +1598,13 @@ export const CitizenDashboard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-cyan-600" />
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Edit Hazard Report</h3>
+                  <h3 className="text-sm font-bold text-slate-900">{isSinhala ? 'අනතුරු වාර්තාව සංස්කරණය කරන්න' : 'Edit Hazard Report'}</h3>
                   <p className="text-[11px] font-mono text-cyan-800 font-bold">{editingHazard.ticketNumber}</p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingHazard(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-md"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1537,7 +1614,7 @@ export const CitizenDashboard: React.FC = () => {
               {editSuccess && (
                 <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-medium flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Hazard report updated successfully! Updating municipal dispatch records...</span>
+                  <span>{isSinhala ? 'අනතුරු වාර්තාව සාර්ථකව යාවත්කාලීන කරන ලදී! නගර සභා වාර්තා යාවත්කාලීන වෙමින් පවතී...' : 'Hazard report updated successfully! Updating municipal dispatch records...'}</span>
                 </div>
               )}
 
@@ -1548,7 +1625,7 @@ export const CitizenDashboard: React.FC = () => {
               )}
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Hazard Category</label>
+                <label className="block font-bold text-slate-700 mb-1">{isSinhala ? 'අනතුරු වර්ගය' : 'Hazard Category'}</label>
                 <select
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
@@ -1556,7 +1633,7 @@ export const CitizenDashboard: React.FC = () => {
                 >
                   {HAZARD_CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value}>
-                      {cat.label}
+                      {isSinhala ? (cat.labelSi || cat.label) : cat.label}
                     </option>
                   ))}
                 </select>
@@ -1564,24 +1641,24 @@ export const CitizenDashboard: React.FC = () => {
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Description <span className="text-red-500">*</span>
+                  {isSinhala ? 'විස්තරය' : 'Description'} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  placeholder="Detailed description of the hazard..."
+                  placeholder={isSinhala ? 'අනතුර පිළිබඳ සවිස්තරාත්මක විස්තරයක්...' : 'Detailed description of the hazard...'}
                   className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Street Address or Landmark</label>
+                <label className="block font-bold text-slate-700 mb-1">{isSinhala ? 'ලිපිනය හෝ ආසන්න සලකුණ' : 'Street Address or Landmark'}</label>
                 <input
                   type="text"
                   value={editAddress}
                   onChange={(e) => setEditAddress(e.target.value)}
-                  placeholder="e.g. Galle Road near Kollupitiya Junction"
+                  placeholder={isSinhala ? 'උදා: කොල්ලුපිටිය හන්දිය අසල ගාලු පාර' : 'e.g. Galle Road near Kollupitiya Junction'}
                   className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
                 />
               </div>
@@ -1591,14 +1668,14 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800">
                     <Camera className="w-4 h-4 text-cyan-600" />
-                    <span>Manage Attached Photos</span>
+                    <span>{isSinhala ? 'අමුණා ඇති ඡායාරූප කළමනාකරණය' : 'Manage Attached Photos'}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => editFileInputRef.current?.click()}
-                    className="text-cyan-700 hover:text-cyan-800 font-bold inline-flex items-center gap-1"
+                    className="text-cyan-700 hover:text-cyan-800 font-bold inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <span>+ Add Photos</span>
+                    <span>{isSinhala ? '+ ඡායාරූප එක් කරන්න' : '+ Add Photos'}</span>
                   </button>
                 </div>
 
@@ -1614,7 +1691,7 @@ export const CitizenDashboard: React.FC = () => {
                 {/* Existing Images */}
                 {editExistingImages.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Current Photos:</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">{isSinhala ? 'වත්මන් ඡායාරූප:' : 'Current Photos:'}</p>
                     <div className="grid grid-cols-3 gap-2">
                       {editExistingImages.map((imgUrl, i) => {
                         const resolvedUrl = imgUrl.trim().startsWith('http')
@@ -1641,7 +1718,7 @@ export const CitizenDashboard: React.FC = () => {
                 {/* Newly Added Files */}
                 {editPreviewUrls.length > 0 && (
                   <div className="space-y-1 pt-1">
-                    <p className="text-[10px] uppercase font-bold text-cyan-700">New Photos to Upload:</p>
+                    <p className="text-[10px] uppercase font-bold text-cyan-700">{isSinhala ? 'උඩුගත කිරීමට නව ඡායාරූප:' : 'New Photos to Upload:'}</p>
                     <div className="grid grid-cols-3 gap-2">
                       {editPreviewUrls.map((url, idx) => (
                         <div key={idx} className="relative group rounded-lg overflow-hidden border border-cyan-300 aspect-video bg-slate-100">
@@ -1649,7 +1726,7 @@ export const CitizenDashboard: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => removeEditSelectedFile(idx)}
-                            className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md"
+                            className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md cursor-pointer"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -1665,16 +1742,16 @@ export const CitizenDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800">
                     <Compass className="w-4 h-4 text-cyan-600" />
-                    <span>Coordinates</span>
+                    <span>{isSinhala ? 'ඛණ්ඩාංක (Coordinates)' : 'Coordinates'}</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleEditDetectLocation}
                     disabled={editDetectingLocation}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800 cursor-pointer"
                   >
                     {editDetectingLocation ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
-                    <span>{editDetectingLocation ? 'Locating...' : 'Auto-Detect GPS'}</span>
+                    <span>{editDetectingLocation ? (isSinhala ? 'ස්ථානය සොයමින්...' : 'Locating...') : (isSinhala ? 'GPS ස්වයංක්‍රීයව හඳුනාගන්න' : 'Auto-Detect GPS')}</span>
                   </button>
                 </div>
 
@@ -1691,7 +1768,7 @@ export const CitizenDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Latitude</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">{isSinhala ? 'අක්ෂාංශ (Latitude)' : 'Latitude'}</label>
                     <input
                       type="text"
                       value={editLatitude}
@@ -1701,7 +1778,7 @@ export const CitizenDashboard: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">Longitude</label>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">{isSinhala ? 'දේශාංශ (Longitude)' : 'Longitude'}</label>
                     <input
                       type="text"
                       value={editLongitude}
@@ -1716,7 +1793,7 @@ export const CitizenDashboard: React.FC = () => {
                   type="text"
                   value={editCoordinatePaste}
                   onChange={(e) => handleEditCoordinatePaste(e.target.value)}
-                  placeholder="Paste Google Maps URL or lat, lng..."
+                  placeholder={isSinhala ? 'Google Maps සබැඳිය හෝ lat, lng මෙහි අලවන්න...' : 'Paste Google Maps URL or lat, lng...'}
                   className="w-full p-2 rounded-lg border border-slate-300 bg-white text-[11px]"
                 />
 
@@ -1731,7 +1808,7 @@ export const CitizenDashboard: React.FC = () => {
                   onClick={() => setEditingHazard(null)}
                   className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold cursor-pointer"
                 >
-                  Cancel
+                  {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -1741,10 +1818,10 @@ export const CitizenDashboard: React.FC = () => {
                   {editSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving Changes...</span>
+                      <span>{isSinhala ? 'වෙනස්කම් සුරකිමින්...' : 'Saving Changes...'}</span>
                     </>
                   ) : (
-                    <span>Save Changes</span>
+                    <span>{isSinhala ? 'වෙනස්කම් සුරකින්න' : 'Save Changes'}</span>
                   )}
                 </button>
               </div>
@@ -1764,8 +1841,8 @@ export const CitizenDashboard: React.FC = () => {
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Cancel or Delete Report?</h3>
-                <p className="text-xs text-slate-500">Ticket: {deletingHazard.ticketNumber}</p>
+                <h3 className="text-sm font-bold text-slate-900">{isSinhala ? 'වාර්තාව අවලංගු කිරීම හෝ මැකීම?' : 'Cancel or Delete Report?'}</h3>
+                <p className="text-xs text-slate-500">{isSinhala ? 'ප්‍රවේශපත්‍රය:' : 'Ticket:'} {deletingHazard.ticketNumber}</p>
               </div>
             </div>
 
@@ -1777,27 +1854,31 @@ export const CitizenDashboard: React.FC = () => {
               )}
 
               <p className="text-slate-700 leading-relaxed">
-                Choose how you wish to remove this hazard report (<strong>{deletingHazard.category}</strong>):
+                {isSinhala ? 'මෙම අනතුරු වාර්තාව ඉවත් කිරීමට ඔබ කැමති ක්‍රමය තෝරන්න:' : 'Choose how you wish to remove this hazard report'} (<strong>{getCategoryText(deletingHazard.category)}</strong>):
               </p>
 
               <div className="space-y-2">
                 <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
                   <div className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Info className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Option 1: Cancel Report (Recommended)</span>
+                    <span>{isSinhala ? 'විකල්පය 1: වාර්තාව අවලංගු කරන්න (නිර්දේශිතයි)' : 'Option 1: Cancel Report (Recommended)'}</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    Marks the ticket as <strong>Cancelled</strong> and removes it from the active municipal repair queue while preserving the audit record.
+                    {isSinhala
+                      ? 'වාර්තාව අවලංගු කළ බවට සලකුණු කර සක්‍රීය අලුත්වැඩියා පෝලිමෙන් ඉවත් කරන අතර විගණන වාර්තාව සුරක්ෂිතව තබා ගනී.'
+                      : 'Marks the ticket as Cancelled and removes it from the active municipal repair queue while preserving the audit record.'}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-xl border border-red-100 bg-red-50/50 space-y-1">
                   <div className="font-bold text-red-800 flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
-                    <span>Option 2: Permanent Deletion</span>
+                    <span>{isSinhala ? 'විකල්පය 2: ස්ථිරවම මකා දමන්න' : 'Option 2: Permanent Deletion'}</span>
                   </div>
                   <p className="text-[11px] text-red-600">
-                    Completely and irreversibly removes the report and its attached AI analyses from the database.
+                    {isSinhala
+                      ? 'දත්ත ගබඩාවෙන් වාර්තාව සහ ඊට අදාළ AI විශ්ලේෂණයන් සම්පූර්ණයෙන්ම සහ ආපසු හැරවිය නොහැකි ලෙස ඉවත් කරයි.'
+                      : 'Completely and irreversibly removes the report and its attached AI analyses from the database.'}
                   </p>
                 </div>
               </div>
@@ -1808,7 +1889,7 @@ export const CitizenDashboard: React.FC = () => {
                   onClick={() => setDeletingHazard(null)}
                   className="w-full sm:w-auto px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold cursor-pointer"
                 >
-                  Keep Report
+                  {isSinhala ? 'වාර්තාව තබා ගන්න' : 'Keep Report'}
                 </button>
 
                 <button
@@ -1817,7 +1898,7 @@ export const CitizenDashboard: React.FC = () => {
                   onClick={() => handleDeleteHazard(false)}
                   className="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold transition-colors cursor-pointer"
                 >
-                  {deleteSubmitting ? 'Processing...' : 'Cancel Report'}
+                  {deleteSubmitting ? (isSinhala ? 'ක්‍රියාත්මක වෙමින්...' : 'Processing...') : (isSinhala ? 'වාර්තාව අවලංගු කරන්න' : 'Cancel Report')}
                 </button>
 
                 <button
@@ -1826,7 +1907,7 @@ export const CitizenDashboard: React.FC = () => {
                   onClick={() => handleDeleteHazard(true)}
                   className="w-full sm:w-auto px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold transition-colors cursor-pointer"
                 >
-                  {deleteSubmitting ? 'Deleting...' : 'Delete Permanently'}
+                  {deleteSubmitting ? (isSinhala ? 'මකමින් පවතී...' : 'Deleting...') : (isSinhala ? 'ස්ථිරවම මකන්න' : 'Delete Permanently')}
                 </button>
               </div>
             </div>
@@ -1849,7 +1930,7 @@ export const CitizenDashboard: React.FC = () => {
             <div className="p-3 bg-slate-900 text-white flex items-center justify-between text-xs font-bold">
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-cyan-400" />
-                <span>Hazard Photographic Evidence</span>
+                <span>{isSinhala ? 'අනතුර පිළිබඳ ඡායාරූප සාක්ෂි' : 'Hazard Photographic Evidence'}</span>
               </div>
               <button
                 onClick={() => setActiveLightboxImage(null)}
@@ -1866,14 +1947,14 @@ export const CitizenDashboard: React.FC = () => {
               />
             </div>
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
-              <span>Captured and certified by citizen reporter</span>
+              <span>{isSinhala ? 'පුරවැසි වාර්තාකරු විසින් ලබාගෙන සහතික කර ඇත' : 'Captured and certified by citizen reporter'}</span>
               <a
                 href={activeLightboxImage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-cyan-700 hover:underline font-semibold flex items-center gap-1"
               >
-                <span>Open Full Size</span>
+                <span>{isSinhala ? 'සම්පූර්ණ ප්‍රමාණයෙන් බලන්න' : 'Open Full Size'}</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
