@@ -25,6 +25,11 @@ import {
   Copy,
   Check,
   Info,
+  School,
+  Hospital,
+  Building2,
+  Users,
+  Tag,
 } from 'lucide-react';
 import { apiClient, getErrorMessage } from '../services/apiService';
 import { authService } from '../services/authService';
@@ -109,6 +114,8 @@ export const CitizenDashboard: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
+  const [proximityZone, setProximityZone] = useState<string>('School Zone');
+  const [submittedHazard, setSubmittedHazard] = useState<HazardDto | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -304,6 +311,8 @@ export const CitizenDashboard: React.FC = () => {
     setError(null);
     setSubmitSuccess(false);
     setSubmittedTicket(null);
+    setSubmittedHazard(null);
+    setProximityZone('School Zone');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -459,29 +468,29 @@ export const CitizenDashboard: React.FC = () => {
         }
       }
 
+      const proximitySuffix = proximityZone ? ` (Proximity: ${proximityZone})` : '';
+      const finalAddress = (address || 'Colombo Municipal Area') + proximitySuffix;
+
       const createRes = await apiClient.post<HazardDto>('/api/hazards', {
         category,
         description,
-        address: address || 'Colombo Municipal Area',
+        address: finalAddress,
         latitude: parsedLat,
         longitude: parsedLng,
         imageUrl: finalImageUrl,
       });
 
-      const newTicket = createRes.data?.ticketNumber;
-      if (newTicket) setSubmittedTicket(newTicket);
+      const createdData = createRes.data;
+      if (createdData?.ticketNumber) setSubmittedTicket(createdData.ticketNumber);
+      setSubmittedHazard(createdData);
       setSubmitSuccess(true);
+      fetchMyHazards();
+
       previewUrls.forEach((url) => {
         if (url.startsWith('blob:')) URL.revokeObjectURL(url);
       });
       setSelectedFiles([]);
       setPreviewUrls([]);
-
-      setTimeout(() => {
-        resetCreateForm();
-        setShowCreateModal(false);
-        fetchMyHazards();
-      }, 2500);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -1127,271 +1136,459 @@ export const CitizenDashboard: React.FC = () => {
       ═══════════════════════════════════════════════════════════════════════ */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in">
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-cyan-600" />
-                <h3 className="text-sm font-bold text-slate-900">
-                  {isSinhala ? 'නාගරික උපද්‍රවයක් වාර්තා කරන්න' : 'Report Municipal Hazard'}
-                </h3>
+          <div className="bg-white rounded-3xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-cyan-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    {isSinhala ? 'නාගරික උපද්‍රවයක් වාර්තා කරන්න' : 'Report Municipal Hazard'}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-mono text-cyan-800 font-semibold">
+                      {isSinhala ? 'ක්ෂණික AI වර්ගීකරණය ක්‍රියාත්මකයි (gemini-3.8-flash)' : 'Instant AI Triage Enabled (gemini-3.8-flash)'}
+                    </span>
+                  </div>
+                </div>
               </div>
               <button
                 onClick={handleCloseCreate}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-xl transition-colors cursor-pointer"
+                title={isSinhala ? 'වසන්න' : 'Close'}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleReportSubmit} className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
-              {submitSuccess && (
-                <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl space-y-1.5 animate-in fade-in">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>
-                      {isSinhala ? 'වාර්තාව සාර්ථකව ලියාපදිංචි කරන ලදි!' : 'Report Registered Successfully!'} {submittedTicket ? `(${submittedTicket})` : ''}
+            {/* Content: Either Instant AI Triage Certificate OR Form */}
+            {submitSuccess && submittedHazard ? (
+              <div className="p-6 space-y-5 animate-in fade-in max-h-[80vh] overflow-y-auto">
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/40 to-white border border-emerald-200 shadow-sm space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 leading-tight">
+                          {isSinhala ? 'වාර්තාව ලියාපදිංචි කර ක්ෂණිකව AI වර්ගීකරණය කරන ලදි' : 'Report Registered & AI Triaged Instantly'}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-mono font-bold text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                            {submittedTicket || submittedHazard.ticketNumber}
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            {isSinhala ? 'ප්‍රමාදයකින් තොර පද්ධතිය' : 'Zero-Delay Pipeline'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-2xs">
+                      {isSinhala ? 'විශ්ලේෂණය අවසන්' : 'Analysis Complete'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-emerald-700">
-                    {isSinhala
-                      ? 'ඔබගේ උපද්‍රව වාර්තාව GPS ඛණ්ඩාංක සමඟ සුරකින ලද අතර සජීවී නාගරික GIS සිතියමට එක් කරන ලදි.'
-                      : 'Your hazard has been saved with GPS coordinates and pinned live to the City GIS Map.'}
-                  </p>
-                  {submittedTicket && (
+
+                  {/* AI Output Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                        {isSinhala ? 'වර්ගීකරණය කළ උපද්‍රවය' : 'Classified Hazard'}
+                      </span>
+                      <div className="text-xs font-black text-slate-900 truncate">
+                        {getCategoryText(submittedHazard.category)}
+                      </div>
+                      {category === 'Other' && (
+                        <span className="text-[9px] text-cyan-700 font-semibold block">
+                          {isSinhala ? '● "වෙනත්" වෙතින් නැවත වර්ගීකරණය කරන ලදි' : '● Reclassified from "Other"'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                        {isSinhala ? 'සහතික කළ බරපතලකම' : 'Certified Severity'}
+                      </span>
+                      <div
+                        className={`text-xs font-black uppercase ${
+                          submittedHazard.severity === 'CRITICAL'
+                            ? 'text-rose-600'
+                            : submittedHazard.severity === 'HIGH'
+                            ? 'text-amber-600'
+                            : 'text-slate-800'
+                        }`}
+                      >
+                        {submittedHazard.severity || 'MEDIUM'}
+                      </div>
+                      <span className="text-[9px] text-slate-500 block">
+                        {isSinhala ? 'ප්‍රමුඛතාව:' : 'Priority:'} {submittedHazard.priority}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs space-y-0.5 col-span-2 sm:col-span-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                        {isSinhala ? 'විසඳුම් කාලරාමුව (SLA)' : 'Resolution SLA'}
+                      </span>
+                      <div className="text-xs font-black text-purple-700 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-purple-600" />
+                        <span>
+                          {submittedHazard.severity === 'CRITICAL'
+                            ? (isSinhala ? 'පැය 4' : '4 Hours')
+                            : submittedHazard.severity === 'HIGH'
+                            ? (isSinhala ? 'පැය 12' : '12 Hours')
+                            : (isSinhala ? 'පැය 24-48' : '24-48 Hours')}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 block">
+                        {isSinhala ? 'ක්ෂණික වර්ගීකරණය' : 'Immediate Triage'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* AI Reasoning */}
+                  {submittedHazard.latestAIAnalysis?.reason && (
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-cyan-600" />
+                        {isSinhala ? 'AI තාර්කික පදනම සහ අවදානම් සාධාරණීකරණය:' : 'AI Reasoning & Risk Justification:'}
+                      </span>
+                      <p className="text-[11px] text-slate-700 leading-relaxed italic">
+                        &ldquo;{submittedHazard.latestAIAnalysis.reason}&rdquo;
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
                     <Link
-                      to={`/dashboard?focus=${submittedTicket}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-800 hover:text-cyan-900 bg-white border border-emerald-300 px-3 py-1.5 rounded-lg shadow-2xs transition-all mt-1"
+                      to={`/dashboard?focus=${submittedHazard.ticketNumber}`}
+                      className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-4 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
                     >
-                      <MapPin className="w-3.5 h-3.5 text-cyan-600" />
+                      <MapPin className="w-3.5 h-3.5 text-cyan-400" />
                       <span>{isSinhala ? 'GIS සිතියමෙන් සජීවීව බලන්න →' : 'View Live Pin on GIS Map →'}</span>
                     </Link>
-                  )}
-                </div>
-              )}
-
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium">
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  {isSinhala ? 'උපද්‍රව වර්ගය' : 'Hazard Category'}
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
-                >
-                  {HAZARD_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {isSinhala ? cat.labelSi : cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  {isSinhala ? 'විස්තරය' : 'Description'} <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={
-                    isSinhala
-                      ? 'නිශ්චිත තොරතුරු සපයන්න: ප්‍රමාණය, මාර්ග හානියේ ගැඹුර, පදිකයන්ට ඇති අවදානම...'
-                      : 'Provide precise details: size, road damage depth, safety hazards to pedestrians...'
-                  }
-                  className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  {isSinhala ? 'වීදියේ ලිපිනය හෝ ආසන්න සලකුණ' : 'Street Address or Landmark'}
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder={isSinhala ? 'උදා: ගාලු පාර, කොල්ලුපිටිය මංසන්ධිය අසල, කොළඹ 03' : 'e.g. Galle Road near Kollupitiya Junction, Colombo 03'}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium"
-                />
-              </div>
-
-              {/* Photographic Evidence Upload */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                    <Camera className="w-4 h-4 text-cyan-600" />
-                    <span>{isSinhala ? 'උපද්‍රව ඡායාරූප / සාක්ෂි උඩුගත කරන්න' : 'Upload Hazard Images / Photographic Evidence'}</span>
+                    <button
+                      type="button"
+                      onClick={handleCloseCreate}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 text-xs transition-colors cursor-pointer"
+                    >
+                      {isSinhala ? 'මගේ වාර්තා වෙත ආපසු' : 'Back to My Reports'}
+                    </button>
                   </div>
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    {isSinhala ? 'උපරිම 10MB බැගින්' : 'Max 10MB each'}
-                  </span>
                 </div>
+              </div>
+            ) : (
+              <form onSubmit={handleReportSubmit} className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium">
+                    {error}
+                  </div>
+                )}
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (e.dataTransfer.files) addFilesToSelection(Array.from(e.dataTransfer.files));
-                  }}
-                  className="border-2 border-dashed border-slate-300 hover:border-cyan-500 bg-white rounded-xl p-4 text-center cursor-pointer transition-colors"
-                >
-                  <UploadCloud className="w-7 h-7 text-cyan-600 mx-auto mb-1.5" />
-                  <p className="text-xs font-bold text-slate-700">
-                    {isSinhala ? 'ඡායාරූප මෙතැනට ඇද දමන්න හෝ බ්‍රවුස් කිරීමට ක්ලික් කරන්න' : 'Drag & drop photos or click to browse'}
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    {isSinhala ? 'තනි හෝ බහුවිධ ඡායාරූප උඩුගත කිරීම් සඳහා සහය දක්වයි' : 'Supports single or multi-photo uploads'}
-                  </p>
-                </div>
-
-                {previewUrls.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    {previewUrls.map((url, idx) => (
-                      <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100">
-                        <img src={url} alt={`Evidence #${idx + 1}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => removeSelectedFile(idx)}
-                          className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md opacity-90 hover:opacity-100 cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
+                {/* Section 1: Category */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-cyan-600" />
+                      <span>{isSinhala ? 'උපද්‍රව වර්ගය' : 'Hazard Category'}</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">
+                      {isSinhala ? 'හොඳින් ගැළපෙන වර්ගය හෝ "වෙනත්" තෝරන්න' : 'Select best fit or "Other"'}
+                    </span>
+                  </div>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    {HAZARD_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {isSinhala ? cat.labelSi : cat.label}
+                      </option>
                     ))}
-                  </div>
-                )}
+                  </select>
 
-                <div className="pt-1 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">
-                    {isSinhala ? 'පරීක්ෂණ සාම්පල:' : 'Test Presets:'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => addSamplePhoto('Pothole Asphalt Damage', '#334155')}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
-                  >
-                    {isSinhala ? '+ වලවල් ඡායාරූපය' : '+ Pothole Photo'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addSamplePhoto('Water Main Pipe Burst', '#0284c7')}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
-                  >
-                    {isSinhala ? '+ ජල කාන්දු ඡායාරූපය' : '+ Water Burst Photo'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Coordinates Section */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                    <Compass className="w-4 h-4 text-cyan-600" />
-                    <span>{isSinhala ? 'GIS භූගෝලීය ස්ථානය' : 'GIS Geodetic Location'}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDetectLocation}
-                    disabled={detectingLocation}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800 cursor-pointer"
-                  >
-                    {detectingLocation ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
-                    <span>{detectingLocation ? (isSinhala ? 'ස්ථානය සොයමින්...' : 'Locating...') : (isSinhala ? 'ස්වයංක්‍රීය GPS' : 'Auto-Detect GPS')}</span>
-                  </button>
-                </div>
-
-                <select
-                  onChange={handlePresetSelect}
-                  className="w-full p-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-medium"
-                >
-                  {COLOMBO_HOTSPOTS.map((h, i) => (
-                    <option key={i} value={h.name}>
-                      {h.name}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                      {isSinhala ? 'අක්ෂාංශය (°N)' : 'Latitude (°N)'}
-                    </label>
-                    <input
-                      type="text"
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      placeholder="6.927100"
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                      {isSinhala ? 'දේශාංශය (°E)' : 'Longitude (°E)'}
-                    </label>
-                    <input
-                      type="text"
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      placeholder="79.861200"
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                <input
-                  type="text"
-                  value={coordinatePaste}
-                  onChange={(e) => handleCoordinatePaste(e.target.value)}
-                  placeholder={isSinhala ? 'Google Maps සබැඳිය හෝ lat, lng මෙහි අලවන්න...' : 'Paste Google Maps URL or lat, lng...'}
-                  className="w-full p-2 rounded-lg border border-slate-300 bg-white text-[11px]"
-                />
-
-                {locationStatus && (
-                  <p className="text-[10px] text-cyan-800 font-medium">{locationStatus}</p>
-                )}
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleCloseCreate}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold cursor-pointer"
-                >
-                  {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || submitSuccess}
-                  className="px-5 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>{isSinhala ? 'ඉදිරිපත් කරමින්...' : 'Submitting...'}</span>
-                    </>
-                  ) : (
-                    <span>{isSinhala ? 'වාර්තාව ඉදිරිපත් කරන්න' : 'Submit Report'}</span>
+                  {category === 'Other' && (
+                    <div className="p-2.5 mt-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-[11px] flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <strong>{isSinhala ? 'Zero-Shot AI හඳුනාගැනීම:' : 'Zero-Shot AI Detection:'}</strong>{' '}
+                        {isSinhala
+                          ? 'ඔබ "වෙනත්" තෝරාගත් විට, AI නියෝජිතයා ඔබගේ විස්තරය සහ ඡායාරූප සාක්ෂි විශ්ලේෂණය කර නියමිත උපද්‍රව වර්ගය ස්වයංක්‍රීයව හඳුනාගෙන අවශ්‍ය නම් බරපතලකම වැඩි කරයි.'
+                          : 'When you select "Other", the AI agent analyzes your narrative and evidence photos to automatically deduce the true hazard type and escalate severity if needed.'}
+                      </div>
+                    </div>
                   )}
-                </button>
-              </div>
-            </form>
+                </div>
+
+                {/* Section 2: Proximity Risk Environment */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-cyan-600" />
+                      <span>{isSinhala ? 'ආසන්න අවදානම් පරිසරය' : 'Proximity Risk Environment'}</span>
+                    </label>
+                    <span className="text-[10px] font-semibold text-cyan-700">
+                      {isSinhala ? 'නාගරික අවදානම් ගුණකය' : 'Urban Risk Multipliers'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {[
+                      { label: isSinhala ? 'පාසල් කලාපය' : 'School Zone', value: 'School Zone', icon: School },
+                      { label: isSinhala ? 'රෝහල / සායනය' : 'Hospital / Clinic', value: 'Hospital / Clinic', icon: Hospital },
+                      { label: isSinhala ? 'ප්‍රධාන අධිවේගී මාර්ගය' : 'Primary Highway', value: 'Primary Highway', icon: Compass },
+                      { label: isSinhala ? 'පදික වේදිකාව' : 'Pedestrian Walkway', value: 'Pedestrian Walkway', icon: Users },
+                      { label: isSinhala ? 'වාණිජ කලාපය' : 'Commercial Hub', value: 'Commercial Hub', icon: Building2 },
+                      { label: isSinhala ? 'නේවාසික ප්‍රදේශය' : 'Residential Area', value: 'Residential Area', icon: Compass },
+                    ].map((zone) => {
+                      const Icon = zone.icon;
+                      const isActive = proximityZone === zone.value;
+                      return (
+                        <button
+                          key={zone.value}
+                          type="button"
+                          onClick={() => setProximityZone(zone.value)}
+                          className={`flex items-center gap-1.5 p-2 rounded-xl text-[11px] font-semibold border transition-all text-left cursor-pointer ${
+                            isActive
+                              ? 'bg-cyan-600 text-white border-cyan-600 shadow-2xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-cyan-600'}`} />
+                          <span className="truncate">{zone.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section 3: Description */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-slate-700">
+                      {isSinhala ? 'විස්තරය' : 'Description'} <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      English &bull; සිංහල &bull; தமிழ் ({description.length} {isSinhala ? 'අකුරු' : 'chars'})
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={
+                      isSinhala
+                        ? 'නිශ්චිත තොරතුරු සපයන්න: ප්‍රමාණය, ජල පීඩනය, මාර්ග හානියේ ගැඹුර, පදිකයන්ට හෝ පාසල් සිසුන්ට ඇති අනතුර...'
+                        : 'Provide details: size, water pressure, road damage depth, danger to pedestrians or schoolchildren...'
+                    }
+                    className="w-full p-3 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 leading-relaxed"
+                  />
+                </div>
+
+                {/* Section 4: Street Address / Landmark */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {isSinhala ? 'වීදියේ ලිපිනය හෝ ආසන්න සලකුණ' : 'Street Address or Landmark'}
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder={
+                      isSinhala
+                        ? 'උදා: රාජකීය මාවත, රාජකීය විද්‍යාලය අසල, කොළඹ 07'
+                        : 'e.g. Rajakeeya Mawatha near Royal College, Colombo 07'
+                    }
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                {/* Section 5: Photographic Evidence Upload */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                      <Camera className="w-4 h-4 text-cyan-600" />
+                      <span>{isSinhala ? 'ඡායාරූප සාක්ෂි' : 'Photographic Evidence'}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                      {isSinhala ? 'උපරිම 10MB බැගින්' : 'Max 10MB each'}
+                    </span>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (e.dataTransfer.files) addFilesToSelection(Array.from(e.dataTransfer.files));
+                    }}
+                    className="border-2 border-dashed border-slate-300 hover:border-cyan-500 bg-white rounded-xl p-4 text-center cursor-pointer transition-colors"
+                  >
+                    <UploadCloud className="w-6 h-6 text-cyan-600 mx-auto mb-1" />
+                    <p className="text-xs font-bold text-slate-700">
+                      {isSinhala ? 'ඡායාරූප මෙතැනට ඇද දමන්න හෝ බ්‍රවුස් කිරීමට ක්ලික් කරන්න' : 'Drag & drop photos or click to browse'}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {isSinhala ? 'කැමරාව සහ ගැලරිය සඳහා සහය දක්වයි' : 'Camera capture & gallery supported'}
+                    </p>
+                  </div>
+
+                  {previewUrls.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      {previewUrls.map((url, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
+                          <img src={url} alt={`Evidence #${idx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedFile(idx)}
+                            className="absolute top-1 right-1 p-1 rounded-md bg-red-600 text-white shadow-md opacity-90 hover:opacity-100 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pt-1 flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">
+                      {isSinhala ? 'පරීක්ෂණ සාම්පල:' : 'Presets:'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => addSamplePhoto('Pothole Asphalt Damage', '#334155')}
+                      className="text-[10px] px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      {isSinhala ? '+ වලවල් ඡායාරූපය' : '+ Pothole Photo'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addSamplePhoto('Water Main Pipe Burst', '#0284c7')}
+                      className="text-[10px] px-2 py-0.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      {isSinhala ? '+ ජල කාන්දු ඡායාරූපය' : '+ Water Burst Photo'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Section 6: Geodetic Location */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                      <Compass className="w-4 h-4 text-cyan-600" />
+                      <span>{isSinhala ? 'GIS භූගෝලීය ඛණ්ඩාංක' : 'GIS Geodetic Coordinates'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDetectLocation}
+                      disabled={detectingLocation}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-700 hover:text-cyan-800 cursor-pointer"
+                    >
+                      {detectingLocation ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
+                      <span>
+                        {detectingLocation
+                          ? (isSinhala ? 'ස්ථානය සොයමින්...' : 'Locating...')
+                          : (isSinhala ? 'ස්වයංක්‍රීය GPS' : 'Auto-Detect GPS')}
+                      </span>
+                    </button>
+                  </div>
+
+                  <select
+                    onChange={handlePresetSelect}
+                    className="w-full p-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-medium"
+                  >
+                    {COLOMBO_HOTSPOTS.map((h, i) => (
+                      <option key={i} value={h.name}>
+                        {h.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                        {isSinhala ? 'අක්ෂාංශය (°N)' : 'Latitude (°N)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={latitude}
+                        onChange={(e) => setLatitude(e.target.value)}
+                        placeholder="6.927100"
+                        className="w-full p-2 rounded-xl border border-slate-300 bg-white font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                        {isSinhala ? 'දේශාංශය (°E)' : 'Longitude (°E)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={longitude}
+                        onChange={(e) => setLongitude(e.target.value)}
+                        placeholder="79.861200"
+                        className="w-full p-2 rounded-xl border border-slate-300 bg-white font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={coordinatePaste}
+                    onChange={(e) => handleCoordinatePaste(e.target.value)}
+                    placeholder={
+                      isSinhala
+                        ? 'Google Maps සබැඳිය හෝ lat, lng මෙහි අලවන්න...'
+                        : 'Paste Google Maps URL or lat, lng...'
+                    }
+                    className="w-full p-2 rounded-xl border border-slate-300 bg-white text-xs font-mono"
+                  />
+
+                  {locationStatus && (
+                    <p className="text-[10px] text-cyan-800 font-medium">{locationStatus}</p>
+                  )}
+                </div>
+
+                {/* Form Buttons */}
+                <div className="pt-2 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCloseCreate}
+                    className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold cursor-pointer hover:bg-slate-50 text-xs"
+                  >
+                    {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-md"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                        <span>{isSinhala ? 'AI මඟින් විශ්ලේෂණය කර ඉදිරිපත් කරමින්...' : 'Analyzing with AI & Submitting...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>{isSinhala ? 'ඉදිරිපත් කර ක්ෂණික AI වර්ගීකරණය ධාවනය කරන්න' : 'Submit & Run Instant AI Triage'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

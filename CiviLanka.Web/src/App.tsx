@@ -1,15 +1,13 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Building2,
   Wrench,
   FileClock,
   Users,
-  FileCheck,
-  Coins,
   ShieldCheck,
-  GitBranch,
+  CheckCircle2,
   Smartphone,
   ClipboardList,
   PlusCircle,
@@ -18,11 +16,13 @@ import {
   History,
   BarChart3,
   User,
-  DollarSign,
   FileText,
   Bot,
   MapPin,
   ClipboardCheck,
+  Wallet,
+  ShieldAlert,
+  Activity,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -71,19 +71,16 @@ import { UserProfilePage } from './pages/UserProfilePage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { BudgetManagementPage } from './pages/BudgetManagementPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
-import { AIIntelligencePage } from './pages/AIIntelligencePage';
+import { HazardClassificationAIPage } from './pages/HazardClassificationAIPage';
+import { AssetRiskAIPage } from './pages/AssetRiskAIPage';
 
 // RBAC
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { authService } from './services/authService';
 import { normalizeRole, getRoleMeta } from './utils/rbac';
 
-// Member 4 Pages (Maintenance Operations & Audit)
-import DirectorApprovals from './pages/DirectorApprovals';
-import BudgetManagement from './pages/BudgetManagement';
+// Autonomous Municipal Operations & Audit
 import SafetyAuditCenter from './pages/SafetyAuditCenter';
-import WorkOrderLifecycle from './pages/WorkOrderLifecycle';
-import FieldWorkerSimulator from './pages/FieldWorkerSimulator';
 
 function Sidebar() {
   const location = useLocation();
@@ -119,12 +116,10 @@ function Sidebar() {
           title: isSinhala ? 'ක්ෂේත්‍ර මෙහෙයුම්' : 'Field Operations',
           items: [
             { name: isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක ද්වාරය' : 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-            { name: isSinhala ? 'ක්ෂේත්‍ර සේවක අනුකාරකය' : 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
             { name: isSinhala ? 'පවරා ඇති වැඩ ඇණවුම්' : 'Assigned Work Orders', path: '/work-orders', icon: ClipboardList },
             { name: isSinhala ? 'නඩත්තු වාර්තා' : 'Maintenance Records', path: '/maintenance', icon: Wrench },
-            { name: isSinhala ? 'වැඩ ඇණවුම් ජීවන චක්‍රය' : 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-            { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-            { name: isSinhala ? 'දෘශ්‍ය විශ්ලේෂණ' : 'Visual Analytics', path: '/analytics', icon: BarChart3 },
+            { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: MapPin },
+            { name: isSinhala ? 'නගර ආරක්ෂණ විශ්ලේෂණ' : 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
           ],
         },
         {
@@ -139,50 +134,53 @@ function Sidebar() {
     if (role === 'FieldMaintenanceSupervisor') {
       return [
         {
-          title: isSinhala ? 'මඟපෙන්වීම' : 'Navigation',
+          title: isSinhala ? 'දළ විශ්ලේෂණය සහ විශ්ලේෂණ' : 'Overview & Analytics',
           items: [
-            { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-            { name: isSinhala ? 'දෘශ්‍ය විශ්ලේෂණ' : 'Visual Analytics', path: '/analytics', icon: BarChart3 },
+            { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: MapPin },
+            { name: isSinhala ? 'නගර ආරක්ෂණ විශ්ලේෂණ' : 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
+          ],
+        },
+        {
+          title: isSinhala ? 'වැඩ ඇණවුම් සහ වර්ගීකරණය' : 'Work Orders & Triage',
+          items: [
+            { name: isSinhala ? 'පුරවැසි වාර්තා' : 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+            { name: isSinhala ? 'වැඩ ඇණවුම් පුවරුව' : 'Work Orders Dashboard', path: '/work-orders-dashboard', icon: LayoutDashboard },
+            { name: isSinhala ? 'සියලු වැඩ ඇණවුම්' : 'All Work Orders', path: '/work-orders', icon: ClipboardList },
+            { name: isSinhala ? 'වැඩ ඇණවුමක් සාදන්න' : 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+          ],
+        },
+        {
+          title: isSinhala ? 'ක්ෂේත්‍ර මෙහෙයුම් සහ අනුමැතිය' : 'Field Operations & Sign-Off',
+          items: [
+            { name: isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක ද්වාරය' : 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
+            { name: isSinhala ? 'නඩත්තු වාර්තා' : 'Maintenance Records', path: '/maintenance', icon: Wrench },
+            { name: isSinhala ? 'නඩත්තු වාර්තාවක් සාදන්න' : 'Create Maintenance Record', path: '/maintenance/create', icon: PlusCircle },
+            { name: isSinhala ? 'තහවුරු කිරීමේ පෝලිම' : 'Verification Queue', path: '/maintenance/verification', icon: CheckCircle2 },
+            { name: isSinhala ? 'නඩත්තු ඉතිහාසය' : 'Maintenance History', path: '/maintenance/history', icon: History },
           ],
         },
         {
           title: isSinhala ? 'යටිතල පහසුකම් සහ වත්කම්' : 'Infrastructure & Assets',
           items: [
             { name: isSinhala ? 'යටිතල පහසුකම් වත්කම්' : 'Infrastructure Assets', path: '/assets', icon: Building2 },
-            { name: isSinhala ? 'කොන්ත්‍රාත්කරුවන්' : 'Contractors', path: '/contractors', icon: Users },
+            { name: isSinhala ? 'කොන්ත්‍රාත්කරුවන්ගේ නාමාවලිය' : 'Contractors Directory', path: '/contractors', icon: Users },
             { name: isSinhala ? 'අලුත්වැඩියා ඉතිහාසය' : 'Repair History', path: '/repairs', icon: FileClock },
-            { name: isSinhala ? 'AI පිරිවැය ඇස්තමේන්තුකරු (RAG)' : 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
           ],
         },
         {
-          title: isSinhala ? 'වැඩ ඇණවුම් සහ AI වර්ගීකරණය' : 'Work Orders & AI Triage',
+          title: isSinhala ? 'ස්වාධීන AI මාදිලි' : 'Autonomous AI Models',
           items: [
-            { name: isSinhala ? 'පුරවැසි වාර්තා' : 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
-            { name: isSinhala ? 'වැඩ ඇණවුම් පුවරුව' : 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
-            { name: isSinhala ? 'සියලු වැඩ ඇණවුම්' : 'All Work Orders', path: '/work-orders', icon: ClipboardList },
-            { name: isSinhala ? 'වැඩ ඇණවුමක් සාදන්න' : 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+            { name: isSinhala ? 'උපද්‍රව වර්ගීකරණ AI' : 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
+            { name: isSinhala ? 'වත්කම් අවදානම් අනාවැකි AI' : 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
+            { name: isSinhala ? 'පිරිවැය ඇස්තමේන්තුකරු AI (RAG)' : 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+            { name: isSinhala ? 'ආරක්ෂණ අනුකූලතා AI විගණනය' : 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
           ],
         },
         {
-          title: isSinhala ? 'ක්ෂේත්‍ර මෙහෙයුම් සහ ආරක්ෂාව' : 'Field Operations & Safety',
+          title: isSinhala ? 'පාලනය සහ ලෙජරය' : 'Governance & Ledger',
           items: [
-            { name: isSinhala ? 'නඩත්තු වාර්තා' : 'Maintenance Records', path: '/maintenance', icon: Wrench },
-            { name: isSinhala ? 'වාර්තාවක් සාදන්න' : 'Create Record', path: '/maintenance/create', icon: PlusCircle },
-            { name: isSinhala ? 'වැඩ ඇණවුම් ජීවන චක්‍රය' : 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-            { name: isSinhala ? 'ආරක්ෂණ සහ විගණන නියෝජිතයා' : 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
-            { name: isSinhala ? 'ක්ෂේත්‍ර සේවක අනුකාරකය' : 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
-            { name: isSinhala ? 'තහවුරු කිරීමේ පෝලිම' : 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
-            { name: isSinhala ? 'නඩත්තු ඉතිහාසය' : 'Maintenance History', path: '/maintenance/history', icon: History },
-            { name: isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක ද්වාරය' : 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-          ],
-        },
-        {
-          title: isSinhala ? 'විධායක සහ AI කේන්ද්‍රය' : 'Executive & AI Hub',
-          items: [
-            { name: isSinhala ? 'මෙහෙයුම් අයවැය' : 'Operational Budget', path: '/budget', icon: DollarSign },
-            { name: isSinhala ? 'අයවැය මෙහෙයුම්' : 'Budget Operations', path: '/budgets', icon: Coins },
-            { name: isSinhala ? 'AI බුද්ධි කේන්ද්‍රය' : 'AI Intelligence Hub', path: '/ai', icon: Bot },
-            { name: isSinhala ? 'විගණන සටහන්' : 'Audit Logs', path: '/audit', icon: FileText },
+            { name: isSinhala ? 'මෙහෙයුම් අයවැය' : 'Operational Budget', path: '/budget', icon: Wallet },
+            { name: isSinhala ? 'ආරක්ෂක විගණන ලේඛනය' : 'Security Audit Ledger', path: '/audit', icon: FileText },
           ],
         },
         {
@@ -199,51 +197,52 @@ function Sidebar() {
       {
         title: isSinhala ? 'විධායක පාලනය' : 'Executive Governance',
         items: [
-          { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: LayoutDashboard },
-          { name: isSinhala ? 'පුරවැසි වාර්තා' : 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
-          { name: isSinhala ? 'අධ්‍යක්ෂ අනුමැතීන්' : 'Director Approvals', path: '/approvals', icon: FileCheck },
+          { name: isSinhala ? 'වත්කම් GIS සිතියම' : 'Asset GIS Map', path: '/dashboard', icon: MapPin },
           { name: isSinhala ? 'අනුමැති පෝලිම' : 'Approval Queue', path: '/approval-queue', icon: ShieldCheck },
-          { name: isSinhala ? 'අයවැය මෙහෙයුම්' : 'Budget Operations', path: '/budgets', icon: Coins },
-          { name: isSinhala ? 'භාණ්ඩාගාර අයවැය' : 'Treasury Budget', path: '/budget', icon: DollarSign },
-          { name: isSinhala ? 'පරිශීලක කළමනාකරණය' : 'User Management', path: '/users', icon: Users },
-          { name: isSinhala ? 'ආරක්ෂක විගණන ලේඛනය' : 'Security Audit Ledger', path: '/audit', icon: FileText },
-          { name: isSinhala ? 'AI බුද්ධි කේන්ද්‍රය' : 'AI Intelligence Hub', path: '/ai', icon: Bot },
-          { name: isSinhala ? 'නාගරික විශ්ලේෂණ' : 'City Analytics', path: '/analytics', icon: BarChart3 },
+          { name: isSinhala ? 'පුරවැසි වාර්තා' : 'Citizen Reports', path: '/citizen-reports', icon: ClipboardCheck },
+          { name: isSinhala ? 'නගර ආරක්ෂණ විශ්ලේෂණ' : 'City Safety Analytics', path: '/analytics', icon: BarChart3 },
+          { name: isSinhala ? 'භාණ්ඩාගාරය සහ මෙහෙයුම් අයවැය' : 'Treasury & Operational Budget', path: '/budget', icon: Wallet },
+        ],
+      },
+      {
+        title: isSinhala ? 'වැඩ ඇණවුම් සහ වර්ගීකරණය' : 'Work Orders & Triage',
+        items: [
+          { name: isSinhala ? 'වැඩ ඇණවුම් පුවරුව' : 'Work Orders Dashboard', path: '/work-orders-dashboard', icon: LayoutDashboard },
+          { name: isSinhala ? 'සියලු වැඩ ඇණවුම්' : 'All Work Orders', path: '/work-orders', icon: ClipboardList },
+          { name: isSinhala ? 'වැඩ ඇණවුමක් සාදන්න' : 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+        ],
+      },
+      {
+        title: isSinhala ? 'ක්ෂේත්‍ර මෙහෙයුම් සහ අනුමැතිය' : 'Field Operations & Sign-Off',
+        items: [
+          { name: isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක ද්වාරය' : 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
+          { name: isSinhala ? 'නඩත්තු වාර්තා' : 'Maintenance Records', path: '/maintenance', icon: Wrench },
+          { name: isSinhala ? 'තහවුරු කිරීමේ පෝලිම' : 'Verification Queue', path: '/maintenance/verification', icon: CheckCircle2 },
+          { name: isSinhala ? 'නඩත්තු ඉතිහාසය' : 'Maintenance History', path: '/maintenance/history', icon: History },
         ],
       },
       {
         title: isSinhala ? 'යටිතල පහසුකම් සහ වත්කම්' : 'Infrastructure & Assets',
         items: [
           { name: isSinhala ? 'යටිතල පහසුකම් වත්කම්' : 'Infrastructure Assets', path: '/assets', icon: Building2 },
-          { name: isSinhala ? 'කොන්ත්‍රාත්කරුවන්' : 'Contractors', path: '/contractors', icon: Users },
+          { name: isSinhala ? 'කොන්ත්‍රාත්කරුවන්ගේ නාමාවලිය' : 'Contractors Directory', path: '/contractors', icon: Users },
           { name: isSinhala ? 'අලුත්වැඩියා ඉතිහාසය' : 'Repair History', path: '/repairs', icon: FileClock },
-          { name: isSinhala ? 'AI පිරිවැය ඇස්තමේන්තුකරු (RAG)' : 'AI Cost Estimator (RAG)', path: '/agent-estimator', icon: Sparkles },
         ],
       },
       {
-        title: isSinhala ? 'වැඩ ඇණවුම් සහ AI වර්ගීකරණය' : 'Work Orders & AI Triage',
+        title: isSinhala ? 'ස්වාධීන AI ආකෘති' : 'Autonomous AI Models',
         items: [
-          { name: isSinhala ? 'වැඩ ඇණවුම් පුවරුව' : 'WO Dashboard', path: '/work-orders-dashboard', icon: Sparkles },
-          { name: isSinhala ? 'සියලු වැඩ ඇණවුම්' : 'All Work Orders', path: '/work-orders', icon: ClipboardList },
-          { name: isSinhala ? 'වැඩ ඇණවුමක් සාදන්න' : 'Create Work Order', path: '/work-orders/create', icon: PlusCircle },
+          { name: isSinhala ? 'අනතුරු වර්ගීකරණ AI' : 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
+          { name: isSinhala ? 'වත්කම් අවදානම් අනාවැකි AI' : 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
+          { name: isSinhala ? 'AI පිරිවැය ඇස්තමේන්තුකරු (RAG)' : 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+          { name: isSinhala ? 'ආරක්ෂණ අනුකූලතා AI විගණනය' : 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
         ],
       },
       {
-        title: isSinhala ? 'ක්ෂේත්‍ර මෙහෙයුම් සහ ආරක්ෂාව' : 'Field Operations & Safety',
+        title: isSinhala ? 'ආරක්ෂාව සහ පරිපාලනය' : 'Security & Administration',
         items: [
-          { name: isSinhala ? 'නඩත්තු වාර්තා' : 'Maintenance Records', path: '/maintenance', icon: Wrench },
-          { name: isSinhala ? 'වාර්තාවක් සාදන්න' : 'Create Record', path: '/maintenance/create', icon: PlusCircle },
-          { name: isSinhala ? 'වැඩ ඇණවුම් ජීවන චක්‍රය' : 'Work Order Lifecycle', path: '/lifecycle', icon: GitBranch },
-          { name: isSinhala ? 'ආරක්ෂණ සහ විගණන නියෝජිතයා' : 'Safety & Audit Agent', path: '/audits', icon: ShieldCheck },
-          { name: isSinhala ? 'ක්ෂේත්‍ර සේවක අනුකාරකය' : 'Field Worker Simulator', path: '/field-simulator', icon: Smartphone },
-          { name: isSinhala ? 'තහවුරු කිරීමේ පෝලිම' : 'Verification Queue', path: '/maintenance/verification', icon: ShieldCheck },
-          { name: isSinhala ? 'නඩත්තු ඉතිහාසය' : 'Maintenance History', path: '/maintenance/history', icon: History },
-          { name: isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක ද්වාරය' : 'Field Inspector Portal', path: '/field-inspector', icon: Smartphone },
-        ],
-      },
-      {
-        title: isSinhala ? 'පරිපාලනය' : 'Administration',
-        items: [
+          { name: isSinhala ? 'ආරක්ෂක විගණන ලේඛනය' : 'Security Audit Ledger', path: '/audit', icon: FileText },
+          { name: isSinhala ? 'පරිශීලක නාමාවලිය සහ ප්‍රවේශ පාලනය' : 'User Directory & Access Control', path: '/users', icon: Users },
           { name: isSinhala ? 'මගේ පැතිකඩ' : 'My Profile', path: '/profile', icon: User },
         ],
       },
@@ -595,16 +594,28 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* ── Dedicated AI Modules: Member 1, 2, 3, 4 ────────────────────── */}
         <Route
-          path="/ai"
+          path="/hazard-classification-ai"
           element={
             <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
               <Layout>
-                <AIIntelligencePage />
+                <HazardClassificationAIPage />
               </Layout>
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/asset-risk-ai"
+          element={
+            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
+              <Layout>
+                <AssetRiskAIPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/ai" element={<Navigate to="/hazard-classification-ai" replace />} />
 
         {/* ── Visual Analytics & Executive Intelligence ──────────────────────── */}
         <Route
@@ -640,27 +651,11 @@ function App() {
           }
         />
 
-        {/* ── Member 4 Dedicated Operational & Audit Portal ─────────────────── */}
-        <Route
-          path="/approvals"
-          element={
-            <ProtectedRoute allowedRoles={['PublicWorksDirector']}>
-              <Layout>
-                <DirectorApprovals />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/budgets"
-          element={
-            <ProtectedRoute allowedRoles={['FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <BudgetManagement />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        {/* ── Redirect legacy duplicate paths to canonical routes ────────────── */}
+        <Route path="/approvals" element={<Navigate to="/approval-queue" replace />} />
+        <Route path="/budgets" element={<Navigate to="/budget" replace />} />
+
+        {/* ── Autonomous Municipal Operations & Audit ────────────────────────── */}
         <Route
           path="/audits"
           element={
@@ -671,26 +666,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/lifecycle"
-          element={
-            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <WorkOrderLifecycle />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/field-simulator"
-          element={
-            <ProtectedRoute allowedRoles={['FieldWorker', 'FieldMaintenanceSupervisor', 'PublicWorksDirector']}>
-              <Layout>
-                <FieldWorkerSimulator />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/lifecycle" element={<Navigate to="/work-orders-dashboard" replace />} />
+        <Route path="/field-simulator" element={<Navigate to="/field-inspector" replace />} />
 
         {/* Fallback to 403 or Home */}
         <Route path="*" element={<AccessDeniedPage />} />

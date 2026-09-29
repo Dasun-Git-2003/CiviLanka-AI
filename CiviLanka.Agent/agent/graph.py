@@ -23,7 +23,7 @@ from .state import (
     RetrievalGrade,
 )
 
-CHAT_MODEL = os.getenv("CHAT_MODEL", "gemini-2.5-flash")
+CHAT_MODEL = os.getenv("CHAT_MODEL", "gemini-3.8-flash")
 MAX_RETRIES = 2
 
 
@@ -33,7 +33,7 @@ def get_chat_llm() -> Optional[ChatGoogleGenerativeAI]:
         return None
     return ChatGoogleGenerativeAI(
         model=CHAT_MODEL,
-        google_api_key=api_key,
+        api_key=api_key,
         temperature=0.1,
         timeout=60,
         max_retries=3,

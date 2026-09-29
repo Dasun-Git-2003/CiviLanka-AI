@@ -83,7 +83,7 @@ class _FieldWorkerScreenState extends State<FieldWorkerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'WO #104 (Streetlight Fault)',

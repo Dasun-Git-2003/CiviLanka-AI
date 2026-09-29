@@ -139,6 +139,8 @@ class HazardState(TypedDict):
     title: str
     description: str
     location: str
+    category_supplied: Optional[str]
+    metadata: Optional[str]
     image_url: Optional[str]
     retrieved_rules: str
     classification: Optional[dict]

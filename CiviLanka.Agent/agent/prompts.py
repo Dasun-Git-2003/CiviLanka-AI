@@ -1,3 +1,4 @@
+
 """Prompt templates for Sri Lanka Infrastructure Cost & Material Estimator Agent."""
 
 ROUTER_PROMPT = """You are the Lead Municipal Infrastructure Engineer for Sri Lanka Municipal Councils (CMC/RDA/NWSDB).
@@ -86,20 +87,25 @@ Evaluate the citizen hazard report and classify it strictly according to the Mun
 
 Citizen Hazard Report:
 - Title: {title}
-- Description: {description}
-- Location: {location}
-- Image Provided: {image_url}
+- Incident Description: {description}
+- Citizen-Supplied Category: {category_supplied}
+- Location & Proximity: {location}
+- Context Metadata: {metadata}
+- Photographic Evidence Attached: {image_url}
 
 Retrieved Municipal Hazard Standards & SLA Rules:
 {docs}
 
 Instructions & Calibration Rules:
 1. Determine the exact Primary Category (e.g. Pothole & Asphalt Failure, Water Main Burst, Drain Blockage & Gully Overflow, Street Lighting Failure, Fallen Tree & Utility Obstruction, Structural Damage, Open Manhole).
+   - CATEGORY OVERRIDE: If the citizen marked "Other" or an ambiguous label, do NOT output "Other". Deduce the true category from the description and location context (e.g. a burst pipe is "Water Main Burst").
 2. Assign the responsible Municipal Authority: CMC Engineering Department, RDA (Road Development Authority), NWSDB (National Water Supply & Drainage Board), CEB/LECO (Electricity), or Disaster Management Centre.
 3. Calibrate Severity to one of: CRITICAL, HIGH, MEDIUM, LOW.
-   - CRITICAL: Manhole open, main water burst (>100mm), tree blocking major arterial, sinkhole/collapse. SLA: 2 to 4 hours.
-   - HIGH: Pothole >100mm on arterial/bus route, blocked drain during rainy/monsoon season, low hanging live wire. SLA: 12 to 24 hours.
-   - MEDIUM: Pothole 50-100mm on residential collector, water service pipe leak, drain siltation. SLA: 48 hours.
+   - SCHOOL / SENSITIVE ZONE RISK MULTIPLIER: Hazards situated near Schools, Kindergartens, Hospitals, or Pedestrian Crossing Corridors present elevated public safety risk!
+   - Example: A burst water pipe near a school MUST be classified as HIGH risk (or CRITICAL if flooding the roadway) due to child foot-traffic hazards, slipping risks, and morning traffic gridlock.
+   - CRITICAL: Manhole open, main water burst (>100mm) on active road, live CEB wire fallen, tree blocking major arterial, bridge structural fracture, sinkhole. SLA: 2 to 4 hours.
+   - HIGH: Water pipe rupture near school/hospital, pothole >100mm on bus route, blocked drain during rainy/monsoon season, low hanging live wire. SLA: 12 to 24 hours.
+   - MEDIUM: Pothole 50-100mm on residential collector, minor water service leak, drain siltation. SLA: 48 hours.
    - LOW: Cosmetic pavement defect, burned street bulb, minor curb chip. SLA: 168 hours (7 days).
 4. Calculate Urgency Score (0.0 to 100.0) factoring in Colombo Urban Risk Multipliers:
    - Base score: Critical=85, High=65, Medium=45, Low=20.

@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/user.dart';
 import 'api_service.dart';
 
-class AuthService {
+class AuthService extends ChangeNotifier {
   final ApiService _api;
 
   AuthService(this._api);
@@ -29,6 +30,7 @@ class AuthService {
       final user = User.fromJson(response.data as Map<String, dynamic>);
       await _api.saveToken(user.token);
       _currentUser = user;
+      notifyListeners();
       return user;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -47,6 +49,7 @@ class AuthService {
       final user = User.fromJson(response.data as Map<String, dynamic>);
       await _api.saveToken(user.token);
       _currentUser = user;
+      notifyListeners();
       return user;
     } on DioException catch (e) {
       throw _handleError(e);
@@ -56,6 +59,7 @@ class AuthService {
   Future<void> logout() async {
     await _api.clearToken();
     _currentUser = null;
+    notifyListeners();
   }
 
   String _handleError(DioException e) {
