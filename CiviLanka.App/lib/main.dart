@@ -27,6 +27,7 @@ class CiviLankaApp extends StatelessWidget {
     final workOrderService = WorkOrderService(apiService);
     final maintenanceService = MaintenanceService(apiService);
     final locationService = LocationService();
+    final workOrderService = WorkOrderService(apiService);
 
     return MultiProvider(
       providers: [
@@ -36,6 +37,7 @@ class CiviLankaApp extends StatelessWidget {
         Provider<WorkOrderService>.value(value: workOrderService),
         Provider<MaintenanceService>.value(value: maintenanceService),
         Provider<LocationService>.value(value: locationService),
+        Provider<WorkOrderService>.value(value: workOrderService),
         ChangeNotifierProvider(
           create: (_) => AuthState(authService),
         ),

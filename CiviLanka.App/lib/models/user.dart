@@ -36,4 +36,33 @@ class User {
       };
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
+
+  /// Whether this user's role is authorized to view municipal Work Orders on the backend.
+  bool get canAccessWorkOrders =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff' ||
+      role == 'FieldWorker';
+
+  /// Whether this user's role is authorized to create municipal Work Orders on the backend (CanCreateWorkOrder policy).
+  bool get canCreateWorkOrders =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff';
+
+  /// Whether this user's role is authorized to update or cancel municipal Work Orders on the backend (CanManageWorkOrders policy).
+  bool get canManageWorkOrders => canCreateWorkOrders;
+
+  /// Whether this user's role is authorized to trigger AI cost estimates on the backend (POST /api/workorders/{id}/estimate).
+  bool get canGenerateEstimate =>
+      role == 'FieldMaintenanceSupervisor' ||
+      role == 'PublicWorksDirector' ||
+      role == 'Director' ||
+      role == 'MunicipalStaff';
+
+  /// Whether this user's role is authorized to approve or reject municipal Work Orders on the backend (CanApproveWorkOrder policy: PublicWorksDirector or Director only).
+  bool get canApproveWorkOrders =>
+      role == 'PublicWorksDirector' || role == 'Director';
 }

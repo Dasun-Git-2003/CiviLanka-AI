@@ -6,6 +6,7 @@ import '../services/hazard_service.dart';
 import 'my_reports_screen.dart';
 import 'report_hazard_screen.dart';
 import 'field_worker_screen.dart';
+import 'work_order_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,9 +33,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
     try {
       final stats = await context.read<HazardService>().getDashboardStats();
-      if (mounted) setState(() { _stats = stats; _loading = false; });
+      if (mounted)
+        setState(() {
+          _stats = stats;
+          _loading = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -42,7 +51,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final auth = context.read<AuthService>();
-    final userName = auth.currentUser?.fullName.split(' ').first ?? 'Citizen';
+    final user = auth.currentUser;
+    final userName = user?.fullName.split(' ').first ?? 'Citizen';
+    final canAccessWorkOrders = user?.canAccessWorkOrders ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -57,9 +68,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onSelected: (v) async {
               if (v == 'logout') {
                 await context.read<AuthState>().logout(context);
+              } else if (v == 'work_orders') {
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const WorkOrderListScreen()),
+                  );
+                }
               }
             },
             itemBuilder: (_) => [
+              if (canAccessWorkOrders)
+                const PopupMenuItem(
+                  value: 'work_orders',
+                  child: Row(
+                    children: [
+                      Icon(Icons.assignment_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Work Orders'),
+                    ],
+                  ),
+                ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(
@@ -98,8 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               InkWell(
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const ReportHazardScreen()),
+                  MaterialPageRoute(builder: (_) => const ReportHazardScreen()),
                 ).then((_) => _loadStats()),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
@@ -219,8 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const MyReportsScreen()),
+                    MaterialPageRoute(builder: (_) => const MyReportsScreen()),
                   ).then((_) => _loadStats()),
                   icon: const Icon(Icons.history),
                   label: const Text('View My Reports'),
@@ -231,6 +259,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
+              // ── Municipal Work Orders (Authorized roles only) ─────────────
+              if (canAccessWorkOrders) ...[
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const WorkOrderListScreen()),
+                  ).then((_) => _loadStats()),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.assignment_outlined,
+                              color: theme.colorScheme.primary, size: 24),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Work Orders',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Municipal work orders & AI cost estimates',
+                                style:
+                                    TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios,
+                            size: 14, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 12),
 
               // ── Member 4: Field Worker Mode ──────────────────────────────
@@ -301,13 +393,10 @@ class _StatCard extends StatelessWidget {
               Text(
                 '$value',
                 style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: color),
+                    fontSize: 26, fontWeight: FontWeight.bold, color: color),
               ),
               Text(label,
-                  style: const TextStyle(
-                      fontSize: 12, color: Colors.grey)),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
         ],

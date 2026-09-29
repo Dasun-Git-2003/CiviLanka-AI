@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Clock, Users, Wrench, Package, ShieldAlert, Sparkles, Pencil, Loader2 } from 'lucide-react';
+import { Bot, Clock, Users, Wrench, Package, ShieldAlert, Sparkles, Info, Pencil, Loader2 } from 'lucide-react';
 import type { CostEstimate, WorkOrderItem } from '../types/workOrder';
 
 interface CostEstimateCardProps {
@@ -54,11 +54,19 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
     return `Rs. ${amount.toLocaleString('en-LK')}`;
   };
 
-  const confidencePercentage = Math.round(estimate.confidence * 100);
+  const isFallback =
+    estimate.modelName === 'RuleBasedFallback' ||
+    estimate.modelName?.toLowerCase().includes('fallback') ||
+    estimate.modelName?.toLowerCase().includes('rule-based');
+
+  const confidencePercentage =
+    estimate.confidence != null && !isNaN(estimate.confidence)
+      ? Math.round(Math.min(Math.max(estimate.confidence, 0), 1) * 100)
+      : 0;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-      {/* Header with AI Badge */}
+    <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+      {/* Header with AI Badge & Model Transparency */}
       <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-indigo-500/20 rounded-lg border border-indigo-400/30 text-indigo-300">
@@ -66,13 +74,19 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
           </div>
           <div>
             <h3 className="font-semibold text-white flex items-center gap-2">
-              Agentic AI Cost &amp; Material Estimate
-              <span className="text-xs px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 font-mono">
-                {estimate.modelName}
+              Cost &amp; Material Estimate Proposal
+              <span
+                className={`text-[11px] px-2.5 py-0.5 rounded font-mono ${
+                  isFallback
+                    ? 'bg-amber-500/25 text-amber-200 border border-amber-400/30'
+                    : 'bg-indigo-500/30 text-indigo-200 border border-indigo-400/30'
+                }`}
+              >
+                {isFallback ? 'Estimate Source: Rule-Based Fallback' : `AI Source: Gemini (${estimate.modelName || 'gemini-2.0-flash'})`}
               </span>
             </h3>
             <p className="text-xs text-slate-300 mt-0.5">
-              Multi-step reasoning based on hazard severity, asset condition, and repair history
+              Multi-step estimation proposal based on hazard severity, asset condition, and project-defined municipal repair benchmarks
             </p>
           </div>
         </div>
@@ -91,7 +105,7 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
           )}
 
           <div className="text-right border-l border-white/10 pl-4">
-            <div className="text-xs text-slate-400">Total Estimated Cost</div>
+            <div className="text-xs text-slate-400">Total Proposed Cost ({estimate.currency || 'LKR'})</div>
             <div className="text-2xl font-bold text-emerald-400 font-mono">
               {formatLKR(estimate.estimatedCost)}
             </div>
@@ -100,6 +114,16 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
       </div>
 
       <div className="p-6 space-y-6">
+        {/* Rule-Based Fallback Informational Banner */}
+        {isFallback && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3.5 text-xs flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold">Estimate Source Notice:</span> This estimate was generated using project-defined municipal repair cost benchmarks because the AI service was unavailable or not configured.
+            </div>
+          </div>
+        )}
+
         {/* Cost Breakdown Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-slate-50 border border-slate-100 rounded-lg p-4">
@@ -174,7 +198,7 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex justify-between text-xs text-slate-500">
-                <span>Model Confidence</span>
+                <span>AI Confidence</span>
                 <span className="font-semibold text-emerald-600">{confidencePercentage}%</span>
               </div>
               <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1.5">
@@ -192,7 +216,7 @@ export const CostEstimateCard: React.FC<CostEstimateCardProps> = ({
           <div className="bg-indigo-50/60 border border-indigo-100 rounded-lg p-4">
             <div className="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1.5 flex items-center gap-1.5">
               <Bot className="w-3.5 h-3.5" />
-              Agent Reasoning &amp; Context
+              Estimation Reasoning &amp; Context
             </div>
             <p className="text-sm text-indigo-950 leading-relaxed">{estimate.reason}</p>
           </div>
