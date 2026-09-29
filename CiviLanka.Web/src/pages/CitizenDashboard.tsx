@@ -1307,7 +1307,7 @@ export const CitizenDashboard: React.FC = () => {
                     {HAZARD_CATEGORIES.map((cat) => (
                       <option key={cat.value} value={cat.value}>
                         {isSinhala ? cat.labelSi : cat.label}
-                      </option>
+                      </option
                     ))}
                   </select>
 
