@@ -15,8 +15,12 @@ import { workOrderService } from '../services/workOrderService';
 import { StatusBadge } from '../components/StatusBadge';
 import { PriorityBadge } from '../components/PriorityBadge';
 import type { WorkOrder } from '../types/workOrder';
+import { useLanguage } from '../context/LanguageContext';
 
 export const WorkOrderDashboard: React.FC = () => {
+  const { language } = useLanguage();
+  const isSinhala = language === 'si';
+
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export const WorkOrderDashboard: React.FC = () => {
       const data = await workOrderService.getAll();
       setWorkOrders(data);
     } catch (err: any) {
-      setError('Failed to load work orders. Ensure the ASP.NET Core backend is running.');
+      setError(isSinhala ? 'වැඩ ඇණවුම් පූරණය කිරීමට නොහැකි විය. ASP.NET Core පසුබිම ක්‍රියාත්මක බව තහවුරු කරගන්න.' : 'Failed to load work orders. Ensure the ASP.NET Core backend is running.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -62,18 +66,22 @@ export const WorkOrderDashboard: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
-            Work Order &amp; Cost Estimation Hub
+            {isSinhala ? 'වැඩ ඇණවුම් සහ පිරිවැය ඇස්තමේන්තු මධ්‍යස්ථානය' : 'Work Order & Cost Estimation Hub'}
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Work Orders Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {isSinhala ? 'වැඩ ඇණවුම් පුවරුව' : 'Work Orders Dashboard'}
+          </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Automated maintenance planning with Gemini 2.0 cost estimation and director authorization.
+            {isSinhala
+              ? 'Gemini 2.0 පිරිවැය ඇස්තමේන්තුව සහ අධ්‍යක්ෂ අනුමැතිය සහිත ස්වයංක්‍රීය නඩත්තු සැලසුම්කරණය.'
+              : 'Automated maintenance planning with Gemini 2.0 cost estimation and director authorization.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={fetchWorkOrders}
-            className="p-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+            className="p-2.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Refresh Data"
           >
             <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -83,7 +91,7 @@ export const WorkOrderDashboard: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Create Work Order
+            <span>{isSinhala ? 'වැඩ ඇණවුමක් සාදන්න' : 'Create Work Order'}</span>
           </Link>
         </div>
       </div>
@@ -91,8 +99,8 @@ export const WorkOrderDashboard: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-4 rounded-xl flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={fetchWorkOrders} className="underline font-semibold ml-4">
-            Retry
+          <button onClick={fetchWorkOrders} className="underline font-semibold ml-4 cursor-pointer">
+            {isSinhala ? 'නැවත උත්සාහ කරන්න' : 'Retry'}
           </button>
         </div>
       )}
@@ -101,11 +109,11 @@ export const WorkOrderDashboard: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium text-slate-500">Total Orders</span>
+            <span className="text-xs font-medium text-slate-500">{isSinhala ? 'මුළු ඇණවුම්' : 'Total Orders'}</span>
             <ClipboardList className="w-4 h-4 text-slate-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 font-mono">{total}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">{cancelled} cancelled</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{cancelled} {isSinhala ? 'අවලංගුයි' : 'cancelled'}</div>
         </div>
 
         <Link
@@ -113,7 +121,7 @@ export const WorkOrderDashboard: React.FC = () => {
           className="bg-white border border-amber-200 hover:border-amber-400 rounded-xl p-4 shadow-2xs transition-all group"
         >
           <div className="flex items-center justify-between text-amber-500 mb-2">
-            <span className="text-xs font-medium text-amber-700">Pending Approval</span>
+            <span className="text-xs font-medium text-amber-700">{isSinhala ? 'අනුමැතිය අපේක්ෂිත' : 'Pending Approval'}</span>
             <AlertCircle className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
           </div>
           <div className="text-2xl font-bold text-amber-700 font-mono">{pendingApproval}</div>
@@ -121,7 +129,7 @@ export const WorkOrderDashboard: React.FC = () => {
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium text-slate-500">Approved</span>
+            <span className="text-xs font-medium text-slate-500">{isSinhala ? 'අනුමත කළ' : 'Approved'}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold text-emerald-600 font-mono">{approved}</div>
@@ -129,7 +137,7 @@ export const WorkOrderDashboard: React.FC = () => {
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium text-slate-500">In Progress</span>
+            <span className="text-xs font-medium text-slate-500">{isSinhala ? 'ක්‍රියාත්මක වෙමින්' : 'In Progress'}</span>
             <Clock className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl font-bold text-blue-600 font-mono">{inProgress}</div>
@@ -137,7 +145,7 @@ export const WorkOrderDashboard: React.FC = () => {
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium text-slate-500">Completed</span>
+            <span className="text-xs font-medium text-slate-500">{isSinhala ? 'අවසන් කළ' : 'Completed'}</span>
             <CheckCircle2 className="w-4 h-4 text-green-500" />
           </div>
           <div className="text-2xl font-bold text-green-600 font-mono">{completed}</div>
@@ -145,7 +153,7 @@ export const WorkOrderDashboard: React.FC = () => {
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium text-slate-500">Total Estimated</span>
+            <span className="text-xs font-medium text-slate-500">{isSinhala ? 'මුළු ඇස්තමේන්තුව' : 'Total Estimated'}</span>
             <TrendingUp className="w-4 h-4 text-indigo-500" />
           </div>
           <div className="text-sm font-bold text-slate-900 font-mono truncate mt-1">
@@ -163,10 +171,14 @@ export const WorkOrderDashboard: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-white text-sm">
-                {pendingApproval} Work Order{pendingApproval > 1 ? 's' : ''} Require Director Approval
+                {isSinhala
+                  ? `වැඩ ඇණවුම් ${pendingApproval}ක් සඳහා අධ්‍යක්ෂ අනුමැතිය අවශ්‍යයි`
+                  : `${pendingApproval} Work Order${pendingApproval > 1 ? 's' : ''} Require Director Approval`}
               </h3>
               <p className="text-xs text-amber-100 mt-0.5">
-                Executive Director authorization is mandatory prior to crew dispatch and municipal budget release.
+                {isSinhala
+                  ? 'කාර්ය මණ්ඩලය පිටත් කිරීමට සහ නගර සභා ප්‍රතිපාදන මුදා හැරීමට පෙර විධායක අධ්‍යක්ෂ අනුමැතිය අනිවාර්ය වේ.'
+                  : 'Executive Director authorization is mandatory prior to crew dispatch and municipal budget release.'}
               </p>
             </div>
           </div>
@@ -175,7 +187,7 @@ export const WorkOrderDashboard: React.FC = () => {
             to="/approval-queue"
             className="px-4 py-2 bg-white text-amber-900 hover:bg-amber-50 rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
           >
-            Open Approval Queue &rarr;
+            {isSinhala ? 'අනුමත කිරීමේ පෝලිම විවෘත කරන්න →' : 'Open Approval Queue →'}
           </Link>
         </div>
       )}
@@ -184,31 +196,41 @@ export const WorkOrderDashboard: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-slate-900 text-sm">Recent Work Orders</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Latest municipal repair tasks generated from citizen hazards</p>
+            <h3 className="font-bold text-slate-900 text-sm">
+              {isSinhala ? 'මෑතකාලීන වැඩ ඇණවුම්' : 'Recent Work Orders'}
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {isSinhala
+                ? 'පුරවැසි අනතුරු වාර්තා මත පදනම්ව ජනනය කළ නවතම නගර සභා අලුත්වැඩියා කටයුතු'
+                : 'Latest municipal repair tasks generated from citizen hazards'}
+            </p>
           </div>
 
           <Link
             to="/work-orders"
             className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
           >
-            View All ({total})
+            {isSinhala ? `සියල්ල බලන්න (${total})` : `View All (${total})`}
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-xs text-slate-400">Loading work orders...</div>
+          <div className="p-12 text-center text-xs text-slate-400">
+            {isSinhala ? 'වැඩ ඇණවුම් පූරණය වෙමින් පවතී...' : 'Loading work orders...'}
+          </div>
         ) : workOrders.length === 0 ? (
           <div className="p-12 text-center">
             <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-xs text-slate-500">No work orders created yet.</p>
+            <p className="text-xs text-slate-500">
+              {isSinhala ? 'තවම කිසිදු වැඩ ඇණවුමක් සාදා නැත.' : 'No work orders created yet.'}
+            </p>
             <Link
               to="/work-orders/create"
               className="inline-flex items-center gap-1.5 text-xs text-indigo-600 font-semibold mt-2 hover:underline"
             >
               <Plus className="w-3.5 h-3.5" />
-              Create your first work order
+              <span>{isSinhala ? 'ඔබගේ පළමු වැඩ ඇණවුම සාදන්න' : 'Create your first work order'}</span>
             </Link>
           </div>
         ) : (
@@ -216,13 +238,13 @@ export const WorkOrderDashboard: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
                 <tr>
-                  <th className="px-5 py-3">WO Number</th>
-                  <th className="px-5 py-3">Title &amp; Asset</th>
-                  <th className="px-5 py-3">Priority</th>
-                  <th className="px-5 py-3 text-right">Est. Cost</th>
-                  <th className="px-5 py-3">Approval</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Action</th>
+                  <th className="px-5 py-3">{isSinhala ? 'ඇණවුම් අංකය' : 'WO Number'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'මාතෘකාව සහ වත්කම' : 'Title & Asset'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'ප්‍රමුඛතාව' : 'Priority'}</th>
+                  <th className="px-5 py-3 text-right">{isSinhala ? 'ඇස්තමේන්තු පිරිවැය' : 'Est. Cost'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'අනුමැතිය' : 'Approval'}</th>
+                  <th className="px-5 py-3">{isSinhala ? 'තත්ත්වය' : 'Status'}</th>
+                  <th className="px-5 py-3 text-right">{isSinhala ? 'ක්‍රියාමාර්ගය' : 'Action'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -235,7 +257,7 @@ export const WorkOrderDashboard: React.FC = () => {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="font-semibold text-slate-900 line-clamp-1">{wo.title}</div>
-                      <div className="text-[11px] text-slate-400">{wo.assetName || 'No Asset Attached'}</div>
+                      <div className="text-[11px] text-slate-400">{wo.assetName || (isSinhala ? 'වත්කමක් අමුණා නැත' : 'No Asset Attached')}</div>
                     </td>
                     <td className="px-5 py-3.5">
                       <PriorityBadge priority={wo.priority} />
@@ -245,13 +267,13 @@ export const WorkOrderDashboard: React.FC = () => {
                     </td>
                     <td className="px-5 py-3.5">
                       {wo.approvalStatus === 'APPROVED' ? (
-                        <span className="text-[11px] font-semibold text-emerald-600">Approved</span>
+                        <span className="text-[11px] font-semibold text-emerald-600">{isSinhala ? 'අනුමතයි' : 'Approved'}</span>
                       ) : wo.approvalStatus === 'PENDING' ? (
-                        <span className="text-[11px] font-semibold text-amber-600">Pending</span>
+                        <span className="text-[11px] font-semibold text-amber-600">{isSinhala ? 'අපේක්ෂිතයි' : 'Pending'}</span>
                       ) : wo.approvalStatus === 'REJECTED' ? (
-                        <span className="text-[11px] font-semibold text-red-600">Rejected</span>
+                        <span className="text-[11px] font-semibold text-red-600">{isSinhala ? 'ප්‍රතික්ෂේපිතයි' : 'Rejected'}</span>
                       ) : (
-                        <span className="text-[11px] text-slate-400">Not Required</span>
+                        <span className="text-[11px] text-slate-400">{isSinhala ? 'අවශ්‍ය නොවේ' : 'Not Required'}</span>
                       )}
                     </td>
                     <td className="px-5 py-3.5">
@@ -262,7 +284,7 @@ export const WorkOrderDashboard: React.FC = () => {
                         to={`/work-orders/${wo.id}`}
                         className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
                       >
-                        View &rarr;
+                        {isSinhala ? 'බලන්න →' : 'View →'}
                       </Link>
                     </td>
                   </tr>
