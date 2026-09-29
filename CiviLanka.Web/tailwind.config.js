@@ -9,8 +9,7 @@ export default {
     extend: {
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],
-        sans: ['Inter', '"Plus Jakarta Sans"', '"Noto Sans Sinhala"', 'system-ui', 'sans-serif'],
-        sinhala: ['"Noto Sans Sinhala"', 'sans-serif'],
+        sans: ['Inter', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
         gis: ['"JetBrains Mono"', 'monospace'],
       },

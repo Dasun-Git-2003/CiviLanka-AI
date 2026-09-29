@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @config "../tailwind.config.js";
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700;800;900&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -8,12 +8,6 @@
   html {
     scroll-behavior: smooth;
     font-family: "Plus Jakarta Sans", "Noto Sans Sinhala", system-ui, -apple-system, sans-serif;
-  }
-  html[lang="si"],
-  [lang="si"],
-  .font-sinhala {
-    font-family: "Noto Sans Sinhala", "Plus Jakarta Sans", sans-serif;
-    line-height: 1.6;
   }
   body {
     @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-amber-500/20 selection:text-amber-300;
@@ -326,6 +320,10 @@
   animation-play-state: paused;
 }
 
-
-
-
+/* ── Sinhala Font Typography (Noto Sans Sinhala) ── */
+.font-sinhala,
+html[lang="si"],
+html[lang="si"] body {
+  font-family: "Noto Sans Sinhala", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif !important;
+  line-height: 1.6;
+}

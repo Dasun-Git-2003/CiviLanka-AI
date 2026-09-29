@@ -30,10 +30,14 @@ import { MaintenanceStatusBadge } from '../components/maintenance/MaintenanceSta
 import { SafetyRiskBadge } from '../components/maintenance/SafetyRiskBadge';
 import { EvidenceUploadModal } from '../components/maintenance/EvidenceUploadModal';
 import { authService } from '../services/authService';
+import { useLanguage } from '../context/LanguageContext';
 
 type TabType = 'all' | 'action_needed' | 'in_progress' | 'pending_verification' | 'verified';
 
 export const FieldInspectorPortal: React.FC = () => {
+  const { language } = useLanguage();
+  const isSinhala = language === 'si';
+
   const [assignments, setAssignments] = useState<MaintenanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -227,19 +231,21 @@ export const FieldInspectorPortal: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-200 text-xs font-bold uppercase tracking-wider">
                 <ClipboardCheck className="w-3.5 h-3.5 text-teal-300" />
-                Mobile Inspector Terminal
+                {isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂක පර්යන්තය' : 'Mobile Inspector Terminal'}
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-semibold">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                Telemetry Live
+                {isSinhala ? 'සජීවී දත්ත සක්‍රීයයි' : 'Telemetry Live'}
               </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Field Inspector Hub &bull; {user?.fullName || 'Municipal Officer'}
+              {isSinhala ? `ක්ෂේත්‍ර පරීක්ෂක මධ්‍යස්ථානය • ${user?.fullName || 'නගර සභා නිලධාරී'}` : `Field Inspector Hub • ${user?.fullName || 'Municipal Officer'}`}
             </h1>
             <p className="text-xs sm:text-sm text-teal-100/80 max-w-2xl leading-relaxed">
-              Dispatch execution, photographic evidence verification, safety protocol checklist, and direct supervisor sign-off submission.
+              {isSinhala
+                ? 'ක්‍රියාකාරකම් පැවරීම, ඡායාරූප සාක්ෂි තහවුරු කිරීම, ආරක්ෂක ප්‍රොටෝකෝල පිරික්සුම සහ අධීක්ෂක අනුමැතිය සඳහා ඉදිරිපත් කිරීම.'
+                : 'Dispatch execution, photographic evidence verification, safety protocol checklist, and direct supervisor sign-off submission.'}
             </p>
           </div>
 
@@ -247,11 +253,11 @@ export const FieldInspectorPortal: React.FC = () => {
             <button
               onClick={() => loadAssignments(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all shadow-xs"
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all shadow-xs cursor-pointer"
               title="Refresh assigned records"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-teal-300' : ''}`} />
-              <span>{refreshing ? 'Syncing...' : 'Sync Feed'}</span>
+              <span>{isSinhala ? (refreshing ? 'සමමුහුර්ත වෙමින්...' : 'දත්ත යාවත්කාලීන කරන්න') : (refreshing ? 'Syncing...' : 'Sync Feed')}</span>
             </button>
 
             <Link
@@ -259,7 +265,7 @@ export const FieldInspectorPortal: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-black transition-all shadow-md hover:shadow-teal-500/25"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Log Maintenance Record</span>
+              <span>{isSinhala ? 'නඩත්තු වාර්තාවක් එක් කරන්න' : 'Log Maintenance Record'}</span>
             </Link>
 
             <Link
@@ -267,7 +273,7 @@ export const FieldInspectorPortal: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/20 transition-all"
             >
               <Navigation className="w-4 h-4 text-teal-300" />
-              <span>City Map</span>
+              <span>{isSinhala ? 'නගර සිතියම' : 'City Map'}</span>
             </Link>
           </div>
         </div>
@@ -284,11 +290,11 @@ export const FieldInspectorPortal: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-            <span>Action Required</span>
+            <span>{isSinhala ? 'ක්‍රියාමාර්ග අවශ්‍යයි' : 'Action Required'}</span>
             <AlertTriangle className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-amber-600 dark:text-amber-400">{counts.action_needed}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Assigned or correction requested</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">{isSinhala ? 'පවරා ඇති හෝ නිවැරදි කිරීම් අවශ්‍ය' : 'Assigned or correction requested'}</div>
         </div>
 
         <div
@@ -300,11 +306,11 @@ export const FieldInspectorPortal: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-            <span>In Execution</span>
+            <span>{isSinhala ? 'ක්‍රියාත්මක වෙමින් පවතී' : 'In Execution'}</span>
             <PlayCircle className="w-4 h-4 text-teal-500" />
           </div>
           <div className="text-2xl font-black text-teal-600 dark:text-teal-400">{counts.in_progress}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Currently on-site</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">{isSinhala ? 'දැනට වැඩබිමේ ක්‍රියාත්මකයි' : 'Currently on-site'}</div>
         </div>
 
         <div
@@ -316,11 +322,11 @@ export const FieldInspectorPortal: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-            <span>Awaiting Sign-Off</span>
+            <span>{isSinhala ? 'අනුමැතිය අපේක්ෂාවෙන්' : 'Awaiting Sign-Off'}</span>
             <Clock className="w-4 h-4 text-purple-500" />
           </div>
           <div className="text-2xl font-black text-purple-600 dark:text-purple-400">{counts.pending_verification}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Submitted for supervisor check</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">{isSinhala ? 'අධීක්ෂක පරීක්ෂාව සඳහා යොමු කර ඇත' : 'Submitted for supervisor check'}</div>
         </div>
 
         <div
@@ -332,11 +338,11 @@ export const FieldInspectorPortal: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-            <span>Verified &amp; Closed</span>
+            <span>{isSinhala ? 'තහවුරු කර අවසන් කරන ලදී' : 'Verified & Closed'}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{counts.verified}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">Quality approved operations</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">{isSinhala ? 'තත්ත්ව පරීක්ෂාවෙන් අනුමත කරන ලද' : 'Quality approved operations'}</div>
         </div>
       </div>
 
@@ -346,24 +352,26 @@ export const FieldInspectorPortal: React.FC = () => {
           <AlertOctagon className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1 flex-1 text-xs">
             <div className="font-bold text-rose-900 dark:text-rose-200 flex items-center gap-2">
-              <span>High Safety Risk Notice ({highRiskAssignments.length} Operations)</span>
+              <span>{isSinhala ? `ඉහළ ආරක්ෂක අවදානම් දැනුම්දීම (ක්‍රියාකාරකම් ${highRiskAssignments.length})` : `High Safety Risk Notice (${highRiskAssignments.length} Operations)`}</span>
               <span className="px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 font-mono text-[10px] font-bold">
-                MANDATORY PPE
+                {isSinhala ? 'අනිවාර්ය ආරක්ෂක උපකරණ' : 'MANDATORY PPE'}
               </span>
             </div>
             <p className="text-rose-800 dark:text-rose-300 leading-relaxed">
-              AI Safety Compliance Agent has identified high risk factors or urgent priority on active work orders. Full barricading, utility clearance, and certified personal protective equipment must be verified before commencing work.
+              {isSinhala
+                ? 'AI ආරක්ෂක අනුකූලතා පද්ධතිය මගින් සක්‍රීය වැඩ ඇණවුම්වල ඉහළ අවදානම් සාධක හඳුනාගෙන ඇත. වැඩ ආරම්භ කිරීමට පෙර බාධක යෙදීම සහ සම්පූර්ණ ආරක්ෂිත ඇඳුම් පැළඳුම් පැළඳීම තහවුරු කළ යුතුය.'
+                : 'AI Safety Compliance Agent has identified high risk factors or urgent priority on active work orders. Full barricading, utility clearance, and certified personal protective equipment must be verified before commencing work.'}
             </p>
           </div>
           <button
             onClick={() => setFilterRiskOnly(!filterRiskOnly)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               filterRiskOnly
                 ? 'bg-rose-600 text-white hover:bg-rose-700'
                 : 'bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 hover:bg-rose-200'
             }`}
           >
-            {filterRiskOnly ? 'Show All Tasks' : 'Filter High Risk'}
+            {isSinhala ? (filterRiskOnly ? 'සියලු පැවරුම් පෙන්වන්න' : 'ඉහළ අවදානම් පමණක් පෙරන්න') : (filterRiskOnly ? 'Show All Tasks' : 'Filter High Risk')}
           </button>
         </div>
       )}
@@ -385,13 +393,13 @@ export const FieldInspectorPortal: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by WO#, Ticket#, Street, or Crew..."
+              placeholder={isSinhala ? 'ඇණවුම් අංකය, ටිකට්පත, ස්ථානය හෝ කණ්ඩායම මගින් සොයන්න...' : 'Search by WO#, Ticket#, Street, or Crew...'}
               className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -402,13 +410,13 @@ export const FieldInspectorPortal: React.FC = () => {
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-semibold">
             <button
               onClick={() => setActiveTab('action_needed')}
-              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'action_needed'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <span>Action Needed</span>
+              <span>{isSinhala ? 'ක්‍රියාමාර්ග අවශ්‍යයි' : 'Action Needed'}</span>
               <span className="px-1.5 py-0.2 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 text-[10px] rounded-full font-bold">
                 {counts.action_needed}
               </span>
@@ -416,13 +424,13 @@ export const FieldInspectorPortal: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('in_progress')}
-              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'in_progress'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <span>In Progress</span>
+              <span>{isSinhala ? 'ක්‍රියාත්මක වෙමින්' : 'In Progress'}</span>
               <span className="px-1.5 py-0.2 bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 text-[10px] rounded-full font-bold">
                 {counts.in_progress}
               </span>
@@ -430,13 +438,13 @@ export const FieldInspectorPortal: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('pending_verification')}
-              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'pending_verification'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <span>Sign-Off Pending</span>
+              <span>{isSinhala ? 'අනුමැතිය අපේක්ෂාවෙන්' : 'Sign-Off Pending'}</span>
               <span className="px-1.5 py-0.2 bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 text-[10px] rounded-full font-bold">
                 {counts.pending_verification}
               </span>
@@ -444,13 +452,13 @@ export const FieldInspectorPortal: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                 activeTab === 'all'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              All ({counts.all})
+              {isSinhala ? `සියල්ල (${counts.all})` : `All (${counts.all})`}
             </button>
           </div>
         </div>
@@ -461,19 +469,25 @@ export const FieldInspectorPortal: React.FC = () => {
         {loading ? (
           <div className="p-16 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
             <div className="w-10 h-10 border-3 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="font-semibold text-slate-700 dark:text-slate-300">Synchronizing field terminal assignments...</p>
-            <p className="text-[11px] text-slate-400 mt-1">Connecting to CiviLanka Municipal Telemetry API</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">
+              {isSinhala ? 'ක්ෂේත්‍ර පර්යන්ත පැවරුම් සමමුහුර්ත වෙමින් පවතී...' : 'Synchronizing field terminal assignments...'}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              {isSinhala ? 'CiviLanka නගර සභා ටෙලිමෙට්‍රි පද්ධතිය හා සම්බන්ධ වෙමින්...' : 'Connecting to CiviLanka Municipal Telemetry API'}
+            </p>
           </div>
         ) : filteredAssignments.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
             <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-              {searchQuery ? 'No matching assignments found' : 'All clear for this view'}
+              {searchQuery
+                ? (isSinhala ? 'ගැලපෙන පැවරුම් හමු නොවීය' : 'No matching assignments found')
+                : (isSinhala ? 'මෙම කොටසේ පැවරුම් කිසිවක් නැත' : 'All clear for this view')}
             </h3>
             <p className="text-slate-400 max-w-sm mx-auto">
               {searchQuery
-                ? `No assignments matched "${searchQuery}". Try clearing search filters.`
-                : 'No inspection tasks pending in this queue. Select another tab or click Sync Feed.'}
+                ? (isSinhala ? `"${searchQuery}" සඳහා පැවරුම් කිසිවක් හමු නොවීය. සෙවුම් පෙරහන් ඉවත් කර නැවත උත්සාහ කරන්න.` : `No assignments matched "${searchQuery}". Try clearing search filters.`)
+                : (isSinhala ? 'මෙම පෝලිමේ කිසිදු පරීක්ෂණ කාර්යයක් නොමැත. වෙනත් ටැබ් එකක් තෝරන්න හෝ සමමුහුර්ත කරන්න.' : 'No inspection tasks pending in this queue. Select another tab or click Sync Feed.')}
             </p>
             {(searchQuery || filterRiskOnly) && (
               <button
@@ -481,9 +495,9 @@ export const FieldInspectorPortal: React.FC = () => {
                   setSearchQuery('');
                   setFilterRiskOnly(false);
                 }}
-                className="px-3.5 py-1.5 rounded-lg bg-teal-50 text-teal-700 text-xs font-bold hover:bg-teal-100 transition-colors"
+                className="px-3.5 py-1.5 rounded-lg bg-teal-50 text-teal-700 text-xs font-bold hover:bg-teal-100 transition-colors cursor-pointer"
               >
-                Reset Filters
+                {isSinhala ? 'පෙරහන් ඉවත් කරන්න' : 'Reset Filters'}
               </button>
             )}
           </div>
@@ -578,13 +592,13 @@ export const FieldInspectorPortal: React.FC = () => {
                         {job.assignedCrew && (
                           <div className="flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Crew: <strong className="text-slate-700 dark:text-slate-200">{job.assignedCrew}</strong></span>
+                            <span>{isSinhala ? 'කාර්ය මණ්ඩලය:' : 'Crew:'} <strong className="text-slate-700 dark:text-slate-200">{job.assignedCrew}</strong></span>
                           </div>
                         )}
 
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Logged: <strong>{job.labourHours} hrs</strong></span>
+                          <span>{isSinhala ? 'ගතවූ කාලය:' : 'Logged:'} <strong>{job.labourHours} {isSinhala ? 'පැය' : 'hrs'}</strong></span>
                         </div>
 
                         {job.actualCost > 0 && (
@@ -599,13 +613,13 @@ export const FieldInspectorPortal: React.FC = () => {
                         <div className="flex flex-wrap items-center gap-4">
                           {/* Before Photo */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold text-slate-500">Before Photo:</span>
+                            <span className="text-[11px] font-semibold text-slate-500">{isSinhala ? 'පෙර ඡායාරූපය:' : 'Before Photo:'}</span>
                             {job.beforeImageUrl ? (
                               <button
                                 onClick={() => setPreviewPhotoUrl(job.beforeImageUrl || null)}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 text-[11px] hover:bg-emerald-100 transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 text-[11px] hover:bg-emerald-100 transition-colors cursor-pointer"
                               >
-                                <Eye className="w-3 h-3" /> Captured ✓
+                                <Eye className="w-3 h-3" /> {isSinhala ? 'ලබාගෙන ඇත ✓' : 'Captured ✓'}
                               </button>
                             ) : (
                               <button
@@ -614,22 +628,22 @@ export const FieldInspectorPortal: React.FC = () => {
                                   setUploadImageType('before');
                                   setUploadModalOpen(true);
                                 }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800 text-[11px] hover:bg-amber-100 transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800 text-[11px] hover:bg-amber-100 transition-colors cursor-pointer"
                               >
-                                <Camera className="w-3 h-3" /> + Upload
+                                <Camera className="w-3 h-3" /> {isSinhala ? '+ උඩුගත කරන්න' : '+ Upload'}
                               </button>
                             )}
                           </div>
 
                           {/* After Photo */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold text-slate-500">After Photo:</span>
+                            <span className="text-[11px] font-semibold text-slate-500">{isSinhala ? 'පසු ඡායාරූපය:' : 'After Photo:'}</span>
                             {job.afterImageUrl ? (
                               <button
                                 onClick={() => setPreviewPhotoUrl(job.afterImageUrl || null)}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 text-[11px] hover:bg-emerald-100 transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 text-[11px] hover:bg-emerald-100 transition-colors cursor-pointer"
                               >
-                                <Eye className="w-3 h-3" /> Captured ✓
+                                <Eye className="w-3 h-3" /> {isSinhala ? 'ලබාගෙන ඇත ✓' : 'Captured ✓'}
                               </button>
                             ) : (
                               <button
@@ -638,9 +652,9 @@ export const FieldInspectorPortal: React.FC = () => {
                                   setUploadImageType('after');
                                   setUploadModalOpen(true);
                                 }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800 text-[11px] hover:bg-amber-100 transition-colors"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800 text-[11px] hover:bg-amber-100 transition-colors cursor-pointer"
                               >
-                                <Camera className="w-3 h-3" /> + Upload
+                                <Camera className="w-3 h-3" /> {isSinhala ? '+ උඩුගත කරන්න' : '+ Upload'}
                               </button>
                             )}
                           </div>
@@ -653,7 +667,9 @@ export const FieldInspectorPortal: React.FC = () => {
                                 job.safetyChecklist ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400'
                               }`}
                             >
-                              Safety Checklist {job.safetyChecklist ? '✓ Verified' : '○ Pending'}
+                              {isSinhala
+                                ? (job.safetyChecklist ? 'ආරක්ෂක පිරික්සුම ✓ තහවුරුයි' : 'ආරක්ෂක පිරික්සුම ○ අපේක්ෂිතයි')
+                                : (`Safety Checklist ${job.safetyChecklist ? '✓ Verified' : '○ Pending'}`)}
                             </span>
                           </div>
                         </div>
@@ -662,7 +678,7 @@ export const FieldInspectorPortal: React.FC = () => {
                         {job.latestSafetyAnalysis && (
                           <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
                             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                            <span>AI Confidence: {Math.round(job.latestSafetyAnalysis.confidence * 100)}%</span>
+                            <span>{isSinhala ? 'AI විශ්වාසය:' : 'AI Confidence:'} {Math.round(job.latestSafetyAnalysis.confidence * 100)}%</span>
                           </div>
                         )}
                       </div>
@@ -672,9 +688,9 @@ export const FieldInspectorPortal: React.FC = () => {
                         <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5">
                           <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                           <div>
-                            <strong className="font-bold">Supervisor Correction Requested:</strong>
+                            <strong className="font-bold">{isSinhala ? 'අධීක්ෂක විසින් නිවැරදි කිරීම් ඉල්ලා ඇත:' : 'Supervisor Correction Requested:'}</strong>
                             <p className="mt-0.5">
-                              {job.verificationNotes || 'Workmanship or evidence needs correction before final municipal sign-off.'}
+                              {job.verificationNotes || (isSinhala ? 'අවසාන අනුමැතියට පෙර වැඩ හෝ සාක්ෂි නිවැරදි කිරීම අවශ්‍ය වේ.' : 'Workmanship or evidence needs correction before final municipal sign-off.')}
                             </p>
                           </div>
                         </div>
@@ -687,20 +703,20 @@ export const FieldInspectorPortal: React.FC = () => {
                         <button
                           onClick={() => handleStartInspection(job.id)}
                           disabled={isActionLoading}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-xs transition-all"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-xs transition-all cursor-pointer"
                         >
                           <PlayCircle className="w-4 h-4" />
-                          <span>{isActionLoading ? 'Commencing...' : 'Start Inspection'}</span>
+                          <span>{isActionLoading ? (isSinhala ? 'ආරම්භ කරමින්...' : 'Commencing...') : (isSinhala ? 'පරීක්ෂාව අරඹන්න' : 'Start Inspection')}</span>
                         </button>
                       )}
 
                       {(isInProgress || isCorrection) && (
                         <button
                           onClick={() => handleOpenSignOff(job)}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-all"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                         >
                           <Send className="w-4 h-4" />
-                          <span>Submit Sign-Off</span>
+                          <span>{isSinhala ? 'අනුමැතිය සඳහා යොමු කරන්න' : 'Submit Sign-Off'}</span>
                         </button>
                       )}
 
@@ -708,7 +724,7 @@ export const FieldInspectorPortal: React.FC = () => {
                         to={`/maintenance/${job.id}`}
                         className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors"
                       >
-                        <span>Full Inspector Sheet</span>
+                        <span>{isSinhala ? 'සම්පූර්ණ පරීක්ෂණ පත්‍රිකාව' : 'Full Inspector Sheet'}</span>
                         <ChevronRight className="w-4 h-4" />
                       </Link>
                     </div>
@@ -740,7 +756,7 @@ export const FieldInspectorPortal: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Send className="w-4 h-4 text-teal-600" />
                   <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    Submit Inspection Sign-Off
+                    {isSinhala ? 'ක්ෂේත්‍ර පරීක්ෂණ අනුමැතිය ඉදිරිපත් කරන්න' : 'Submit Inspection Sign-Off'}
                   </h3>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -749,7 +765,7 @@ export const FieldInspectorPortal: React.FC = () => {
               </div>
               <button
                 onClick={() => setSignOffModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -758,13 +774,13 @@ export const FieldInspectorPortal: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Field Observations &amp; Rectification Memo <span className="text-rose-500">*</span>
+                  {isSinhala ? 'ක්ෂේත්‍ර නිරීක්ෂණ සහ නිවැරදි කිරීමේ සටහන' : 'Field Observations & Rectification Memo'} <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={signOffNotes}
                   onChange={(e) => setSignOffNotes(e.target.value)}
-                  placeholder="Detail completed repairs, contractor quality, safety controls observed, and surface finish..."
+                  placeholder={isSinhala ? 'අවසන් කරන ලද අලුත්වැඩියාවන්, ගුණාත්මකභාවය සහ නිරීක්ෂණය කරන ලද ආරක්ෂක පියවර මෙහි සඳහන් කරන්න...' : 'Detail completed repairs, contractor quality, safety controls observed, and surface finish...'}
                   className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
@@ -772,7 +788,7 @@ export const FieldInspectorPortal: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Labour Hours Executed
+                    {isSinhala ? 'ගතවූ ශ්‍රම පැය ගණන' : 'Labour Hours Executed'}
                   </label>
                   <input
                     type="number"
@@ -786,7 +802,7 @@ export const FieldInspectorPortal: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Actual Cost Incurred (LKR)
+                    {isSinhala ? 'දැරූ සැබෑ පිරිවැය (රු.)' : 'Actual Cost Incurred (LKR)'}
                   </label>
                   <input
                     type="number"
@@ -803,11 +819,11 @@ export const FieldInspectorPortal: React.FC = () => {
               <div className="p-3 bg-teal-50 dark:bg-teal-950/40 rounded-xl border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-200 space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Evidence Audit Status</span>
+                  <span>{isSinhala ? 'සාක්ෂි විගණන තත්ත්වය' : 'Evidence Audit Status'}</span>
                 </div>
                 <div className="flex items-center gap-3 text-[11px] pt-1">
-                  <span>Before Photo: {signOffRecord.beforeImageUrl ? '✓ Present' : '○ Not Uploaded'}</span>
-                  <span>After Photo: {signOffRecord.afterImageUrl ? '✓ Present' : '○ Not Uploaded'}</span>
+                  <span>{isSinhala ? (signOffRecord.beforeImageUrl ? 'පෙර ඡායාරූපය: ✓ ඇත' : 'පෙර ඡායාරූපය: ○ උඩුගත කර නැත') : (`Before Photo: ${signOffRecord.beforeImageUrl ? '✓ Present' : '○ Not Uploaded'}`)}</span>
+                  <span>{isSinhala ? (signOffRecord.afterImageUrl ? 'පසු ඡායාරූපය: ✓ ඇත' : 'පසු ඡායාරූපය: ○ උඩුගත කර නැත') : (`After Photo: ${signOffRecord.afterImageUrl ? '✓ Present' : '○ Not Uploaded'}`)}</span>
                 </div>
               </div>
             </div>
@@ -816,18 +832,18 @@ export const FieldInspectorPortal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSignOffModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
               >
-                Cancel
+                {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
               </button>
               <button
                 type="button"
                 onClick={handleSubmitSignOff}
                 disabled={submittingSignOff || !signOffNotes.trim()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-black shadow-md transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-black shadow-md transition-all cursor-pointer"
               >
                 <CheckCircle className="w-4 h-4" />
-                <span>{submittingSignOff ? 'Submitting to Queue...' : 'Confirm & Submit to Supervisor'}</span>
+                <span>{submittingSignOff ? (isSinhala ? 'පෝලිමට එක් කරමින්...' : 'Submitting to Queue...') : (isSinhala ? 'තහවුරු කර අධීක්ෂක වෙත යොමු කරන්න' : 'Confirm & Submit to Supervisor')}</span>
               </button>
             </div>
           </div>
