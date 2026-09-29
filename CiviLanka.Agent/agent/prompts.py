@@ -1,3 +1,4 @@
+
 """Prompt templates for Sri Lanka Infrastructure Cost & Material Estimator Agent."""
 
 ROUTER_PROMPT = """You are the Lead Municipal Infrastructure Engineer for Sri Lanka Municipal Councils (CMC/RDA/NWSDB).

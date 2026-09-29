@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/hazard_service.dart';
+import 'services/work_order_service.dart';
+import 'services/maintenance_service.dart';
 import 'services/location_service.dart';
-import 'screens/login_screen.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/shared/app_shell.dart';
+import 'theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const CiviLankaApp());
 }
 
@@ -16,77 +20,37 @@ class CiviLankaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Service singletons injected via Provider
+    // Singleton services injected via Provider
     final apiService = ApiService();
     final authService = AuthService(apiService);
     final hazardService = HazardService(apiService);
+    final workOrderService = WorkOrderService(apiService);
+    final maintenanceService = MaintenanceService(apiService);
     final locationService = LocationService();
 
     return MultiProvider(
       providers: [
         Provider<ApiService>.value(value: apiService),
-        Provider<AuthService>.value(value: authService),
+        ChangeNotifierProvider<AuthService>.value(value: authService),
         Provider<HazardService>.value(value: hazardService),
+        Provider<WorkOrderService>.value(value: workOrderService),
+        Provider<MaintenanceService>.value(value: maintenanceService),
         Provider<LocationService>.value(value: locationService),
         ChangeNotifierProvider(
           create: (_) => AuthState(authService),
         ),
       ],
       child: MaterialApp(
-        title: 'CivitaGuard — Citizen App',
+        title: 'CiviLanka AI — Smart Municipal Ops',
         debugShowCheckedModeBanner: false,
-        theme: _buildTheme(),
+        theme: AppTheme.darkTheme,
         home: const AuthGate(),
-      ),
-    );
-  }
-
-  ThemeData _buildTheme() {
-    const primaryColor = Color(0xFF1A6FA8); // Municipal blue
-    const accentColor = Color(0xFFF4A426); // Warning amber
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        secondary: accentColor,
-        surface: const Color(0xFFF8F9FA),
-        error: const Color(0xFFDC3545),
-      ),
-      fontFamily: 'Roboto',
-      appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
       ),
     );
   }
 }
 
-/// Auth state notifier — drives the top-level routing.
+/// Auth state notifier — drives top-level routing
 class AuthState extends ChangeNotifier {
   final AuthService _authService;
   bool _isLoggedIn = false;
@@ -106,7 +70,7 @@ class AuthState extends ChangeNotifier {
   }
 }
 
-/// Routes to Dashboard if logged in, Login screen otherwise.
+/// Routes to AppShell if logged in, LoginScreen otherwise
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -114,7 +78,7 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthState>();
     return authState.isLoggedIn
-        ? const DashboardScreen()
+        ? const AppShell()
         : const LoginScreen();
   }
 }
