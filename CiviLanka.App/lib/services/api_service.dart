@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -5,16 +6,28 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Automatically attaches the JWT Bearer token to every authenticated request.
 /// Handles token storage, retrieval, and 401 interception.
 class ApiService {
-  static const String _baseUrl =
-      'http://10.0.2.2:5000'; // Android emulator → localhost
-  //   'http://192.168.1.X:5000'; // Physical device — replace with your LAN IP
+  static String get defaultBaseUrl {
+    try {
+      if (Platform.isAndroid) {
+        return 'http://10.0.2.2:5000'; // Android emulator to host loopback
+      }
+    } catch (_) {
+      // In case Platform check is evaluated in web or unsupported test environment
+    }
+    return 'http://localhost:5000'; // Windows desktop or web
+  }
 
+  static String _baseUrl = defaultBaseUrl;
   static const String _tokenKey = 'jwt_token';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   late final Dio _dio;
 
-  ApiService() {
+  ApiService([String? customBaseUrl]) {
+    if (customBaseUrl != null && customBaseUrl.isNotEmpty) {
+      _baseUrl = customBaseUrl;
+    }
+
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 15),

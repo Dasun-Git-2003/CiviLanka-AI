@@ -158,6 +158,75 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text('Sign In'),
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Quick Demo Credentials Selector
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Quick Demo Sign-In:',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    _emailCtrl.text = 'citizen@civilanka.gov.lk';
+                                    _passwordCtrl.text = 'password123';
+                                    _login();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  child: const Text('Citizen', style: TextStyle(fontSize: 11)),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    _emailCtrl.text = 'fieldworker@civilanka.gov.lk';
+                                    _passwordCtrl.text = 'password123';
+                                    _login();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  child: const Text('Field Worker', style: TextStyle(fontSize: 11)),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    _emailCtrl.text = 'director@civilanka.gov.lk';
+                                    _passwordCtrl.text = 'password123';
+                                    _login();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  child: const Text('Director', style: TextStyle(fontSize: 11)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

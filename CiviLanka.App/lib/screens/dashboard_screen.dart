@@ -6,6 +6,8 @@ import '../services/hazard_service.dart';
 import 'my_reports_screen.dart';
 import 'report_hazard_screen.dart';
 import 'field_worker_screen.dart';
+import 'director_approvals_screen.dart';
+import 'city_assets_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -223,7 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         builder: (_) => const MyReportsScreen()),
                   ).then((_) => _loadStats()),
                   icon: const Icon(Icons.history),
-                  label: const Text('View My Reports'),
+                  label: const Text('View My Submitted Reports (Citizen)'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -231,9 +233,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // ── Municipal Operations & Governance Hub ─────────────────────
+              Text(
+                'Municipal Operations & Governance',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
 
-              // ── Member 4: Field Worker Mode ──────────────────────────────
+              // Field Worker Execution Mode (M4)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -243,10 +253,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         builder: (_) => const FieldWorkerScreen()),
                   ),
                   icon: const Icon(Icons.handyman_outlined),
-                  label: const Text('Field Worker Execution Mode (M4)'),
+                  label: const Text('Field Worker Execution & AI Audit (M4)'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Director Statutory Approvals (M4)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const DirectorApprovalsScreen()),
+                  ),
+                  icon: const Icon(Icons.gavel),
+                  label: const Text('Director Statutory Approvals & Budget (M4)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E293B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // City Infrastructure Assets (M2)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const CityAssetsScreen()),
+                  ),
+                  icon: const Icon(Icons.location_city),
+                  label: const Text('City Infrastructure Assets & GIS (M2)'),
+                  style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
