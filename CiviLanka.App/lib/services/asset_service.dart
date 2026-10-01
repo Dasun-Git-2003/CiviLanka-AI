@@ -131,7 +131,7 @@ class AssetService {
       case 401:
         return 'Please log in again.';
       case 403:
-        return 'Access denied. Requires Director authorization.';
+        return 'Access denied. You do not have permission for this action.';
       case 404:
         return 'Asset not found.';
       default:

@@ -213,10 +213,10 @@ namespace CiviLanka.API.Controllers
         }
 
         /// <summary>
-        /// Delete an infrastructure asset (PublicWorksDirector only).
+        /// Delete an infrastructure asset (Directors, Supervisors, and Municipal Staff).
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "PublicWorksDirector,Director")]
+        [Authorize(Policy = "CanManageInfrastructure")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAsset(string id)

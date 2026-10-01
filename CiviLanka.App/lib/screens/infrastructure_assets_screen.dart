@@ -441,6 +441,63 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
     );
   }
 
+  void _openEditModal(InfrastructureAsset asset) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: EditAssetModal(
+          asset: asset,
+          onAssetUpdated: () => _loadAssets(),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(InfrastructureAsset asset) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Infrastructure Asset'),
+        content: Text('Are you sure you want to delete "${asset.id} - ${asset.name}" from the municipal database? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                final assetService = context.read<AssetService>();
+                await assetService.deleteAsset(asset.id);
+                _loadAssets();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Asset ${asset.id} deleted successfully'),
+                      backgroundColor: const Color(0xFF10B981),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Delete Asset'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAssetCard(InfrastructureAsset asset, bool isDark) {
     final cond = (asset.latestCondition ?? 'Good').toLowerCase();
     final condColor = cond == 'critical'
@@ -520,7 +577,21 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
             ),
           ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFFF97316)),
+              tooltip: 'Edit Asset',
+              onPressed: () => _openEditModal(asset),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+              tooltip: 'Delete Asset',
+              onPressed: () => _confirmDelete(asset),
+            ),
+          ],
+        ),
         onTap: () {
           _showAssetDetailSheet(context, asset, isDark);
         },
@@ -597,12 +668,10 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.pop(ctx);
-                        if (asset.latitude != null && asset.longitude != null) {
-                          _mapController.move(LatLng(asset.latitude!, asset.longitude!), 15);
-                        }
+                        _openEditModal(asset);
                       },
-                      icon: const Icon(Icons.location_on_outlined, size: 16),
-                      label: const Text('View on Map'),
+                      icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFFF97316)),
+                      label: const Text('Edit Asset', style: TextStyle(color: Color(0xFFF97316))),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -610,14 +679,12 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Inspecting physical asset: ${asset.name}')),
-                        );
+                        _confirmDelete(asset);
                       },
-                      icon: const Icon(Icons.checklist_rounded, size: 16),
-                      label: const Text('Inspect Asset'),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                      label: const Text('Delete Asset'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF97316),
+                        backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                       ),
                     ),
@@ -1039,6 +1106,398 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
                   child: _submitting
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text('Register Asset', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// EDIT ASSET MODAL
+// ═════════════════════════════════════════════════════════════════════════════
+
+class EditAssetModal extends StatefulWidget {
+  final InfrastructureAsset asset;
+  final VoidCallback onAssetUpdated;
+
+  const EditAssetModal({
+    super.key,
+    required this.asset,
+    required this.onAssetUpdated,
+  });
+
+  @override
+  State<EditAssetModal> createState() => _EditAssetModalState();
+}
+
+class _EditAssetModalState extends State<EditAssetModal> {
+  final _formKey = GlobalKey<FormState>();
+  late final MapController _pickerMapCtrl;
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _locationCtrl;
+  late final TextEditingController _latCtrl;
+  late final TextEditingController _lngCtrl;
+  late final TextEditingController _descCtrl;
+
+  late String _selectedType;
+  late String _selectedStatus;
+  late String _selectedCondition;
+  bool _submitting = false;
+
+  final List<String> _types = ['Water', 'Electrical', 'Civil', 'Roads & Bridges', 'Sanitation', 'Telecom'];
+  final List<String> _statuses = ['Active', 'Under Maintenance', 'Inactive', 'Decommissioned'];
+  final List<String> _conditions = ['Good', 'Moderate', 'Poor', 'Critical'];
+
+  @override
+  void initState() {
+    super.initState();
+    _pickerMapCtrl = MapController();
+    _nameCtrl = TextEditingController(text: widget.asset.name);
+    _locationCtrl = TextEditingController(text: widget.asset.location);
+    _latCtrl = TextEditingController(text: (widget.asset.latitude ?? 6.9271).toStringAsFixed(4));
+    _lngCtrl = TextEditingController(text: (widget.asset.longitude ?? 79.8612).toStringAsFixed(4));
+    _descCtrl = TextEditingController(text: widget.asset.description ?? '');
+
+    _selectedType = _types.contains(widget.asset.type) ? widget.asset.type : 'Water';
+    _selectedStatus = _statuses.contains(widget.asset.status) ? widget.asset.status : 'Active';
+    _selectedCondition = _conditions.contains(widget.asset.latestCondition) ? widget.asset.latestCondition! : 'Good';
+  }
+
+  Future<void> _detectLocation() async {
+    try {
+      final locService = context.read<LocationService>();
+      final pos = await locService.getCurrentLocation();
+      if (pos != null && mounted) {
+        setState(() {
+          _latCtrl.text = pos.latitude.toStringAsFixed(4);
+          _lngCtrl.text = pos.longitude.toStringAsFixed(4);
+        });
+        _pickerMapCtrl.move(LatLng(pos.latitude, pos.longitude), 15);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _submitting = true);
+    try {
+      final assetService = context.read<AssetService>();
+      await assetService.updateAsset(
+        id: widget.asset.id,
+        name: _nameCtrl.text.trim(),
+        type: _selectedType,
+        status: _selectedStatus,
+        condition: _selectedCondition,
+        location: _locationCtrl.text.trim(),
+        latitude: double.tryParse(_latCtrl.text),
+        longitude: double.tryParse(_lngCtrl.text),
+        description: _descCtrl.text.trim(),
+      );
+
+      widget.onAssetUpdated();
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Asset ${widget.asset.id} updated successfully!'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _submitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF97316).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.edit_note_rounded, color: Color(0xFFF97316), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Edit Asset (${widget.asset.id})', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                          const Text('Update municipal asset & GIS details', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Asset Name *
+              const Text('Asset Name *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _nameCtrl,
+                validator: (val) => val == null || val.trim().isEmpty ? 'Asset name is required' : null,
+              ),
+
+              const SizedBox(height: 14),
+
+              // Asset Type & Status
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Asset Type *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: _selectedType,
+                          items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                          onChanged: (val) => setState(() => _selectedType = val!),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Operational Status *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: _selectedStatus,
+                          items: _statuses.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                          onChanged: (val) => setState(() => _selectedStatus = val!),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 14),
+
+              // Asset Condition *
+              const Text('Asset Condition *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                value: _selectedCondition,
+                items: _conditions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                onChanged: (val) => setState(() => _selectedCondition = val!),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Location Address *
+              const Text('Location Address *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _locationCtrl,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.location_on_outlined, size: 18),
+                ),
+                validator: (val) => val == null || val.trim().isEmpty ? 'Location is required' : null,
+              ),
+
+              const SizedBox(height: 14),
+
+              // GIS Coordinates
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Pin GIS Coordinates on Map', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  TextButton.icon(
+                    onPressed: _detectLocation,
+                    icon: const Icon(Icons.my_location, size: 14, color: Color(0xFFF97316)),
+                    label: const Text('Detect GPS', style: TextStyle(fontSize: 11, color: Color(0xFFF97316), fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _latCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Latitude'),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _lngCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Longitude'),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              // Interactive GIS Map Picker
+              Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Stack(
+                    children: [
+                      FlutterMap(
+                        mapController: _pickerMapCtrl,
+                        options: MapOptions(
+                          initialCenter: LatLng(
+                            double.tryParse(_latCtrl.text) ?? 6.9271,
+                            double.tryParse(_lngCtrl.text) ?? 79.8612,
+                          ),
+                          initialZoom: 14.0,
+                          onTap: (tapPos, latLng) {
+                            setState(() {
+                              _latCtrl.text = latLng.latitude.toStringAsFixed(4);
+                              _lngCtrl.text = latLng.longitude.toStringAsFixed(4);
+                            });
+                            _pickerMapCtrl.move(latLng, _pickerMapCtrl.camera.zoom);
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'lk.gov.civilanka.app',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              if (double.tryParse(_latCtrl.text) != null &&
+                                  double.tryParse(_lngCtrl.text) != null)
+                                Marker(
+                                  point: LatLng(
+                                    double.parse(_latCtrl.text),
+                                    double.parse(_lngCtrl.text),
+                                  ),
+                                  width: 42,
+                                  height: 42,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF97316),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFF97316).withValues(alpha: 0.45),
+                                          blurRadius: 8,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.location_on_rounded,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.touch_app_rounded, color: Color(0xFFF97316), size: 14),
+                              SizedBox(width: 6),
+                              Text(
+                                'Tap anywhere on map to reposition asset marker',
+                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Description
+              const Text('Description & Specifications', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _descCtrl,
+                maxLines: 2,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _submitting ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF97316),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: _submitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Save Asset Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 ),
               ),
             ],
