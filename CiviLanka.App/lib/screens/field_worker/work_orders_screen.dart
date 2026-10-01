@@ -174,7 +174,7 @@ class _WorkOrdersScreenState extends State<WorkOrdersScreen> {
                   children: [
                     const Icon(Icons.account_balance_wallet_outlined, size: 14, color: AppColors.slate400),
                     const SizedBox(width: 4),
-                    Text('Est: Rs. ${wo.estimatedCost.toStringAsFixed(0)}', style: const TextStyle(fontSize: 11, color: AppColors.slate600)),
+                    Text('Est: Rs. ${wo.estimatedCost?.toStringAsFixed(0) ?? "N/A"}', style: const TextStyle(fontSize: 11, color: AppColors.slate600)),
                   ],
                 ),
                 Text(

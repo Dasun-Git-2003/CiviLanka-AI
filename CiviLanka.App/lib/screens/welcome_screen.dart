@@ -1,13 +1,8 @@
-<<<<<<< HEAD
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/auth_state.dart';
 import 'auth/register_screen.dart';
-=======
-import 'package:flutter/material.dart';
-import 'login_screen.dart';
->>>>>>> 497eeb7d19de8c979127a6a0657a8d59613316a9
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -21,11 +16,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _isDarkMode = true;
 
   void _navigateToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LoginScreen(initialSinhala: _isSinhala),
-      ),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _LoginModalSheet(isSinhala: _isSinhala),
     );
   }
 
@@ -149,7 +144,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              _isSinhala ? 'à¶±à·à¶œà¶»à·’à¶š à¶¶à·”à¶¯à·Šà¶°à·’ à¶´à¶¯à·Šà¶°à¶­à·’à¶º' : 'MUNICIPAL INTELLIGENCE',
+                              _isSinhala ? 'නාගරික බුද්ධි පද්ධතිය' : 'MUNICIPAL INTELLIGENCE',
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 8.5,
@@ -185,7 +180,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                _isSinhala ? 'English' : 'à·ƒà·’à¶‚à·„à¶½',
+                                _isSinhala ? 'English' : 'සිංහල',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -234,7 +229,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // Eyebrow Tagline
                       Text(
                         _isSinhala
-                            ? 'à¶¢à·à¶­à·’à¶š à¶±à·à¶œà¶»à·’à¶š à¶ºà¶§à·’à¶­à¶½ à¶´à·„à·ƒà·”à¶šà¶¸à·Š à¶¶à·”à¶¯à·Šà¶°à·’à¶¸à¶º à·€à·šà¶¯à·’à¶šà·à·€'
+                            ? 'ජාතික නාගරික යටිතල පහසුකම් බුද්ධිමය වේදිකාව'
                             : 'National Municipal Infrastructure Intelligence Platform',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
@@ -252,7 +247,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: _isSinhala ? 'à·€à¶©à·à¶­à·Š à·ƒà·”à·„à·”à¶»à·”\nà¶ºà¶§à·’à¶­à¶½ à¶´à·„à·ƒà·”à¶šà¶¸à·Š.\n' : 'Smarter\nInfrastructure.\n',
+                              text: _isSinhala ? 'වඩාත් සුහුරු\nයටිතල පහසුකම්.\n' : 'Smarter\nInfrastructure.\n',
                               style: const TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w900,
@@ -262,7 +257,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                             ),
                             TextSpan(
-                              text: _isSinhala ? 'à·ƒà·”à¶»à¶šà·Šà·‚à·’à¶­ à¶±à¶œà¶».' : 'Safer Cities.',
+                              text: _isSinhala ? 'සුරක්ෂිත නගර.' : 'Safer Cities.',
                               style: const TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.w900,
@@ -279,7 +274,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // Subtitle / Description
                       Text(
                         _isSinhala
-                            ? 'à¶´à·”à¶»à·€à·à·ƒà·’ à·€à·à¶»à·Šà¶­à·à·€à¶½ à·ƒà·’à¶§ à·ƒà·Šà¶±à·à¶ºà·” à¶¯à·à·‚ à·€à¶»à·Šà¶œà·“à¶šà¶»à¶«à¶º, à¶´à·”à¶»à·à¶šà¶®à¶± à·€à¶­à·Šà¶šà¶¸à·Š à¶…à·€à¶¯à·à¶±à¶¸à·Š à·ƒà·„ à·€à·’à¶±à·’à·€à·’à¶¯ à¶´à·™à¶±à·™à¶± à¶¸à·–à¶½à·Šâ€à¶º à¶´à·à¶½à¶±à¶º à·„à¶»à·„à· à¶±à¶©à¶­à·Šà¶­à·” à¶´à·Šâ€à¶»à¶­à·’à¶ à·à¶» à¶šà¶©à·’à¶±à¶¸à·Š à¶šà·’à¶»à·“à¶¸.'
+                            ? 'පුරවැසි වාර්තාවල සිට ස්නායු දෝෂ වර්ගීකරණය, පුරෝකථන වත්කම් අවදානම් සහ විනිවිද පෙනෙන මූල්‍ය පාලනය හරහා නඩත්තු ප්‍රතිචාර කඩිනම් කිරීම.'
                             : 'CiviLanka AI accelerates municipal maintenance response from citizen reports to verified repairs with neural defect classification, predictive asset risk, and transparent fiscal governance.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -312,7 +307,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               const Icon(Icons.login_rounded, size: 20),
                               const SizedBox(width: 10),
                               Text(
-                                _isSinhala ? 'à¶´à¶¯à·Šà¶°à¶­à·’à¶ºà¶§ à¶´à·’à·€à·’à·ƒà·™à¶±à·Šà¶± (Login)' : 'Sign In to Portal',
+                                _isSinhala ? 'පද්ධතියට පිවිසෙන්න (Login)' : 'Sign In to Portal',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -340,7 +335,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-<<<<<<< HEAD
 // â”€â”€ Interactive Login Modal Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _LoginModalSheet extends StatefulWidget {
   final bool isSinhala;
@@ -478,7 +472,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.isSinhala ? 'à¶´à¶¯à·Šà¶°à¶­à·’à¶ºà¶§ à¶´à·’à·€à·’à·ƒà·™à¶±à·Šà¶±' : 'Sign In to CiviLanka',
+                        widget.isSinhala ? 'පද්ධතියට පිවිසෙන්න' : 'Sign In to CiviLanka',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -488,7 +482,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                       const SizedBox(height: 3),
                       Text(
                         widget.isSinhala
-                            ? 'à¶”à¶¶à·š à¶…à¶šà·Šà¶­à¶´à¶­à·Šâ€à¶» à¶‡à¶­à·”à·…à¶­à·Š à¶šà¶»à¶±à·Šà¶± à·„à· à¶©à·’à¶¸à· à¶‘à¶šà¶šà·Š à¶­à·à¶»à¶±à·Šà¶±'
+                            ? 'ඔබේ අක්තපත්‍ර ඇතුළත් කරන්න හෝ ඩිමෝ එකක් තෝරන්න'
                             : 'Select a demo persona or enter credentials',
                         style: const TextStyle(
                           fontSize: 12,
@@ -507,7 +501,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
 
               // Demo Persona Quick-Fill Chips
               Text(
-                widget.isSinhala ? 'à¶šà·Šà·‚à¶«à·’à¶š à¶´à·’à·€à·’à·ƒà·”à¶¸à·Š à¶·à·–à¶¸à·’à¶šà·à·€ (Quick Demo):' : 'One-Tap Demo Persona:',
+                widget.isSinhala ? 'ක්ෂණික පිවිසුම් භූමිකාව (Quick Demo):' : 'One-Tap Demo Persona:',
                 style: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 11.5,
@@ -600,7 +594,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: widget.isSinhala ? 'à·€à·’à¶¯à·Šâ€à¶ºà·”à¶­à·Š à¶­à·à¶´à·‘à¶½ (Email)' : 'Official Email',
+                  labelText: widget.isSinhala ? 'විද්‍යුත් තැපෑල (Email)' : 'Official Email',
                   labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
                   prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF94A3B8), size: 18),
                   filled: true,
@@ -633,7 +627,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                 obscureText: _obscurePassword,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: widget.isSinhala ? 'à¶¸à·”à¶»à¶´à¶¯à¶º (Password)' : 'Password',
+                  labelText: widget.isSinhala ? 'මුරපදය (Password)' : 'Password',
                   labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF94A3B8), size: 18),
                   suffixIcon: IconButton(
@@ -689,7 +683,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              widget.isSinhala ? 'à¶´à·’à·€à·’à·ƒà·™à¶±à·Šà¶±' : 'Authenticate & Sign In',
+                              widget.isSinhala ? 'පිවිසෙන්න' : 'Authenticate & Sign In',
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 8),
@@ -711,7 +705,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                     );
                   },
                   child: Text(
-                    widget.isSinhala ? 'à¶±à·€ à¶´à·”à¶»à·€à·à·ƒà·’à¶ºà·™à¶šà·Šà¶¯? à¶½à·’à¶ºà·à¶´à¶¯à·’à¶‚à¶ à·’ à·€à¶±à·Šà¶±' : 'New Citizen? Register an account',
+                    widget.isSinhala ? 'නව පුරවැසියෙක්ද? ලියාපදිංචි වන්න' : 'New Citizen? Register an account',
                     style: const TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 12,
@@ -727,5 +721,3 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
     );
   }
 }
-=======
->>>>>>> 497eeb7d19de8c979127a6a0657a8d59613316a9

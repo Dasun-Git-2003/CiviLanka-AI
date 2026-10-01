@@ -15,6 +15,7 @@ class User {
     this.phone,
   });
 
+  String get id => userId;
   bool get isCitizen => role.toLowerCase() == 'citizen';
   bool get isFieldWorker =>
       role.toLowerCase() == 'fieldworker' || role.toLowerCase() == 'contractor';
@@ -23,6 +24,15 @@ class User {
       role.toLowerCase() == 'municipalstaff' ||
       role.toLowerCase() == 'director' ||
       role.toLowerCase() == 'publicworksdirector';
+  bool get isDirector =>
+      role.toLowerCase() == 'director' ||
+      role.toLowerCase() == 'publicworksdirector';
+
+  bool get canAccessWorkOrders => !isCitizen;
+  bool get canCreateWorkOrders => isSupervisor || isDirector;
+  bool get canManageWorkOrders => isSupervisor || isDirector;
+  bool get canGenerateEstimate => isSupervisor || isDirector;
+  bool get canApproveWorkOrders => isDirector;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(

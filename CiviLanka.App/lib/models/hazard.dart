@@ -6,6 +6,11 @@ class HazardAIAnalysis {
   final String? reasoning;
   final int estimatedTurnaroundDays;
 
+  String get riskLevel => severity ?? 'Medium';
+  String get suggestedPriority => severity ?? 'Normal';
+  String get recommendedAction => recommendedActions.isNotEmpty ? recommendedActions.first : (reasoning ?? 'Proceed with scheduled municipal inspection');
+  String get aiExplanation => reasoning ?? 'Automated municipal neural classification';
+
   HazardAIAnalysis({
     this.category,
     this.severity,
@@ -66,11 +71,13 @@ class Hazard {
   bool get isResolved => status.toLowerCase() == 'resolved';
   bool get isInProgress =>
       status.toLowerCase() == 'inprogress' || status.toLowerCase() == 'workordercreated';
+  String get ticketNumber => 'TKT-${id.length > 6 ? id.substring(0, 6).toUpperCase() : id.toUpperCase()}';
+  String get priority => isCritical ? 'Critical' : (isHigh ? 'High' : severity);
 
   factory Hazard.fromJson(Map<String, dynamic> json) {
     return Hazard(
       id: json['id'] as String? ?? '',
-      title: json['title'] as String? ?? ((json['ticketNumber'] != null) ? "$(['ticketNumber']) - $(['category'])" : 'Municipal Hazard'),
+      title: json['title'] as String? ?? ((json['ticketNumber'] != null) ? "${json['ticketNumber']} - ${json['category'] ?? ''}" : 'Municipal Hazard'),
       description: json['description'] as String? ?? '',
       category: json['category'] as String? ?? 'General',
       severity: json['severity'] as String? ?? 'Medium',

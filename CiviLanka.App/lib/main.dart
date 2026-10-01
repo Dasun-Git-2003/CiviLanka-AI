@@ -10,7 +10,6 @@ import 'services/analytics_service.dart';
 import 'services/location_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/welcome_screen.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/shared/app_shell.dart';
 
 export 'services/auth_state.dart';

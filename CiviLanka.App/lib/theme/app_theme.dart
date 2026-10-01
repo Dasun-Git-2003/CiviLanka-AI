@@ -14,6 +14,12 @@ class AppTheme {
         error: AppColors.critical,
       ),
       fontFamily: 'Roboto',
+      fontFamilyFallback: const [
+        'Noto Sans Sinhala',
+        'Iskoola Pota',
+        'Nirmala UI',
+        'sans-serif',
+      ],
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textDark,
