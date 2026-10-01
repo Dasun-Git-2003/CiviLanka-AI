@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Theme Toggle Switch
+                    // Theme Toggle Switch (Sun / Moon)
                     GestureDetector(
                       onTap: () => setState(() => _isDarkMode = !_isDarkMode),
                       child: AnimatedContainer(
