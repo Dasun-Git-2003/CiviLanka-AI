@@ -14,6 +14,7 @@ import 'work_order_list_screen.dart';
 import 'infrastructure_assets_screen.dart';
 import 'contractors_directory_screen.dart';
 import 'repair_history_screen.dart';
+import 'agent_estimator_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -1401,9 +1402,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.trending_up_rounded,
               ),
               _aiModelTile(
-                title: 'Cost Estimator AI (RAG)',
+                title: 'Cost Estimator AI',
                 desc: 'Synthesizes municipal BOQ rates with historical material invoices for instant work order estimates.',
                 icon: Icons.calculate_outlined,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AgentEstimatorScreen()),
+                  );
+                },
               ),
             ],
           ),
@@ -1416,25 +1424,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String title,
     required String desc,
     required IconData icon,
+    VoidCallback? onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFFD946EF)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                const SizedBox(height: 1),
-                Text(desc, style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
-              ],
-            ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 20, color: const Color(0xFFD946EF)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                        if (onTap != null)
+                          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFD946EF)),
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(desc, style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
