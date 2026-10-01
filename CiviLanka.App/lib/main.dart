@@ -7,7 +7,7 @@ import 'services/hazard_service.dart';
 import 'services/work_order_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/location_service.dart';
-import 'screens/landing_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -53,7 +53,7 @@ class CiviLankaApp extends StatelessWidget {
   }
 }
 
-/// Routes to DashboardScreen if logged in, LandingScreen otherwise
+/// Routes to DashboardScreen if logged in, WelcomeScreen otherwise
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -62,6 +62,7 @@ class AuthGate extends StatelessWidget {
     final authState = context.watch<AuthState>();
     return authState.isLoggedIn
         ? const DashboardScreen()
-        : const LandingScreen();
+        : const WelcomeScreen();
   }
 }
+
