@@ -20,7 +20,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => LoginScreen(initialSinhala: _isSinhala),
+        builder: (_) => const LoginScreen(),
       ),
     );
   }
@@ -336,8 +336,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-<<<<<<< HEAD
-// â”€â”€ Interactive Login Modal Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _LoginModalSheet extends StatefulWidget {
   final bool isSinhala;
   const _LoginModalSheet({required this.isSinhala});
