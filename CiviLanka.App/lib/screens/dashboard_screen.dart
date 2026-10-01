@@ -78,16 +78,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         titleSpacing: 16,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.build_rounded,
-                color: Color(0xFFF59E0B),
-                size: 20,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/Logo.jpg',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+                errorBuilder: (ctx, err, stack) => Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.shield_rounded, color: Color(0xFFF59E0B), size: 20),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -103,20 +109,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     letterSpacing: -0.3,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFFDE68A), width: 0.8),
-                  ),
-                  child: const Text(
-                    'Field Maintenance Supervisor',
-                    style: TextStyle(
-                      color: Color(0xFFB45309),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  'Field Maintenance Supervisor',
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -277,7 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello, $userName 👋',
+                      'Hello, $userName ',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
