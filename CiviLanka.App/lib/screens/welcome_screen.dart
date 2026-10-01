@@ -290,10 +290,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         children: [
           // Brand Emblem + Wordmark
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.6), width: 1.5),
@@ -309,22 +310,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: Image.asset(
                     'assets/images/Logo.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.shield, color: Color(0xFFF59E0B), size: 22),
+                    errorBuilder: (_, __, ___) => const Icon(Icons.shield, color: Color(0xFFF59E0B), size: 20),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
                         'CiviLanka',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
-                          fontSize: 17,
+                          fontSize: 16,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -342,7 +345,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           'AI',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w900,
                             fontFamily: 'monospace',
                           ),
@@ -350,14 +353,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 1),
                   Text(
                     _isSinhala ? 'නාගරික බුද්ධි පද්ධතිය' : 'MUNICIPAL INTELLIGENCE',
                     style: const TextStyle(
                       color: Color(0xFF94A3B8),
-                      fontSize: 8.5,
+                      fontSize: 8,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 1.1,
+                      letterSpacing: 1.0,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -366,15 +368,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ],
           ),
 
-          // Action CTAs (Language + Sign In + Report)
+          // Action CTAs (Language + Sign In)
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Language Switcher
               InkWell(
                 onTap: () => setState(() => _isSinhala = !_isSinhala),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E293B),
                     borderRadius: BorderRadius.circular(20),
@@ -383,13 +386,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.language_rounded, color: Color(0xFFFBBF24), size: 14),
+                      const Icon(Icons.language_rounded, color: Color(0xFFFBBF24), size: 13),
                       const SizedBox(width: 4),
                       Text(
                         _isSinhala ? 'English' : 'සිංහල',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 11.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -397,21 +400,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
 
               // Sign In CTA
-              ElevatedButton.icon(
-                onPressed: _scrollToLogin,
-                icon: const Icon(Icons.shield_outlined, size: 13, color: Color(0xFFF59E0B)),
-                label: Text(_isSinhala ? 'පිවිසෙන්න' : 'Sign In'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E293B),
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFF334155)),
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
-                  elevation: 0,
+              GestureDetector(
+                onTap: _scrollToLogin,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF334155)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.shield_outlined, size: 12, color: Color(0xFFF59E0B)),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isSinhala ? 'පිවිසෙන්න' : 'Sign In',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -423,168 +438,150 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   // ── 2. Cinematic Hero Section (matching LandingPage.tsx) ───────────────────
   Widget _buildHeroSection() {
-    return Stack(
-      children: [
-        // Background Aerial Photo with Dark Gradient Overlay
-        Positioned.fill(
-          child: Image.asset(
-            'assets/images/cinematic_aerial_city_hero.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0A0F1D)),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0A0F1D),
+        image: DecorationImage(
+          image: AssetImage('assets/images/cinematic_aerial_city_hero.jpg'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            Color(0xDF0A0F1D),
+            BlendMode.darken,
           ),
         ),
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF0A0F1D).withValues(alpha: 0.88),
-                  const Color(0xFF0F172A).withValues(alpha: 0.92),
-                  const Color(0xFF0A0F1D),
-                ],
-              ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 36, 20, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Eyebrow Tagline
+          Text(
+            _isSinhala
+                ? 'ජාතික නාගරික යටිතල පහසුකම් බුද්ධිමය වේදිකාව'
+                : 'National Municipal Infrastructure Intelligence Platform',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFFF59E0B),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
             ),
           ),
-        ),
+          const SizedBox(height: 14),
 
-        // Hero Content
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 36, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          // Editorial Headline
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: _isSinhala ? 'වඩාත් සුහුරු\nයටිතල පහසුකම්.\n' : 'Smarter\nInfrastructure.\n',
+                  style: const TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1.15,
+                    letterSpacing: -0.8,
+                  ),
+                ),
+                TextSpan(
+                  text: _isSinhala ? 'සුරක්ෂිත නගර.' : 'Safer Cities.',
+                  style: const TextStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFFBBF24),
+                    height: 1.15,
+                    letterSpacing: -0.8,
+                    shadows: [
+                      Shadow(
+                        color: Color(0x80F59E0B),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Subtitle Description
+          Text(
+            _isSinhala
+                ? 'පුරවැසි වාර්තාවල සිට ස්නායු දෝෂ වර්ගීකරණය, පුරෝකථන වත්කම් අවදානම් සහ විනිවිද පෙනෙන මූල්‍ය පාලනය හරහා නඩත්තු ප්‍රතිචාර කඩිනම් කිරීම.'
+                : 'CiviLanka AI accelerates municipal maintenance response from citizen reports to verified repairs with neural defect classification, predictive asset risk, and transparent fiscal governance.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.88),
+              fontSize: 13,
+              height: 1.5,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Two Action CTAs (Report & Sign In)
+          Row(
             children: [
-              // Eyebrow Tagline
-              Text(
-                _isSinhala
-                    ? 'ජාතික නාගරික යටිතල පහසුකම් බුද්ධිමය වේදිකාව'
-                    : 'National Municipal Infrastructure Intelligence Platform',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFFF59E0B),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Editorial Headline
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: _isSinhala ? 'වඩාත් සුහුරු\nයටිතල පහසුකම්.\n' : 'Smarter\nInfrastructure.\n',
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1.15,
-                        letterSpacing: -0.8,
-                      ),
-                    ),
-                    TextSpan(
-                      text: _isSinhala ? 'සුරක්ෂිත නගර.' : 'Safer Cities.',
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFFBBF24),
-                        height: 1.15,
-                        letterSpacing: -0.8,
-                        shadows: [
-                          Shadow(
-                            color: Color(0x80F59E0B),
-                            blurRadius: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Subtitle Description
-              Text(
-                _isSinhala
-                    ? 'පුරවැසි වාර්තාවල සිට ස්නායු දෝෂ වර්ගීකරණය, පුරෝකථන වත්කම් අවදානම් සහ විනිවිද පෙනෙන මූල්‍ය පාලනය හරහා නඩත්තු ප්‍රතිචාර කඩිනම් කිරීම.'
-                    : 'CiviLanka AI accelerates municipal maintenance response from citizen reports to verified repairs with neural defect classification, predictive asset risk, and transparent fiscal governance.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.88),
-                  fontSize: 13,
-                  height: 1.5,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Two Action CTAs (Report & Sign In)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ReportHazardScreen()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEA580C),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 6,
-                        shadowColor: const Color(0xFFEA580C).withValues(alpha: 0.4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isSinhala ? 'උපද්‍රවයක් වාර්තා කරන්න' : 'Report an Issue',
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.arrow_forward_rounded, size: 16),
-                        ],
-                      ),
-                    ),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReportHazardScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEA580C),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 6,
+                    shadowColor: const Color(0xFFEA580C).withValues(alpha: 0.4),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _scrollToLogin,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFF334155), width: 1.5),
-                        backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.8),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isSinhala ? 'උපද්‍රවයක් වාර්තා කරන්න' : 'Report an Issue',
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.shield_outlined, size: 17, color: Color(0xFFFBBF24)),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isSinhala ? 'පද්ධතියට පිවිසෙන්න' : 'Sign In to Portal',
-                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _scrollToLogin,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+                    backgroundColor: const Color(0xFF1E293B).withValues(alpha: 0.8),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.shield_outlined, size: 17, color: Color(0xFFFBBF24)),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isSinhala ? 'පද්ධතියට පිවිසෙන්න' : 'Sign In to Portal',
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -616,43 +613,42 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 48,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _partnerAgencies.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 14),
-              itemBuilder: (context, i) {
-                final agency = _partnerAgencies[i];
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF334155)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        agency['logo'] as String,
-                        height: 24,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white70, size: 20),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        agency['short'] as String,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: _partnerAgencies.map((agency) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF334155)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          agency['logo'] as String,
+                          height: 24,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.account_balance, color: Colors.white70, size: 20),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Text(
+                          agency['short'] as String,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
-              },
+              }).toList(),
             ),
           ),
         ],
@@ -681,6 +677,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: metrics.map((m) {
           return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 m['val'] as String,
@@ -737,41 +734,38 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           const SizedBox(height: 16),
 
           // 4 Agent Cards
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _aiAgents.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (context, i) {
-              final agent = _aiAgents[i];
+          Column(
+            children: _aiAgents.map((agent) {
               final agentColor = agent['color'] as Color;
 
-              return Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF334155)),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Agent Visual Header
-                    Stack(
-                      children: [
-                        SizedBox(
-                          height: 140,
-                          width: double.infinity,
-                          child: Image.asset(
-                            agent['image'] as String,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: agentColor.withValues(alpha: 0.15)),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF334155)),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Agent Visual Header
+                      Stack(
+                        children: [
+                          SizedBox(
+                            height: 140,
+                            width: double.infinity,
+                            child: Image.asset(
+                              agent['image'] as String,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(color: agentColor.withValues(alpha: 0.15)),
+                            ),
                           ),
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
@@ -793,6 +787,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               border: Border.all(color: agentColor.withValues(alpha: 0.5)),
                             ),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   agent['number'] as String,
@@ -869,12 +864,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    ),
+  );
   }
 
   // ── 6. How It Works Workflow Pipeline ─────────────────────────────────────
@@ -907,76 +903,74 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           const SizedBox(height: 20),
 
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _workflowSteps.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 14),
-            itemBuilder: (context, i) {
-              final step = _workflowSteps[i];
+          Column(
+            children: _workflowSteps.map((step) {
               final stepColor = step['color'] as Color;
 
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF334155)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: stepColor.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: stepColor.withValues(alpha: 0.4)),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF334155)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: stepColor.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: stepColor.withValues(alpha: 0.4)),
+                        ),
+                        child: Icon(step['icon'] as IconData, color: stepColor, size: 22),
                       ),
-                      child: Icon(step['icon'] as IconData, color: stepColor, size: 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'STEP ${step['step']}',
-                                style: TextStyle(
-                                  color: stepColor,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w900,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _isSinhala ? step['titleSi'] as String : step['title'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'STEP ${step['step']}',
+                                  style: TextStyle(
+                                    color: stepColor,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'monospace',
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _isSinhala ? step['descSi'] as String : step['desc'] as String,
-                            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.4),
-                          ),
-                        ],
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _isSinhala ? step['titleSi'] as String : step['title'] as String,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _isSinhala ? step['descSi'] as String : step['desc'] as String,
+                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.4),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
-            },
+            }).toList(),
           ),
         ],
       ),
@@ -1085,6 +1079,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 role['role'] as String,
