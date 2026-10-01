@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
+import 'services/auth_state.dart';
 import 'services/hazard_service.dart';
 import 'services/work_order_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/location_service.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/shared/app_shell.dart';
+import 'screens/landing_screen.dart';
+import 'screens/dashboard_screen.dart';
 import 'theme/app_theme.dart';
+
+export 'services/auth_state.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +30,6 @@ class CiviLankaApp extends StatelessWidget {
     final workOrderService = WorkOrderService(apiService);
     final maintenanceService = MaintenanceService(apiService);
     final locationService = LocationService();
-    final workOrderService = WorkOrderService(apiService);
 
     return MultiProvider(
       providers: [
@@ -37,7 +39,6 @@ class CiviLankaApp extends StatelessWidget {
         Provider<WorkOrderService>.value(value: workOrderService),
         Provider<MaintenanceService>.value(value: maintenanceService),
         Provider<LocationService>.value(value: locationService),
-        Provider<WorkOrderService>.value(value: workOrderService),
         ChangeNotifierProvider(
           create: (_) => AuthState(authService),
         ),
@@ -52,27 +53,7 @@ class CiviLankaApp extends StatelessWidget {
   }
 }
 
-/// Auth state notifier — drives top-level routing
-class AuthState extends ChangeNotifier {
-  final AuthService _authService;
-  bool _isLoggedIn = false;
-
-  AuthState(this._authService);
-
-  bool get isLoggedIn => _isLoggedIn;
-
-  void setLoggedIn(bool value) {
-    _isLoggedIn = value;
-    notifyListeners();
-  }
-
-  Future<void> logout(BuildContext context) async {
-    await _authService.logout();
-    setLoggedIn(false);
-  }
-}
-
-/// Routes to AppShell if logged in, LoginScreen otherwise
+/// Routes to DashboardScreen if logged in, LandingScreen otherwise
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -80,7 +61,7 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthState>();
     return authState.isLoggedIn
-        ? const AppShell()
-        : const LoginScreen();
+        ? const DashboardScreen()
+        : const LandingScreen();
   }
 }
