@@ -268,7 +268,11 @@ export default function InfrastructureAssets() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const currentUser = authService.getCurrentUser();
-  const canDelete = currentUser?.role === 'PublicWorksDirector' || currentUser?.role === 'Director';
+  const canDelete =
+    currentUser?.role === 'PublicWorksDirector' ||
+    currentUser?.role === 'Director' ||
+    currentUser?.role === 'FieldMaintenanceSupervisor' ||
+    currentUser?.role === 'MunicipalStaff';
 
   const fetchAssets = async () => {
     try {
@@ -719,7 +723,7 @@ export default function InfrastructureAssets() {
                           {canDelete && (
                             <button
                               onClick={() => setDeleteTarget(asset)}
-                              title="Delete Asset (Director only)"
+                              title="Delete Asset"
                               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

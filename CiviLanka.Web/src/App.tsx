@@ -172,7 +172,7 @@ function Sidebar() {
           items: [
             { name: isSinhala ? 'උපද්‍රව වර්ගීකරණ AI' : 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
             { name: isSinhala ? 'වත්කම් අවදානම් අනාවැකි AI' : 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
-            { name: isSinhala ? 'පිරිවැය ඇස්තමේන්තුකරු AI (RAG)' : 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+            { name: isSinhala ? 'පිරිවැය ඇස්තමේන්තුකරු AI' : 'Cost Estimator AI', path: '/agent-estimator', icon: Sparkles },
             { name: isSinhala ? 'ආරක්ෂණ අනුකූලතා AI විගණනය' : 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
           ],
         },
@@ -234,7 +234,7 @@ function Sidebar() {
         items: [
           { name: isSinhala ? 'අනතුරු වර්ගීකරණ AI' : 'Hazard Classification AI', path: '/hazard-classification-ai', icon: Bot },
           { name: isSinhala ? 'වත්කම් අවදානම් අනාවැකි AI' : 'Asset Risk Prediction AI', path: '/asset-risk-ai', icon: Activity },
-          { name: isSinhala ? 'AI පිරිවැය ඇස්තමේන්තුකරු (RAG)' : 'Cost Estimator AI (RAG)', path: '/agent-estimator', icon: Sparkles },
+          { name: isSinhala ? 'AI පිරිවැය ඇස්තමේන්තුකරු' : 'Cost Estimator AI', path: '/agent-estimator', icon: Sparkles },
           { name: isSinhala ? 'ආරක්ෂණ අනුකූලතා AI විගණනය' : 'Safety Compliance AI Audit', path: '/audits', icon: ShieldAlert },
         ],
       },
