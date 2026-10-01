@@ -97,6 +97,8 @@ class HazardAIAnalysis {
   final String reason;
   final String modelName;
   final DateTime createdAt;
+  final int? recommendedCrewSize;
+  final int? estimatedResponseHours;
 
   const HazardAIAnalysis({
     required this.id,
@@ -108,6 +110,8 @@ class HazardAIAnalysis {
     required this.reason,
     required this.modelName,
     required this.createdAt,
+    this.recommendedCrewSize,
+    this.estimatedResponseHours,
   });
 
   factory HazardAIAnalysis.fromJson(Map<String, dynamic> json) {
@@ -121,6 +125,8 @@ class HazardAIAnalysis {
       reason: json['reason'] as String,
       modelName: json['modelName'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      recommendedCrewSize: json['recommendedCrewSize'] as int?,
+      estimatedResponseHours: json['estimatedResponseHours'] as int?,
     );
   }
 
@@ -134,6 +140,8 @@ class HazardAIAnalysis {
         'reason': reason,
         'modelName': modelName,
         'createdAt': createdAt.toIso8601String(),
+        'recommendedCrewSize': recommendedCrewSize,
+        'estimatedResponseHours': estimatedResponseHours,
       };
 }
 
