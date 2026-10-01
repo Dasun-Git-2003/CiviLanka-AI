@@ -2,52 +2,209 @@ import 'package:dio/dio.dart';
 import '../models/work_order.dart';
 import 'api_service.dart';
 
+/// API service for Member 3 Work Orders (CRUD + Queries).
+/// Reuses the existing ApiService instance for Dio and JWT authentication.
 class WorkOrderService {
   final ApiService _api;
 
   WorkOrderService(this._api);
 
-  /// Fetch all work orders assigned to or accessible by the current user
+  // ── READ ──────────────────────────────────────────────────────────────────
+
+  /// Fetch all active work orders accessible to the authenticated user.
+  /// Backend returns full list for Supervisors/Directors/Staff,
+  /// or assigned work orders for Field Workers.
   Future<List<WorkOrder>> getWorkOrders() async {
     try {
       final response = await _api.dio.get('/api/workorders');
-      if (response.statusCode == 200 && response.data is List) {
-        return (response.data as List)
-            .map((item) => WorkOrder.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-      return [];
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data
+          .map((json) => WorkOrder.fromJson(json as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to load work orders');
+      throw _handleError(e);
     }
   }
 
-  /// Fetch work order by ID
-  Future<WorkOrder?> getWorkOrderById(String id) async {
+  /// Fetch a specific work order by its unique GUID.
+  Future<WorkOrder> getWorkOrderById(String id) async {
     try {
       final response = await _api.dio.get('/api/workorders/$id');
-      if (response.statusCode == 200 && response.data != null) {
-        return WorkOrder.fromJson(response.data as Map<String, dynamic>);
-      }
-      return null;
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to load work order');
+      throw _handleError(e);
     }
   }
 
-  /// Update work order status (e.g. IN_PROGRESS, COMPLETED, REQUIRES_CORRECTION)
-  Future<bool> updateStatus(String id, String newStatus, {String? notes}) async {
+  // ── WRITE ─────────────────────────────────────────────────────────────────
+
+  /// Create a new work order on the backend (POST /api/workorders).
+  /// Requires CanCreateWorkOrder policy (Supervisor, Director, Staff).
+  Future<WorkOrder> createWorkOrder(CreateWorkOrderInput input) async {
     try {
-      final response = await _api.dio.patch(
-        '/api/workorders/$id/status',
-        data: {
-          'status': newStatus,
-          'notes': notes,
-        },
+      final response = await _api.dio.post(
+        '/api/workorders',
+        data: input.toJson(),
       );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update an existing work order on the backend (PUT /api/workorders/{id}).
+  /// Staff only (CanManageWorkOrders policy).
+  Future<WorkOrder> updateWorkOrder(
+      String id, UpdateWorkOrderInput input) async {
+    try {
+      final response = await _api.dio.put(
+        '/api/workorders/$id',
+        data: input.toJson(),
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Soft-cancel a work order on the backend (DELETE /api/workorders/{id}).
+  /// Preserves audit trail; marks status as CANCELLED.
+  Future<bool> cancelWorkOrder(String id) async {
+    try {
+      final response = await _api.dio.delete('/api/workorders/$id');
       return response.statusCode == 200 || response.statusCode == 204;
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to update work order status');
+      throw _handleError(e);
+    }
+  }
+
+  /// Runs the Cost Estimator AI Agent for an existing work order on the backend (POST /api/workorders/{id}/estimate).
+  ///
+  /// The backend executes Semantic Kernel / CostEstimatorAgent using project municipal benchmarks,
+  /// computes materials, equipment, crew size, labour hours, and estimated costs, and evaluates
+  /// arterial road risk and director approval threshold requirements.
+  /// Returns the updated [WorkOrder].
+  Future<WorkOrder> generateCostEstimate(String id) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/estimate',
+        data: {},
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ── APPROVAL WORKFLOW (DIRECTOR ONLY) ──────────────────────────────────────
+
+  /// Approves a work order on the backend (POST /api/workorders/{id}/approve).
+  /// Authorized for PublicWorksDirector or Director only (CanApproveWorkOrder policy).
+  /// The ASP.NET Core backend transitions Work Order status and ApprovalStatus to APPROVED,
+  /// records audit notes, and returns the updated authoritative [WorkOrder].
+  Future<WorkOrder> approveWorkOrder(String id,
+      [ApproveRejectInput? input]) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/approve',
+        data: (input ?? const ApproveRejectInput()).toJson(),
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Rejects a work order on the backend (POST /api/workorders/{id}/reject).
+  /// Authorized for PublicWorksDirector or Director only (CanApproveWorkOrder policy).
+  /// The ASP.NET Core backend transitions Work Order status and ApprovalStatus to REJECTED,
+  /// records optional rejection audit notes, and returns the updated authoritative [WorkOrder].
+  Future<WorkOrder> rejectWorkOrder(String id,
+      [ApproveRejectInput? input]) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/reject',
+        data: (input ?? const ApproveRejectInput()).toJson(),
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // ── LINKED ENTITIES HELPERS ───────────────────────────────────────────────
+
+  /// Fetch available active citizen hazards for optional linking.
+  /// Gracefully falls back to empty list on error.
+  Future<List<HazardOption>> getAvailableHazards() async {
+    try {
+      final response = await _api.dio.get('/api/hazards');
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data
+          .map((json) => HazardOption.fromJson(json as Map<String, dynamic>))
+          .where((h) => h.id.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Fetch available infrastructure assets for optional linking.
+  /// Gracefully falls back to empty list on error.
+  Future<List<AssetOption>> getAvailableAssets() async {
+    try {
+      final response = await _api.dio.get('/api/assets');
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data
+          .map((json) => AssetOption.fromJson(json as Map<String, dynamic>))
+          .where((a) => a.id.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  // ── ERROR HANDLING ────────────────────────────────────────────────────────
+
+  String _handleError(DioException e) => extractErrorMessage(e);
+
+  /// Extracts backend error or validation messages from DioException responses.
+  /// Authoritative validation messages returned by ASP.NET (such as invalid status transitions)
+  /// are preserved and surfaced directly to the user.
+  static String extractErrorMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is Map) {
+      if (data.containsKey('errors') && data['errors'] is Map) {
+        final errorsMap = data['errors'] as Map;
+        final List<String> errorList = [];
+        for (final entry in errorsMap.entries) {
+          if (entry.value is List) {
+            errorList.addAll((entry.value as List).map((v) => v.toString()));
+          } else {
+            errorList.add(entry.value.toString());
+          }
+        }
+        if (errorList.isNotEmpty) {
+          return errorList.join('\n');
+        }
+      }
+      if (data.containsKey('message')) {
+        return data['message'] as String;
+      }
+    }
+    switch (e.response?.statusCode) {
+      case 400:
+        return 'Invalid request. Please verify all inputs.';
+      case 401:
+        return 'Please log in again.';
+      case 403:
+        return 'Access denied. You do not have municipal permissions to perform this action.';
+      case 404:
+        return 'Work order not found.';
+      case 500:
+        return 'Server error. Please try again later.';
+      default:
+        return 'Network error. Please try again.';
     }
   }
 }
