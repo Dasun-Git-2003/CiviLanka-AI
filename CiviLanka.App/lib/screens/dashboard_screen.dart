@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../models/hazard.dart';
-import '../models/infrastructure_asset.dart';
 import '../services/auth_service.dart';
 import '../services/hazard_service.dart';
 import 'create_work_order_screen.dart';
@@ -29,6 +28,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _loading = true;
   String? _error;
   DateTime? _lastUpdated;
+  bool _isSinhala = false;
+
+  String _t(String en, String si) => _isSinhala ? si : en;
 
   @override
   void initState() {
@@ -59,6 +61,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     }
+  }
+
+  Widget _buildLanguageToggleButton(bool isDark) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _isSinhala = !_isSinhala;
+        });
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.language_rounded,
+              color: Color(0xFFF59E0B),
+              size: 16,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              _isSinhala ? 'සිංහල' : 'English',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -111,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Text(
-                  'Field Maintenance Supervisor',
+                  _t('Field Maintenance Supervisor', 'ක්ෂේත්‍ර නඩත්තු පරීක්ෂක'),
                   style: TextStyle(
                     color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     fontSize: 11,
@@ -123,6 +173,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: _buildLanguageToggleButton(isDark),
+            ),
+          ),
           IconButton(
             icon: _loading
                 ? const SizedBox(
@@ -212,26 +268,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
           type: BottomNavigationBarType.fixed,
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home_rounded),
+              label: _t('Home', 'මුල් පිටුව'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_outlined),
-              activeIcon: Icon(Icons.assignment_rounded),
-              label: 'Work Orders',
+              icon: const Icon(Icons.assignment_outlined),
+              activeIcon: const Icon(Icons.assignment_rounded),
+              label: _t('Work Orders', 'වැඩ අණ'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore_rounded),
-              label: 'Asset Map',
+              icon: const Icon(Icons.explore_outlined),
+              activeIcon: const Icon(Icons.explore_rounded),
+              label: _t('Asset Map', 'සිතියම'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              activeIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline_rounded),
+              activeIcon: const Icon(Icons.person_rounded),
+              label: _t('Profile', 'ගිණුම'),
             ),
           ],
         ),
@@ -276,7 +332,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello, $userName ',
+                      _t('Hello, $userName', 'ආයුබෝවන්, $userName'),
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -286,7 +342,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'City Infrastructure & Maintenance Operations',
+                      _t('City Infrastructure & Maintenance Operations', 'නගර යටිතල පහසුකම් මෙහෙයුම්'),
                       style: TextStyle(
                         fontSize: 12.5,
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -317,9 +373,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 5),
-                      const Text(
-                        'Live Sync',
-                        style: TextStyle(
+                      Text(
+                        _t('Live Sync', 'සජීවී දත්ත'),
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF059669),
@@ -334,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (_lastUpdated != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Synced with database: ${_formatTime(_lastUpdated!)}',
+                '${_t("Synced with database:", "දත්ත සමුදාය සමමුහුර්ත විය:")} ${_formatTime(_lastUpdated!)}',
                 style: TextStyle(
                   fontSize: 11,
                   color: isDark ? Colors.grey[500] : Colors.grey[400],
@@ -368,10 +424,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 20),
 
-            // ── SECTION 1: 4 METRIC KPI CARDS (Photo 1 Reference) ───────────
+            // ── SECTION 1: 4 METRIC KPI CARDS ───────────────────────────────
             LayoutBuilder(
               builder: (context, constraints) {
-                // Responsive: 2 columns on mobile, 4 columns on wide screens
                 final int crossAxisCount = constraints.maxWidth > 700 ? 4 : 2;
                 final double aspectRatio = constraints.maxWidth > 700 ? 2.2 : 1.75;
 
@@ -386,7 +441,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Card 1: Total Active Map Pins
                     _buildKpiCard(
                       value: '$totalPins',
-                      label: 'Total Active Map Pins',
+                      label: _t('Total Active Map Pins', 'ක්‍රියාකාරී සිතියම් ලකුණු'),
                       icon: Icons.location_on_outlined,
                       iconColor: const Color(0xFFF59E0B),
                       iconBgColor: const Color(0xFFFEF3C7),
@@ -399,7 +454,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Card 2: Citizen Hazard Reports
                     _buildKpiCard(
                       value: '$citizenReports',
-                      label: 'Citizen Hazard Reports',
+                      label: _t('Citizen Hazard Reports', 'මහජන ආපදා වාර්තා'),
                       icon: Icons.warning_amber_rounded,
                       iconColor: const Color(0xFFD97706),
                       iconBgColor: const Color(0xFFFEF3C7),
@@ -415,20 +470,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Card 3: Critical / Urgent Hazards (Red Number)
                     _buildKpiCard(
                       value: '$criticalHazards',
-                      label: 'Critical / Urgent Hazards',
+                      label: _t('Critical / Urgent Hazards', 'හදිසි / බරපතල ආපදා'),
                       icon: Icons.shield_outlined,
                       iconColor: const Color(0xFFDC2626),
                       iconBgColor: const Color(0xFFFEE2E2),
                       iconBorderColor: const Color(0xFFFECACA),
                       isDark: isDark,
-                      valueColor: const Color(0xFFDC2626), // Bold Red matching Photo 1!
+                      valueColor: const Color(0xFFDC2626),
                       onTap: () => setState(() => _selectedTab = 2),
                     ),
 
                     // Card 4: Repair Attention Needed
                     _buildKpiCard(
                       value: '$repairNeeded',
-                      label: 'Repair Attention Needed',
+                      label: _t('Repair Attention Needed', 'අලුත්වැඩියා අවධානය'),
                       icon: Icons.show_chart_rounded,
                       iconColor: const Color(0xFFD97706),
                       iconBgColor: const Color(0xFFFEF3C7),
@@ -452,7 +507,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Supervisor Operations',
+                  _t('Supervisor Operations', 'නඩත්තු මෙහෙයුම්'),
                   style: TextStyle(
                     fontSize: 16.5,
                     fontWeight: FontWeight.w800,
@@ -460,9 +515,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     letterSpacing: -0.2,
                   ),
                 ),
-                const Text(
-                  'Portal Shortcuts',
-                  style: TextStyle(
+                Text(
+                  _t('Portal Shortcuts', 'ඉක්මන් පිවිසුම්'),
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFFF59E0B),
@@ -472,7 +527,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Double-Ring Circular Buttons Grid matching Photo 3
+            // Double-Ring Circular Buttons Grid
             Container(
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
               decoration: BoxDecoration(
@@ -492,7 +547,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Column(
                 children: [
-                  // Row 1: 4 circular action buttons (All Orange Theme)
+                  // Row 1: 4 circular action buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,8 +555,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 1. Asset GIS Map
                       _buildCircularMenuButton(
                         icon: Icons.explore_rounded,
-                        label: 'Asset Map',
-                        color: const Color(0xFFF97316), // Vibrant Orange
+                        label: _t('Asset Map', 'වත්කම් සිතියම'),
+                        color: const Color(0xFFF97316),
                         isDark: isDark,
                         onTap: () => setState(() => _selectedTab = 2),
                       ),
@@ -509,8 +564,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 2. Work Orders
                       _buildCircularMenuButton(
                         icon: Icons.assignment_rounded,
-                        label: 'Work Orders',
-                        color: const Color(0xFFEA580C), // Deep Orange
+                        label: _t('Work Orders', 'වැඩ අණ'),
+                        color: const Color(0xFFEA580C),
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -521,8 +576,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 3. Citizen Reports
                       _buildCircularMenuButton(
                         icon: Icons.report_problem_rounded,
-                        label: 'Citizen Reports',
-                        color: const Color(0xFFFB8C00), // Amber Orange
+                        label: _t('Citizen Reports', 'මහජන වාර්තා'),
+                        color: const Color(0xFFFB8C00),
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -533,8 +588,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 4. Create Work Order
                       _buildCircularMenuButton(
                         icon: Icons.add_task_rounded,
-                        label: 'Create Order',
-                        color: const Color(0xFFF97316), // Vibrant Orange
+                        label: _t('Create Order', 'නව වැඩ අණ'),
+                        color: const Color(0xFFF97316),
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -546,7 +601,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Row 2: 4 circular action buttons (All Orange Theme)
+                  // Row 2: 4 circular action buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,8 +609,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 5. Field Inspector Portal
                       _buildCircularMenuButton(
                         icon: Icons.handyman_rounded,
-                        label: 'Field Portal',
-                        color: const Color(0xFFD97706), // Warm Orange-Gold
+                        label: _t('Field Portal', 'ක්ෂේත්‍ර පිවිසුම'),
+                        color: const Color(0xFFD97706),
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -566,8 +621,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 6. Maintenance Records
                       _buildCircularMenuButton(
                         icon: Icons.build_circle_rounded,
-                        label: 'Maintenance',
-                        color: const Color(0xFFEA580C), // Deep Orange
+                        label: _t('Maintenance', 'නඩත්තු සටහන්'),
+                        color: const Color(0xFFEA580C),
                         isDark: isDark,
                         onTap: () => _showMaintenanceSheet(context, isDark),
                       ),
@@ -575,8 +630,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 7. Infrastructure Assets
                       _buildCircularMenuButton(
                         icon: Icons.account_balance_rounded,
-                        label: 'Assets',
-                        color: const Color(0xFFC2410C), // Terracotta Orange
+                        label: _t('Assets', 'වත්කම්'),
+                        color: const Color(0xFFC2410C),
                         isDark: isDark,
                         onTap: () => _showAssetsSheet(context, isDark),
                       ),
@@ -584,8 +639,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // 8. Autonomous AI Models
                       _buildCircularMenuButton(
                         icon: Icons.psychology_rounded,
-                        label: 'AI Models',
-                        color: const Color(0xFFF97316), // Vibrant Orange
+                        label: _t('AI Models', 'AI ආකෘති'),
+                        color: const Color(0xFFF97316),
                         isDark: isDark,
                         onTap: () => _showAiModelsSheet(context, isDark),
                       ),
@@ -602,7 +657,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Critical Attention Queue',
+                  _t('Critical Attention Queue', 'හදිසි අවධානය'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -612,9 +667,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 TextButton(
                   onPressed: () => setState(() => _selectedTab = 2),
-                  child: const Text(
-                    'View on Map',
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFFF59E0B)),
+                  child: Text(
+                    _t('View on Map', 'සිතියමෙන් බලන්න'),
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFFF59E0B)),
                   ),
                 ),
               ],
@@ -641,14 +696,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'All Critical Items Addressed',
+                            _t('All Critical Items Addressed', 'සියලුම බරපතල ආපදා විසඳා ඇත'),
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
                           Text(
-                            'No pending critical severity alerts requiring immediate supervisor escalation.',
+                            _t('No pending critical severity alerts requiring immediate supervisor escalation.', 'ක්ෂණික අධීක්ෂණ පියවර අවශ්‍ය බරපතල ආපදා වාර්තා නොමැත.'),
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -710,12 +765,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Log New Municipal Hazard',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5),
+                          Text(
+                            _t('Log New Municipal Hazard', 'නව නගර සභා ආපදාවක් සටහන් කරන්න'),
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5),
                           ),
                           Text(
-                            'Pin location & auto-trigger AI triage analysis',
+                            _t('Pin location & auto-trigger AI triage analysis', 'ස්ථානය ලකුණු කර AI පරීක්ෂාව සක්‍රිය කරන්න'),
                             style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11.5),
                           ),
                         ],
@@ -1123,7 +1178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'INFRASTRUCTURE & ASSETS',
+                _t('INFRASTRUCTURE & ASSETS', 'යටිතල පහසුකම් සහ වත්කම්'),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
@@ -1133,7 +1188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Sub-button 1: Infrastructure Assets (Highlighted Orange Pill matching Photo 1)
+              // Sub-button 1: Infrastructure Assets
               InkWell(
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1147,7 +1202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF97316), // Orange pill background matching Photo 1
+                    color: const Color(0xFFF97316),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -1157,21 +1212,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.apartment_rounded, color: Colors.white, size: 24),
-                      SizedBox(width: 14),
+                      const Icon(Icons.apartment_rounded, color: Colors.white, size: 24),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          'Infrastructure Assets',
-                          style: TextStyle(
+                          _t('Infrastructure Assets', 'යටිතල පහසුකම් වත්කම්'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                      const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
                     ],
                   ),
                 ),
@@ -1179,7 +1234,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 12),
 
-              // Sub-button 2: Contractors Directory (Matching Photo 1)
+              // Sub-button 2: Contractors Directory
               InkWell(
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1209,7 +1264,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          'Contractors Directory',
+                          _t('Contractors Directory', 'කොන්ත්‍රාත්කරුවන්ගේ නාමාවලිය'),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -1229,7 +1284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 12),
 
-              // Sub-button 3: Repair History (Matching Photo 1)
+              // Sub-button 3: Repair History
               InkWell(
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1259,7 +1314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
-                          'Repair History',
+                          _t('Repair History', 'අලුත්වැඩියා ඉතිහාසය'),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -1299,13 +1354,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Field Maintenance & Sign-Off',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                _t('Field Maintenance & Sign-Off', 'ක්ෂේත්‍ර නඩත්තු සහ අනුමැතිය'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
-                'Review field worker progress, sign off completions, and inspect verification queues.',
+                _t('Review field worker progress, sign off completions, and inspect verification queues.', 'ක්ෂේත්‍ර සේවක ප්‍රගතිය පරීක්ෂා කර වැඩ අනුමත කරන්න.'),
                 style: TextStyle(color: Colors.grey[600], fontSize: 12.5),
               ),
               const SizedBox(height: 20),
@@ -1318,8 +1373,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: const Icon(Icons.handyman_rounded, color: Color(0xFF0891B2)),
                 ),
-                title: const Text('Field Inspector Mode', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Launch field worker checklist & photo sign-off'),
+                title: Text(_t('Field Inspector Mode', 'ක්ෂේත්‍ර පරීක්ෂක මාදිලිය'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(_t('Launch field worker checklist & photo sign-off', 'ක්ෂේත්‍ර සේවක පරීක්ෂණ සහ ඡායාරූප අනුමැතිය')),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1335,8 +1390,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: const Icon(Icons.assignment_rounded, color: Color(0xFF2563EB)),
                 ),
-                title: const Text('Work Orders Registry', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('View all municipal work orders & AI estimates'),
+                title: Text(_t('Work Orders Registry', 'වැඩ අණ රෙජිස්තරය'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(_t('View all municipal work orders & AI estimates', 'සියලු නගර සභා වැඩ අණ සහ AI ඇස්තමේන්තු')),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1367,24 +1422,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD946EF).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFFEDD5)),
                     ),
-                    child: const Icon(Icons.psychology_rounded, color: Color(0xFFD946EF)),
+                    child: const Icon(Icons.psychology_rounded, color: Color(0xFFF97316), size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Autonomous AI Models',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        _t('Autonomous AI Models', 'ස්වයංක්‍රීය AI ආකෘති'),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'CivitaGuard AI Intelligence Suite',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        _t('CivitaGuard AI Intelligence Suite', 'CivitaGuard AI බුද්ධිමය මෙවලම් කට්ටලය'),
+                        style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -1392,18 +1448,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 18),
               _aiModelTile(
-                title: 'Hazard Classification AI',
-                desc: 'Deep learning triage classifying potholes, water leaks & electrical hazards with 94%+ confidence.',
+                title: _t('Hazard Classification AI', 'ආපදා වර්ගීකරණ AI'),
+                desc: _t('Deep learning triage classifying potholes, water leaks & electrical hazards with 94%+ confidence.', 'වලවල්, ජල කාන්දු සහ විදුලි ආපදා 94%+ නිවැරදිතාවයෙන් වර්ගීකරණය කරයි.'),
                 icon: Icons.center_focus_strong_outlined,
               ),
               _aiModelTile(
-                title: 'Asset Risk Prediction AI',
-                desc: 'Evaluates structural degradation telemetry to forecast failure probabilities on bridges & water mains.',
+                title: _t('Asset Risk Prediction AI', 'වත්කම් අවදානම් අනාවැකි AI'),
+                desc: _t('Evaluates structural degradation telemetry to forecast failure probabilities on bridges & water mains.', 'පාලම් සහ ප්‍රධාන ජල මාර්ගවල කැඩී යාමේ සම්භාවිතාව පූර්වානුමාන කරයි.'),
                 icon: Icons.trending_up_rounded,
               ),
               _aiModelTile(
-                title: 'Cost Estimator AI',
-                desc: 'Synthesizes municipal BOQ rates with historical material invoices for instant work order estimates.',
+                title: _t('Cost Estimator AI', 'වැය ඇස්තමේන්තුකාර AI'),
+                desc: _t('Synthesizes municipal BOQ rates with historical material invoices for instant work order estimates.', 'වැඩ අණ සඳහා ක්ෂණික පිරිවැය ඇස්තමේන්තු ලබා දෙයි.'),
                 icon: Icons.calculate_outlined,
                 onTap: () {
                   Navigator.pop(ctx);
@@ -1436,7 +1492,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: const Color(0xFFD946EF)),
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 18, color: const Color(0xFFF97316)),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -1445,9 +1508,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         if (onTap != null)
-                          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFD946EF)),
+                          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFF97316)),
                       ],
                     ),
                     const SizedBox(height: 1),
