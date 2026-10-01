@@ -1,18 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:5000';
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000';
-    }
-    return 'http://localhost:5000';
-  }
-
+  static const String baseUrl = 'http://10.0.2.2:5000';
   final Dio dio;
   final FlutterSecureStorage _storage;
 
@@ -46,22 +36,14 @@ class ApiService {
   }
 
   Future<void> saveToken(String token) async {
-    try {
-      await _storage.write(key: 'jwt_token', value: token);
-    } catch (_) {}
+    await _storage.write(key: 'jwt_token', value: token);
   }
 
   Future<String?> getToken() async {
-    try {
-      return await _storage.read(key: 'jwt_token');
-    } catch (_) {
-      return null;
-    }
+    return await _storage.read(key: 'jwt_token');
   }
 
   Future<void> clearToken() async {
-    try {
-      await _storage.delete(key: 'jwt_token');
-    } catch (_) {}
+    await _storage.delete(key: 'jwt_token');
   }
 }
