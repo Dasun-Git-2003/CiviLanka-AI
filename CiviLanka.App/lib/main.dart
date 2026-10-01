@@ -7,6 +7,7 @@ import 'services/hazard_service.dart';
 import 'services/work_order_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/location_service.dart';
+import 'services/asset_service.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/app_theme.dart';
@@ -30,6 +31,7 @@ class CiviLankaApp extends StatelessWidget {
     final workOrderService = WorkOrderService(apiService);
     final maintenanceService = MaintenanceService(apiService);
     final locationService = LocationService();
+    final assetService = AssetService(apiService);
 
     return MultiProvider(
       providers: [
@@ -39,6 +41,7 @@ class CiviLankaApp extends StatelessWidget {
         Provider<WorkOrderService>.value(value: workOrderService),
         Provider<MaintenanceService>.value(value: maintenanceService),
         Provider<LocationService>.value(value: locationService),
+        Provider<AssetService>.value(value: assetService),
         ChangeNotifierProvider(
           create: (_) => AuthState(authService),
         ),
@@ -46,7 +49,7 @@ class CiviLankaApp extends StatelessWidget {
       child: MaterialApp(
         title: 'CiviLanka AI — Smart Municipal Ops',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         home: const AuthGate(),
       ),
     );

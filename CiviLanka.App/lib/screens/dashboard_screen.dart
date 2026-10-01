@@ -11,6 +11,9 @@ import 'gis_map_screen.dart';
 import 'my_reports_screen.dart';
 import 'report_hazard_screen.dart';
 import 'work_order_list_screen.dart';
+import 'infrastructure_assets_screen.dart';
+import 'contractors_directory_screen.dart';
+import 'repair_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -490,7 +493,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Column(
                 children: [
-                  // Row 1: 4 circular action buttons
+                  // Row 1: 4 circular action buttons (All Orange Theme)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +502,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.explore_rounded,
                         label: 'Asset Map',
-                        color: const Color(0xFFF59E0B), // Supervisor Amber
+                        color: const Color(0xFFF97316), // Vibrant Orange
                         isDark: isDark,
                         onTap: () => setState(() => _selectedTab = 2),
                       ),
@@ -508,7 +511,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.assignment_rounded,
                         label: 'Work Orders',
-                        color: const Color(0xFF2563EB), // Blue
+                        color: const Color(0xFFEA580C), // Deep Orange
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -520,7 +523,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.report_problem_rounded,
                         label: 'Citizen Reports',
-                        color: const Color(0xFFDC2626), // Red
+                        color: const Color(0xFFFB8C00), // Amber Orange
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -532,7 +535,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.add_task_rounded,
                         label: 'Create Order',
-                        color: const Color(0xFF10B981), // Emerald
+                        color: const Color(0xFFF97316), // Vibrant Orange
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -544,7 +547,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Row 2: 4 circular action buttons
+                  // Row 2: 4 circular action buttons (All Orange Theme)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,7 +556,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.handyman_rounded,
                         label: 'Field Portal',
-                        color: const Color(0xFF0891B2), // Cyan
+                        color: const Color(0xFFD97706), // Warm Orange-Gold
                         isDark: isDark,
                         onTap: () => Navigator.push(
                           context,
@@ -565,7 +568,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.build_circle_rounded,
                         label: 'Maintenance',
-                        color: const Color(0xFF7C3AED), // Violet
+                        color: const Color(0xFFEA580C), // Deep Orange
                         isDark: isDark,
                         onTap: () => _showMaintenanceSheet(context, isDark),
                       ),
@@ -574,7 +577,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.account_balance_rounded,
                         label: 'Assets',
-                        color: const Color(0xFFD97706), // Gold
+                        color: const Color(0xFFC2410C), // Terracotta Orange
                         isDark: isDark,
                         onTap: () => _showAssetsSheet(context, isDark),
                       ),
@@ -583,7 +586,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildCircularMenuButton(
                         icon: Icons.psychology_rounded,
                         label: 'AI Models',
-                        color: const Color(0xFFD946EF), // Magenta
+                        color: const Color(0xFFF97316), // Vibrant Orange
                         isDark: isDark,
                         onTap: () => _showAiModelsSheet(context, isDark),
                       ),
@@ -674,16 +677,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+                        : [const Color(0xFFF97316), const Color(0xFFEA580C)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF334155)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFFED7AA),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
+                      color: (isDark ? Colors.black : const Color(0xFFEA580C)).withValues(alpha: 0.18),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -694,23 +701,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                        color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.25),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.add_location_alt_outlined, color: Color(0xFFF59E0B), size: 24),
+                      child: const Icon(Icons.add_location_alt_outlined, color: Colors.white, size: 24),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Log New Municipal Hazard',
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5),
                           ),
                           Text(
                             'Pin location & auto-trigger AI triage analysis',
-                            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11.5),
                           ),
                         ],
                       ),
@@ -1092,109 +1099,188 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ═════════════════════════════════════════════════════════════════════════════
 
   void _showAssetsSheet(BuildContext context, bool isDark) {
-    final assets = _supervisorStats?.assets ?? InfrastructureAsset.defaultFallbackAssets;
-
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.65,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (_, scrollCtrl) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Infrastructure Assets',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD97706).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${assets.length} Registered',
-                          style: const TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 11),
-                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'INFRASTRUCTURE & ASSETS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Sub-button 1: Infrastructure Assets (Highlighted Orange Pill matching Photo 1)
+              InkWell(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const InfrastructureAssetsScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF97316), // Orange pill background matching Photo 1
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFF97316).withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: scrollCtrl,
-                      itemCount: assets.length,
-                      itemBuilder: (_, i) {
-                        final a = assets[i];
-                        final cond = (a.latestCondition ?? '').toLowerCase();
-                        final color = cond == 'poor'
-                            ? Colors.red
-                            : cond == 'fair'
-                                ? Colors.amber[800]!
-                                : Colors.green;
+                  child: const Row(
+                    children: [
+                      Icon(Icons.apartment_rounded, color: Colors.white, size: 24),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Infrastructure Assets',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                    ],
+                  ),
+                ),
+              ),
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                          ),
-                          child: ListTile(
-                            leading: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(Icons.account_balance_outlined, color: color, size: 20),
-                            ),
-                            title: Text(a.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                            subtitle: Text('${a.type} • ${a.location}', style: const TextStyle(fontSize: 12)),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                a.latestCondition ?? 'Fair',
-                                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+              const SizedBox(height: 12),
+
+              // Sub-button 2: Contractors Directory (Matching Photo 1)
+              InkWell(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ContractorsDirectoryScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                     ),
                   ),
-                ],
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.people_outline_rounded,
+                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Contractors Directory',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: isDark ? Colors.white38 : Colors.grey[400],
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            );
-          },
+
+              const SizedBox(height: 12),
+
+              // Sub-button 3: Repair History (Matching Photo 1)
+              InkWell(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RepairHistoryScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.history_toggle_off_rounded,
+                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Repair History',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: isDark ? Colors.white38 : Colors.grey[400],
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+            ],
+          ),
         );
       },
     );
