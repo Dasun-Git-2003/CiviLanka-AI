@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/auth_state.dart';
 import 'register_screen.dart';
-import 'login_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -17,11 +16,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _isDarkMode = true;
 
   void _openLoginSheet() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LoginScreen(initialSinhala: _isSinhala),
-      ),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _LoginModalSheet(isSinhala: _isSinhala),
     );
   }
 
@@ -440,10 +439,10 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFF0F172A),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         border: Border(
-          top: BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+          top: BorderSide(color: Color(0xFF334155), width: 1.5),
         ),
       ),
       child: SingleChildScrollView(
@@ -459,7 +458,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: Colors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -478,7 +477,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -488,14 +487,14 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                             : 'Select a demo persona or enter credentials',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: Colors.white60,
                         ),
                       ),
                     ],
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
                   ),
                 ],
               ),
@@ -530,11 +529,11 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? roleColor.withValues(alpha: 0.15)
-                                : const Color(0xFFF1F5F9),
+                                ? roleColor.withValues(alpha: 0.22)
+                                : const Color(0xFF1E293B),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? roleColor : const Color(0xFFE2E8F0),
+                              color: isSelected ? roleColor : const Color(0xFF334155),
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
@@ -544,7 +543,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                               Icon(
                                 role['icon'] as IconData,
                                 size: 16,
-                                color: isSelected ? roleColor : const Color(0xFF64748B),
+                                color: isSelected ? roleColor : Colors.white70,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -552,7 +551,7 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                  color: isSelected ? roleColor : const Color(0xFF334155),
+                                  color: isSelected ? Colors.white : Colors.white70,
                                 ),
                               ),
                             ],
@@ -594,25 +593,25 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
               TextFormField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: widget.isSinhala ? 'විද්‍යුත් තැපෑල (Email)' : 'Official Email',
-                  labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
                   prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF94A3B8), size: 18),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: const Color(0xFF1E293B),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    borderSide: const BorderSide(color: Color(0xFF334155)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    borderSide: const BorderSide(color: Color(0xFF334155)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFEA580C)),
+                    borderSide: const BorderSide(color: Color(0xFFF59E0B)),
                   ),
                 ),
                 validator: (val) {
@@ -627,33 +626,33 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
               TextFormField(
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
-                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: widget.isSinhala ? 'මුරපදය (Password)' : 'Password',
-                  labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  labelStyle: const TextStyle(color: Colors.white60, fontSize: 12),
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF94A3B8), size: 18),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: const Color(0xFF94A3B8),
+                      color: Colors.white60,
                       size: 18,
                     ),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: const Color(0xFF1E293B),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    borderSide: const BorderSide(color: Color(0xFF334155)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    borderSide: const BorderSide(color: Color(0xFF334155)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFEA580C)),
+                    borderSide: const BorderSide(color: Color(0xFFF59E0B)),
                   ),
                 ),
                 validator: (val) {
