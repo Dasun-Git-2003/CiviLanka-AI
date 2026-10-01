@@ -26,6 +26,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('civilanka-lang', language);
       document.documentElement.lang = language;
+      if (language === 'si') {
+        document.documentElement.classList.add('font-sinhala');
+      } else {
+        document.documentElement.classList.remove('font-sinhala');
+      }
     }
   }, [language]);
 

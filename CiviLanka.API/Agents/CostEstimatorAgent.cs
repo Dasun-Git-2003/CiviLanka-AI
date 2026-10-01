@@ -1,11 +1,20 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using CiviLanka.API.Models;
 using CiviLanka.API.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Google;
-using System.ComponentModel;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+
+[assembly: InternalsVisibleTo("CiviLanka.API.Tests")]
 
 namespace CiviLanka.API.Agents
 {
@@ -18,19 +27,22 @@ namespace CiviLanka.API.Agents
     /// Agentic AI that estimates repair cost and materials for a work order using
     /// Google Gemini via Microsoft Semantic Kernel.
     ///
-    /// Tools available to the agent:
-    ///   1. EstimateRepairCost(category, severity)  — returns baseline cost data
-    ///   2. GetAssetMaintenanceHistory(assetId)     — returns past repair history
+    /// Allow-listed tools available to the agent:
+    ///   1. EstimateRepairCost(category, severity)  — returns baseline cost data (CIDA schedule of rates)
+    ///   2. GetAssetMaintenanceHistory(assetId)     — returns past maintenance records
     ///
-    /// The agent reasons across multiple steps before producing a structured JSON
-    /// cost estimate. A rule-based fallback is used when Gemini is unavailable.
+    /// Boundaries:
+    /// - The agent generates technical advisory estimates (proposals), NOT approved budgets.
+    /// - The agent NEVER approves work orders, mutates database records, or executes shell/SQL.
+    /// - WorkOrderApprovalPolicy remains the sole authority for Director approval.
     /// </summary>
     public class CostEstimatorAgent : ICostEstimatorAgent
     {
         private readonly IConfiguration _config;
         private readonly ILogger<CostEstimatorAgent> _logger;
 
-        private const string ModelName = "gemini-2.0-flash";
+        public const string ModelName = "gemini-2.0-flash";
+        public const string FallbackModelName = "RuleBasedFallback";
         private const string AgentName = "CivitaGuard-CostEstimator-v1";
 
         public CostEstimatorAgent(IConfiguration config, ILogger<CostEstimatorAgent> logger)
@@ -44,7 +56,7 @@ namespace CiviLanka.API.Agents
             var apiKey = _config["GeminiSettings:ApiKey"];
             if (string.IsNullOrWhiteSpace(apiKey) || apiKey == "YOUR_GEMINI_API_KEY")
             {
-                _logger.LogWarning("Gemini API key not configured. Returning fallback cost estimate.");
+                _logger.LogWarning("Gemini API key not configured or using placeholder. Returning rule-based fallback cost estimate.");
                 return BuildFallback(input);
             }
 
@@ -61,26 +73,24 @@ namespace CiviLanka.API.Agents
 
                 // ── System prompt ──────────────────────────────────────────────
                 var systemPrompt = """
-                    You are CivitaGuard Cost Estimator, an expert municipal infrastructure repair cost estimation agent.
-                    Your task is to analyze a hazard and produce a detailed, structured cost estimate for the repair.
+                    You are CivitaGuard Cost Estimator, an expert municipal infrastructure repair cost estimation agent for Sri Lankan municipal councils.
+                    Your task is to analyze an infrastructure hazard and produce a detailed, realistic, structured cost estimate (Bill of Quantities proposal) in Sri Lankan Rupees (LKR).
 
-                    You have access to two tools:
-                    - EstimateRepairCost(category, severity): returns baseline LKR cost ranges and typical materials for the hazard type
-                    - GetAssetMaintenanceHistory(assetId): returns past maintenance records for the infrastructure asset
+                    SAFETY & ROLE BOUNDARIES:
+                    - You are an estimation agent. Your output is an advisory technical proposal, NOT an approved budget.
+                    - You have NO authority to approve work orders or authorize municipal spending.
+                    - Never set, change, or decide approval status.
+                    - Base your estimate strictly on the supplied hazard context, asset data, and allow-listed tools.
+                    - Do NOT invent fictional maintenance records or false history if none exist.
+                    - When an arterial or high-traffic road is flagged, you MUST account for traffic management requirements (warning signs, safety cones/barriers, traffic controller labour, and safety equipment).
 
-                    Follow this reasoning process:
-                    1. Call EstimateRepairCost with the hazard category and severity to get baseline costs.
-                    2. If an assetId is provided, call GetAssetMaintenanceHistory to understand repair complexity from history.
-                    3. Analyze the hazard description and severity level.
-                    4. Consider the asset condition and age — older/poorer assets cost more to repair.
-                    5. Estimate material quantities and costs (use LKR — Sri Lankan Rupees).
-                    6. Estimate labour hours and crew size.
-                    7. Estimate equipment requirements and costs.
-                    8. Calculate total cost = materialCost + labourCost + equipmentCost.
-                    9. Estimate repair duration in hours.
-                    10. Provide confidence (0.0–1.0) and a concise reason.
+                    TOOL USAGE:
+                    1. Call EstimateRepairCost with the hazard category and severity to obtain baseline Sri Lankan schedule of rates (CIDA baseline).
+                    2. If an asset ID is provided, call GetAssetMaintenanceHistory to check previous repairs and compounding asset wear.
+                    3. Factor in asset age, condition, and location complexity.
 
-                    IMPORTANT: Return ONLY valid JSON — no markdown, no explanation outside JSON:
+                    REQUIRED STRUCTURED JSON OUTPUT:
+                    Return ONLY valid JSON with no markdown wrapping and no conversational text:
                     {
                       "estimatedCost": 0,
                       "currency": "LKR",
@@ -100,6 +110,10 @@ namespace CiviLanka.API.Agents
                     }
                     """;
 
+                var arterialRoadText = input.IsArterialRoad
+                    ? "YES (High-risk arterial road with heavy traffic — mandatory safety cones/barriers, warning signage, and traffic management labour required)"
+                    : "NO (Standard municipal roadway or residential lane)";
+
                 var userPrompt = $"""
                     Estimate the repair cost for this infrastructure hazard:
 
@@ -108,9 +122,10 @@ namespace CiviLanka.API.Agents
                     Severity: {input.Severity}
                     Risk Level: {input.RiskLevel}
                     Priority: {input.Priority}
-                    Location: {input.Location ?? "Unknown"}
+                    Location: {input.Location ?? "Colombo District, Sri Lanka"}
+                    High-Risk Arterial Road: {arterialRoadText}
                     Asset ID: {input.AssetId ?? "Not specified"}
-                    Asset Type: {input.AssetType ?? "Unknown"}
+                    Asset Type: {input.AssetType ?? "General Civil Infrastructure"}
                     Asset Condition: {input.AssetCondition ?? "Unknown"}
                     Asset Age (years): {input.AssetAgeYears?.ToString() ?? "Unknown"}
 
@@ -129,8 +144,8 @@ namespace CiviLanka.API.Agents
                     Temperature = 0.1
                 };
 
-                _logger.LogInformation("Running Gemini cost estimation for category={Category}, severity={Severity}",
-                    input.Category, input.Severity);
+                _logger.LogInformation("Running Gemini cost estimation for category={Category}, severity={Severity}, arterial={Arterial}",
+                    input.Category, input.Severity, input.IsArterialRoad);
 
                 var response = await chatService.GetChatMessageContentAsync(
                     chatHistory, executionSettings, kernel);
@@ -138,57 +153,127 @@ namespace CiviLanka.API.Agents
                 var content = response.Content?.Trim();
                 _logger.LogInformation("AI cost estimate raw response: {Response}", content);
 
-                return ParseResult(content);
+                var parsedResult = ParseResult(content, _logger, ModelName);
+                if (parsedResult == null)
+                {
+                    _logger.LogWarning("Gemini response could not be parsed as valid cost estimate. Returning rule-based fallback.");
+                    return BuildFallback(input);
+                }
+
+                return parsedResult;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Gemini cost estimation failed. Using rule-based fallback.");
+                _logger.LogError(ex, "Gemini cost estimation failed or timed out. Returning rule-based fallback.");
                 return BuildFallback(input);
             }
         }
 
-        // ── Parse JSON from Gemini ─────────────────────────────────────────────
-        private CostEstimationResult? ParseResult(string? jsonContent)
+        // ── Parse JSON from Gemini with robust untrusted-input sanitization ────
+        internal static CostEstimationResult? ParseResult(string? jsonContent, ILogger? logger = null, string modelName = ModelName)
         {
             if (string.IsNullOrWhiteSpace(jsonContent)) return null;
 
             try
             {
-                // Strip markdown fences
-                if (jsonContent.StartsWith("```"))
-                    jsonContent = jsonContent.Replace("```json", "").Replace("```", "").Trim();
+                var clean = jsonContent.Trim();
+                if (clean.StartsWith("```"))
+                {
+                    var lines = clean.Split('\n');
+                    clean = string.Join('\n', lines.Where(l => !l.Trim().StartsWith("```"))).Trim();
+                }
 
-                var raw = JsonSerializer.Deserialize<RawCostResult>(jsonContent,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                // If content contains JSON surrounded by text, extract JSON substring
+                var startIdx = clean.IndexOf('{');
+                var endIdx = clean.LastIndexOf('}');
+                if (startIdx >= 0 && endIdx > startIdx)
+                {
+                    clean = clean.Substring(startIdx, endIdx - startIdx + 1);
+                }
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var raw = JsonSerializer.Deserialize<RawCostResult>(clean, options);
                 if (raw == null) return null;
+
+                var crew = raw.Labour?.RequiredWorkers > 0 ? raw.Labour.RequiredWorkers : raw.RecommendedCrewSize;
+                var labourHours = raw.Labour?.EstimatedHours > 0 ? raw.Labour.EstimatedHours : raw.EstimatedLabourHours;
+
+                // Sanitize materials (reject empty names, ensure non-negative quantity and unit cost)
+                var sanitizedMaterials = new List<RawMaterial>();
+                if (raw.Materials != null)
+                {
+                    foreach (var m in raw.Materials)
+                    {
+                        if (string.IsNullOrWhiteSpace(m.Name)) continue;
+                        sanitizedMaterials.Add(new RawMaterial
+                        {
+                            Name = m.Name.Trim(),
+                            Quantity = Math.Max(0, m.Quantity),
+                            Unit = string.IsNullOrWhiteSpace(m.Unit) ? "units" : m.Unit.Trim(),
+                            UnitCost = Math.Max(0, m.UnitCost)
+                        });
+                    }
+                }
+
+                // Sanitize equipment (handle both string array and object array)
+                var sanitizedEquipment = new List<string>();
+                if (raw.EquipmentRaw is JsonElement elem)
+                {
+                    if (elem.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in elem.EnumerateArray())
+                        {
+                            if (item.ValueKind == JsonValueKind.String)
+                            {
+                                var s = item.GetString()?.Trim();
+                                if (!string.IsNullOrEmpty(s) && !sanitizedEquipment.Contains(s, StringComparer.OrdinalIgnoreCase))
+                                    sanitizedEquipment.Add(s);
+                            }
+                            else if (item.ValueKind == JsonValueKind.Object && item.TryGetProperty("name", out var nameProp))
+                            {
+                                var s = nameProp.GetString()?.Trim();
+                                if (!string.IsNullOrEmpty(s) && !sanitizedEquipment.Contains(s, StringComparer.OrdinalIgnoreCase))
+                                    sanitizedEquipment.Add(s);
+                            }
+                        }
+                    }
+                }
+
+                var calculatedMaterialsTotal = sanitizedMaterials.Sum(m => m.UnitCost * (decimal)m.Quantity);
+                var materialCost = raw.MaterialCost > 0 ? raw.MaterialCost : calculatedMaterialsTotal;
+                var labourCost = Math.Max(0, raw.LabourCost);
+                var equipmentCost = Math.Max(0, raw.EquipmentCost);
+                var estimatedCost = raw.EstimatedCost > 0
+                    ? raw.EstimatedCost
+                    : (materialCost + labourCost + equipmentCost);
 
                 return new CostEstimationResult
                 {
-                    EstimatedCost         = Math.Max(0, raw.EstimatedCost),
-                    Currency              = raw.Currency ?? "LKR",
-                    MaterialCost          = Math.Max(0, raw.MaterialCost),
-                    LabourCost            = Math.Max(0, raw.LabourCost),
-                    EquipmentCost         = Math.Max(0, raw.EquipmentCost),
-                    Materials             = raw.Materials ?? new List<RawMaterial>(),
-                    Equipment             = raw.Equipment ?? new List<string>(),
-                    RecommendedCrewSize   = Math.Max(1, raw.RecommendedCrewSize),
-                    EstimatedLabourHours  = Math.Max(0, raw.EstimatedLabourHours),
+                    EstimatedCost          = Math.Max(0, estimatedCost),
+                    Currency               = string.IsNullOrWhiteSpace(raw.Currency) ? "LKR" : raw.Currency.Trim().ToUpperInvariant(),
+                    MaterialCost           = Math.Max(0, materialCost),
+                    LabourCost             = labourCost,
+                    EquipmentCost          = equipmentCost,
+                    Materials              = sanitizedMaterials,
+                    Equipment              = sanitizedEquipment,
+                    RecommendedCrewSize    = Math.Max(1, crew),
+                    EstimatedLabourHours   = Math.Max(0, labourHours),
                     EstimatedDurationHours = Math.Max(0, raw.EstimatedDurationHours),
-                    Confidence            = Math.Clamp(raw.Confidence, 0.0, 1.0),
-                    Reason                = raw.Reason ?? "Cost estimation completed.",
-                    Recommendation        = raw.Recommendation ?? "Proceed with standard repair procedure.",
-                    ModelName             = ModelName
+                    Confidence             = Math.Clamp(raw.Confidence, 0.0, 1.0),
+                    Reason                 = raw.Reason ?? raw.Explanation ?? "Cost estimation completed successfully.",
+                    Recommendation         = raw.Recommendation ?? "Proceed with standard municipal repair procedure.",
+                    ModelName              = modelName
                 };
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to parse AI cost estimate JSON.");
+                logger?.LogWarning(ex, "Failed to parse AI cost estimate JSON: {Json}", jsonContent);
                 return null;
             }
         }
 
-        // ── Rule-based fallback ────────────────────────────────────────────────
-        private static CostEstimationResult BuildFallback(CostEstimationInput input)
+        // ── Rule-based fallback (CIDA/Sri Lankan standard schedule of rates) ──
+        internal static CostEstimationResult BuildFallback(CostEstimationInput input)
         {
             var (baseCost, crew, duration, materials, equipment) = input.Category switch
             {
@@ -254,6 +339,21 @@ namespace CiviLanka.API.Agents
                     new List<string> { "General Tools" })
             };
 
+            // Factor in arterial road traffic safety requirements
+            if (input.IsArterialRoad)
+            {
+                materials.Add(new RawMaterial
+                {
+                    Name = "Traffic Safety Cones & Warning Signage",
+                    Quantity = 1,
+                    Unit = "set",
+                    UnitCost = 18000m
+                });
+                equipment.Add("Safety Barriers & Warning Signage");
+                crew = Math.Max(crew + 1, 3); // Traffic controller / flagger
+                baseCost += 25000m;
+            }
+
             // Apply severity multiplier
             var multiplier = input.Severity?.ToUpperInvariant() switch
             {
@@ -268,6 +368,8 @@ namespace CiviLanka.API.Agents
             var labourCost = Math.Round(totalCost * 0.35m, 0);
             var equipmentCost = Math.Round(totalCost * 0.20m, 0);
 
+            var arterialNote = input.IsArterialRoad ? " Includes arterial road traffic safety provisions." : "";
+
             return new CostEstimationResult
             {
                 EstimatedCost          = totalCost,
@@ -281,27 +383,27 @@ namespace CiviLanka.API.Agents
                 EstimatedLabourHours   = duration * crew,
                 EstimatedDurationHours = duration,
                 Confidence             = 0.65,
-                Reason = "Cost estimated using rule-based baseline (AI service unavailable). Manual review recommended.",
-                Recommendation = "Generate AI estimate when service is available for more accurate costing.",
-                ModelName = "rule-based-fallback"
+                Reason                 = $"Cost estimated using rule-based baseline (AI service unavailable or unconfigured). Based on Sri Lankan municipal schedule of rates.{arterialNote}",
+                Recommendation         = "Generate AI estimate when Gemini service is available for detailed contextual estimation.",
+                ModelName              = FallbackModelName
             };
         }
     }
 
-    // ── Semantic Kernel Plugin — Tools exposed to Gemini ──────────────────────
+    // ── Semantic Kernel Plugin — Safe Allow-Listed Tools ──────────────────────
 
-    /// <summary>Plugin containing the tools the Cost Estimator Agent can call.</summary>
+    /// <summary>Plugin containing allow-listed estimation tools exposed to the Semantic Kernel agent.</summary>
     public class CostEstimationPlugin
     {
         private readonly ILogger _logger;
 
         public CostEstimationPlugin(ILogger logger) => _logger = logger;
 
-        /// <summary>Returns baseline repair cost ranges and typical materials for a hazard type and severity.</summary>
-        [KernelFunction, Description("Get baseline repair cost ranges and typical materials for a given hazard category and severity level in Sri Lanka (LKR).")]
+        /// <summary>Returns baseline repair cost ranges, crew requirements, and typical materials for a hazard type and severity in Sri Lanka (LKR).</summary>
+        [KernelFunction, Description("Retrieve standard Sri Lankan civil works (CIDA baseline) cost ranges, crew requirements, and bill of quantities materials for a specified infrastructure hazard category and severity level.")]
         public string EstimateRepairCost(
-            [Description("The hazard category, e.g. WaterLeak, Pothole, BrokenTrafficSignal, DamagedRoad, FallenTree, DrainageProblem, StreetLightProblem")] string category,
-            [Description("Severity level: LOW, MEDIUM, HIGH, or CRITICAL")] string severity)
+            [Description("The municipal infrastructure hazard category. Supported categories: WaterLeak, Pothole, BrokenTrafficSignal, DamagedRoad, FallenTree, DrainageProblem, StreetLightProblem, or Other.")] string category,
+            [Description("The hazard severity level: LOW, MEDIUM, HIGH, or CRITICAL.")] string severity)
         {
             _logger.LogInformation("Agent calling EstimateRepairCost(category={C}, severity={S})", category, severity);
 
@@ -385,14 +487,12 @@ namespace CiviLanka.API.Agents
         }
 
         /// <summary>Returns maintenance history for an infrastructure asset to help assess repair complexity.</summary>
-        [KernelFunction, Description("Get maintenance history for a specific infrastructure asset to understand recurring issues and repair complexity.")]
+        [KernelFunction, Description("Retrieve past municipal maintenance records, previous repair frequency, recurring defects, and repair complexity multipliers for an infrastructure asset ID.")]
         public string GetAssetMaintenanceHistory(
-            [Description("The infrastructure asset ID, e.g. AST-001")] string assetId)
+            [Description("The infrastructure asset ID from the municipal registry, e.g. AST-001 or AST-COL-ROADS-042.")] string assetId)
         {
             _logger.LogInformation("Agent calling GetAssetMaintenanceHistory(assetId={A})", assetId);
 
-            // In a production system this would query the database.
-            // Returns a realistic sample based on the asset type implied by the ID.
             var historyData = new
             {
                 assetId,
@@ -413,16 +513,17 @@ namespace CiviLanka.API.Agents
 
     public class CostEstimationInput
     {
-        public string Category    { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string? Severity   { get; set; }
-        public string? RiskLevel  { get; set; }
-        public string? Priority   { get; set; }
-        public string? Location   { get; set; }
-        public string? AssetId    { get; set; }
-        public string? AssetType  { get; set; }
+        public string Category       { get; set; } = string.Empty;
+        public string Description    { get; set; } = string.Empty;
+        public string? Severity      { get; set; }
+        public string? RiskLevel     { get; set; }
+        public string? Priority      { get; set; }
+        public string? Location      { get; set; }
+        public bool IsArterialRoad   { get; set; }
+        public string? AssetId       { get; set; }
+        public string? AssetType     { get; set; }
         public string? AssetCondition { get; set; }
-        public int? AssetAgeYears { get; set; }
+        public int? AssetAgeYears    { get; set; }
     }
 
     public class CostEstimationResult
@@ -445,21 +546,29 @@ namespace CiviLanka.API.Agents
 
     // ── Internal DTOs for JSON parsing ────────────────────────────────────────
 
+    internal class RawLabour
+    {
+        [JsonPropertyName("requiredWorkers")] public int RequiredWorkers { get; set; }
+        [JsonPropertyName("estimatedHours")]  public double EstimatedHours { get; set; }
+    }
+
     internal class RawCostResult
     {
-        [JsonPropertyName("estimatedCost")]    public decimal EstimatedCost         { get; set; }
-        [JsonPropertyName("currency")]         public string? Currency              { get; set; }
-        [JsonPropertyName("materialCost")]     public decimal MaterialCost          { get; set; }
-        [JsonPropertyName("labourCost")]       public decimal LabourCost            { get; set; }
-        [JsonPropertyName("equipmentCost")]    public decimal EquipmentCost         { get; set; }
-        [JsonPropertyName("materials")]        public List<RawMaterial>? Materials  { get; set; }
-        [JsonPropertyName("equipment")]        public List<string>? Equipment       { get; set; }
-        [JsonPropertyName("recommendedCrewSize")] public int RecommendedCrewSize   { get; set; }
-        [JsonPropertyName("estimatedLabourHours")] public double EstimatedLabourHours { get; set; }
+        [JsonPropertyName("estimatedCost")]       public decimal EstimatedCost         { get; set; }
+        [JsonPropertyName("currency")]            public string? Currency              { get; set; }
+        [JsonPropertyName("materialCost")]        public decimal MaterialCost          { get; set; }
+        [JsonPropertyName("labourCost")]          public decimal LabourCost            { get; set; }
+        [JsonPropertyName("equipmentCost")]       public decimal EquipmentCost         { get; set; }
+        [JsonPropertyName("materials")]           public List<RawMaterial>? Materials  { get; set; }
+        [JsonPropertyName("equipment")]           public object? EquipmentRaw          { get; set; }
+        [JsonPropertyName("recommendedCrewSize")] public int RecommendedCrewSize       { get; set; }
+        [JsonPropertyName("estimatedLabourHours")]public double EstimatedLabourHours   { get; set; }
         [JsonPropertyName("estimatedDurationHours")] public double EstimatedDurationHours { get; set; }
-        [JsonPropertyName("confidence")]       public double Confidence             { get; set; }
-        [JsonPropertyName("reason")]           public string? Reason                { get; set; }
-        [JsonPropertyName("recommendation")]   public string? Recommendation        { get; set; }
+        [JsonPropertyName("labour")]              public RawLabour? Labour             { get; set; }
+        [JsonPropertyName("confidence")]          public double Confidence             { get; set; }
+        [JsonPropertyName("reason")]              public string? Reason                { get; set; }
+        [JsonPropertyName("explanation")]         public string? Explanation           { get; set; }
+        [JsonPropertyName("recommendation")]      public string? Recommendation        { get; set; }
     }
 
     public class RawMaterial
@@ -468,5 +577,12 @@ namespace CiviLanka.API.Agents
         [JsonPropertyName("quantity")]  public double Quantity  { get; set; }
         [JsonPropertyName("unit")]      public string Unit      { get; set; } = string.Empty;
         [JsonPropertyName("unitCost")]  public decimal UnitCost { get; set; }
+
+        [JsonPropertyName("estimatedUnitCost")]
+        public decimal? EstimatedUnitCost
+        {
+            get => UnitCost;
+            set { if (value.HasValue && UnitCost == 0) UnitCost = value.Value; }
+        }
     }
 }

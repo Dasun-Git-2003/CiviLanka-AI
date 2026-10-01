@@ -20,6 +20,8 @@ namespace CiviLanka.API.DTOs.Infrastructure
         [MaxLength(200)]
         public string Location { get; set; } = string.Empty;
 
+        public string Condition { get; set; } = "Good";
+
         public DateTime? InstallationDate { get; set; }
 
         public double Latitude { get; set; }
@@ -40,6 +42,8 @@ namespace CiviLanka.API.DTOs.Infrastructure
         public string Type { get; set; } = "Water";
 
         public string Status { get; set; } = "Active";
+
+        public string? Condition { get; set; }
 
         [Required(ErrorMessage = "Location is required")]
         [MaxLength(200)]
