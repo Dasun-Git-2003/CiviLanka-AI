@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
+import 'services/auth_state.dart';
 import 'services/hazard_service.dart';
 import 'services/work_order_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/analytics_service.dart';
 import 'services/location_service.dart';
 import 'theme/app_theme.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/shared/app_shell.dart';
+
+export 'services/auth_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +31,10 @@ class CiviLankaApp extends StatelessWidget {
         ChangeNotifierProxyProvider<ApiService, AuthService>(
           create: (ctx) => AuthService(ctx.read<ApiService>()),
           update: (ctx, api, previous) => previous ?? AuthService(api),
+        ),
+        ChangeNotifierProxyProvider<AuthService, AuthState>(
+          create: (ctx) => AuthState(ctx.read<AuthService>()),
+          update: (ctx, auth, previous) => previous ?? AuthState(auth),
         ),
         ProxyProvider<ApiService, HazardService>(
           update: (_, api, __) => HazardService(api),
@@ -54,6 +62,7 @@ class CiviLankaApp extends StatelessWidget {
   }
 }
 
+/// Routes to AppShell if logged in, WelcomeScreen otherwise
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -66,6 +75,6 @@ class AuthGate extends StatelessWidget {
       return const AppShell();
     }
 
-    return const LoginScreen();
+    return const WelcomeScreen();
   }
 }
