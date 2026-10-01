@@ -10,6 +10,7 @@ import 'services/location_service.dart';
 import 'services/asset_service.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 export 'services/auth_state.dart';
@@ -50,7 +51,7 @@ class CiviLankaApp extends StatelessWidget {
         title: 'CiviLanka AI — Smart Municipal Ops',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const AuthGate(),
+        home: const SplashScreen(),
       ),
     );
   }

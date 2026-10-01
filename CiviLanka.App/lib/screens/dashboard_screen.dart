@@ -277,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             BottomNavigationBarItem(
               icon: const Icon(Icons.assignment_outlined),
               activeIcon: const Icon(Icons.assignment_rounded),
-              label: _t('Work Orders', 'වැඩ අණ'),
+              label: _t('Work Orders', 'වැඩ පැවරුම'),
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.explore_outlined),
