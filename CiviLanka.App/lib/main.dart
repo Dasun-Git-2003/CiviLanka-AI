@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/api_service.dart';
+import 'services/ai_service.dart';
 import 'services/auth_service.dart';
 import 'services/auth_state.dart';
 import 'services/hazard_service.dart';
+import 'services/notification_service.dart';
+import 'services/user_service.dart';
 import 'services/work_order_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/analytics_service.dart';
@@ -46,6 +49,15 @@ class CiviLankaApp extends StatelessWidget {
         ),
         ProxyProvider<ApiService, AnalyticsService>(
           update: (_, api, __) => AnalyticsService(api),
+        ),
+        ProxyProvider<ApiService, AIService>(
+          update: (_, api, __) => AIService(api),
+        ),
+        ProxyProvider<ApiService, UserService>(
+          update: (_, api, __) => UserService(api),
+        ),
+        ChangeNotifierProvider<NotificationService>(
+          create: (_) => NotificationService(),
         ),
         Provider<LocationService>(
           create: (_) => LocationService(),

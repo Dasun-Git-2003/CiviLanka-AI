@@ -40,6 +40,29 @@ class MaintenanceService {
     }
   }
 
+  Future<MaintenanceRecord> getById(String id) async {
+    try {
+      final response = await _api.dio.get('/api/maintenance-records/$id');
+      return MaintenanceRecord.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      // Fallback: load all and filter if endpoint doesn't exist
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 405) {
+        final all = await getAll();
+        final record = all.where((r) => r.id == id).firstOrNull;
+        if (record != null) return record;
+      }
+      throw _handleError(e);
+    }
+  }
+
+  Future<MaintenanceRecord?> getByIdOrNull(String id) async {
+    try {
+      return await getById(id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<MaintenanceRecord>> getPendingVerification() async {
     return getAll(status: 'WorkCompleted');
   }
