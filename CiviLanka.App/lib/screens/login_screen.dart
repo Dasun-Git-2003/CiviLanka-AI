@@ -113,6 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Pure White in Light Mode (#FFFFFF)
     final bgColor = _isDarkMode ? const Color(0xFF0B1120) : Colors.white;
     final cardBgColor = _isDarkMode ? const Color(0xFF1E293B) : Colors.white;
     final titleColor = _isDarkMode ? Colors.white : const Color(0xFF0F172A);
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Theme Toggle Switch (Matches media_1790843951401.png)
+                    // Theme Toggle Switch (Matches screenshot)
                     GestureDetector(
                       onTap: () => setState(() => _isDarkMode = !_isDarkMode),
                       child: AnimatedContainer(
@@ -304,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Email Input Field
+                          // Email Input Field (White background in light mode)
                           TextFormField(
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
@@ -377,7 +378,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Password Input Field
+                          // Password Input Field (White background in light mode)
                           TextFormField(
                             controller: _passwordCtrl,
                             obscureText: _obscurePassword,
