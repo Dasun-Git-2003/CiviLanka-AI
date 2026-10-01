@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Theme Toggle Switch (Matches screenshot)
+                    // Theme Toggle Switch
                     GestureDetector(
                       onTap: () => setState(() => _isDarkMode = !_isDarkMode),
                       child: AnimatedContainer(
@@ -785,4 +785,3 @@ class _GoogleGPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
