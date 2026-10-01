@@ -1,41 +1,34 @@
-class SafetyAnalysis {
-  final String id;
-  final String riskLevel;
-  final double overallComplianceScore;
-  final bool ppeDetected;
-  final bool hazardCleared;
-  final bool workZoneSecured;
-  final String? complianceNotes;
-  final String? recommendedAction;
-  final DateTime createdAt;
+class MaintenanceSafetyAnalysis {
+  final int safetyScore;
+  final String complianceStatus;
+  final List<String> identifiedRisks;
+  final List<String> requiredMitigations;
+  final String? reasoning;
+  final double confidenceScore;
 
-  const SafetyAnalysis({
-    required this.id,
-    required this.riskLevel,
-    required this.overallComplianceScore,
-    required this.ppeDetected,
-    required this.hazardCleared,
-    required this.workZoneSecured,
-    this.complianceNotes,
-    this.recommendedAction,
-    required this.createdAt,
+  MaintenanceSafetyAnalysis({
+    this.safetyScore = 90,
+    this.complianceStatus = 'Compliant',
+    this.identifiedRisks = const [],
+    this.requiredMitigations = const [],
+    this.reasoning,
+    this.confidenceScore = 0.95,
   });
 
-  factory SafetyAnalysis.fromJson(Map<String, dynamic> json) {
-    return SafetyAnalysis(
-      id: (json['id'] ?? '') as String,
-      riskLevel: (json['riskLevel'] ?? 'ACCEPTABLE') as String,
-      overallComplianceScore: json['overallComplianceScore'] != null
-          ? (json['overallComplianceScore'] as num).toDouble()
-          : 0.0,
-      ppeDetected: json['ppeDetected'] as bool? ?? false,
-      hazardCleared: json['hazardCleared'] as bool? ?? false,
-      workZoneSecured: json['workZoneSecured'] as bool? ?? false,
-      complianceNotes: json['complianceNotes'] as String?,
-      recommendedAction: json['recommendedAction'] as String?,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
-          : DateTime.now(),
+  factory MaintenanceSafetyAnalysis.fromJson(Map<String, dynamic> json) {
+    return MaintenanceSafetyAnalysis(
+      safetyScore: json['safetyScore'] as int? ?? 90,
+      complianceStatus: json['complianceStatus'] as String? ?? 'Compliant',
+      identifiedRisks: (json['identifiedRisks'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      requiredMitigations: (json['requiredMitigations'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      reasoning: json['reasoning'] as String?,
+      confidenceScore: (json['confidenceScore'] as num?)?.toDouble() ?? 0.95,
     );
   }
 }
@@ -43,116 +36,91 @@ class SafetyAnalysis {
 class MaintenanceRecord {
   final String id;
   final String workOrderId;
-  final String? workOrderNumber;
   final String? workOrderTitle;
-  final String? workOrderPriority;
-  final String? workOrderSeverity;
-  final String? assignedCrew;
-  final String? location;
-  final String? hazardCategory;
-  final String? hazardTicket;
-
+  final String? workOrderNumber;
   final String? assetId;
   final String? assetName;
-  final String? assetType;
-
-  final String performedBy;
   final String maintenanceType;
   final String description;
   final String status;
-  final double labourHours;
-  final double actualCost;
-  final double? estimatedCost;
-
   final String? materialsUsed;
   final String? equipmentUsed;
+  final double labourHours;
+  final double actualCost;
   final String? beforeImageUrl;
   final String? afterImageUrl;
+  final String? safetyChecklist;
   final String? workerNotes;
-  final String? completionNotes;
-  final String? verificationStatus;
-  final String? rejectionReason;
-  final String? supervisorNotes;
-
+  final DateTime createdAt;
   final DateTime? workStartedAt;
   final DateTime? workCompletedAt;
-  final DateTime createdAt;
-  final SafetyAnalysis? latestSafetyAnalysis;
+  final MaintenanceSafetyAnalysis? aiSafetyAnalysis;
 
-  const MaintenanceRecord({
+  MaintenanceRecord({
     required this.id,
     required this.workOrderId,
-    this.workOrderNumber,
     this.workOrderTitle,
-    this.workOrderPriority,
-    this.workOrderSeverity,
-    this.assignedCrew,
-    this.location,
-    this.hazardCategory,
-    this.hazardTicket,
+    this.workOrderNumber,
     this.assetId,
     this.assetName,
-    this.assetType,
-    required this.performedBy,
     required this.maintenanceType,
     required this.description,
     required this.status,
-    this.labourHours = 0.0,
-    this.actualCost = 0.0,
-    this.estimatedCost,
     this.materialsUsed,
     this.equipmentUsed,
+    required this.labourHours,
+    required this.actualCost,
     this.beforeImageUrl,
     this.afterImageUrl,
+    this.safetyChecklist,
     this.workerNotes,
-    this.completionNotes,
-    this.verificationStatus,
-    this.rejectionReason,
-    this.supervisorNotes,
+    required this.createdAt,
     this.workStartedAt,
     this.workCompletedAt,
-    required this.createdAt,
-    this.latestSafetyAnalysis,
+    this.aiSafetyAnalysis,
   });
+
+  bool get isAssignedOrScheduled =>
+      status.toUpperCase() == 'SCHEDULED' || status.toUpperCase() == 'ASSIGNED';
+  bool get isInProgress => status.toUpperCase() == 'INPROGRESS' || status.toUpperCase() == 'IN_PROGRESS';
+  bool get isCompleted =>
+      status.toUpperCase() == 'WORKCOMPLETED' ||
+      status.toUpperCase() == 'COMPLETED' ||
+      status.toUpperCase() == 'VERIFIED';
+  bool get isVerified => status.toUpperCase() == 'VERIFIED';
 
   factory MaintenanceRecord.fromJson(Map<String, dynamic> json) {
     return MaintenanceRecord(
-      id: (json['id'] ?? '') as String,
-      workOrderId: (json['workOrderId'] ?? '') as String,
+      id: json['id'] as String? ?? '',
+      workOrderId: json['workOrderId'] as String? ?? '',
+      workOrderTitle: json['workOrderTitle'] as String? ?? json['title'] as String?,
       workOrderNumber: json['workOrderNumber'] as String?,
-      workOrderTitle: json['workOrderTitle'] as String?,
-      workOrderPriority: json['workOrderPriority'] as String?,
-      workOrderSeverity: json['workOrderSeverity'] as String?,
-      assignedCrew: json['assignedCrew'] as String?,
-      location: json['location'] as String?,
-      hazardCategory: json['hazardCategory'] as String?,
-      hazardTicket: json['hazardTicket'] as String?,
       assetId: json['assetId'] as String?,
       assetName: json['assetName'] as String?,
-      assetType: json['assetType'] as String?,
-      performedBy: (json['performedBy'] ?? 'Field Worker') as String,
-      maintenanceType: (json['maintenanceType'] ?? 'Corrective') as String,
-      description: (json['description'] ?? '') as String,
-      status: (json['status'] ?? 'PENDING') as String,
-      labourHours: json['labourHours'] != null ? (json['labourHours'] as num).toDouble() : 0.0,
-      actualCost: json['actualCost'] != null ? (json['actualCost'] as num).toDouble() : 0.0,
-      estimatedCost: json['estimatedCost'] != null ? (json['estimatedCost'] as num).toDouble() : null,
+      maintenanceType: json['maintenanceType'] as String? ?? 'Corrective',
+      description: json['description'] as String? ?? '',
+      status: json['status'] as String? ?? 'Scheduled',
       materialsUsed: json['materialsUsed'] as String?,
       equipmentUsed: json['equipmentUsed'] as String?,
+      labourHours: (json['labourHours'] as num?)?.toDouble() ?? 0.0,
+      actualCost: (json['actualCost'] as num?)?.toDouble() ?? 0.0,
       beforeImageUrl: json['beforeImageUrl'] as String?,
       afterImageUrl: json['afterImageUrl'] as String?,
+      safetyChecklist: json['safetyChecklist'] as String?,
       workerNotes: json['workerNotes'] as String?,
-      completionNotes: json['completionNotes'] as String?,
-      verificationStatus: json['verificationStatus'] as String?,
-      rejectionReason: json['rejectionReason'] as String?,
-      supervisorNotes: json['supervisorNotes'] as String?,
-      workStartedAt: json['workStartedAt'] != null ? DateTime.tryParse(json['workStartedAt'] as String) : null,
-      workCompletedAt: json['workCompletedAt'] != null ? DateTime.tryParse(json['workCompletedAt'] as String) : null,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now() 
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),
-      latestSafetyAnalysis: json['latestSafetyAnalysis'] != null
-          ? SafetyAnalysis.fromJson(json['latestSafetyAnalysis'] as Map<String, dynamic>)
+      workStartedAt: json['workStartedAt'] != null
+          ? DateTime.tryParse(json['workStartedAt'] as String)
+          : null,
+      workCompletedAt: json['workCompletedAt'] != null
+          ? DateTime.tryParse(json['workCompletedAt'] as String)
+          : null,
+      aiSafetyAnalysis: json['aiSafetyAnalysis'] != null &&
+              json['aiSafetyAnalysis'] is Map<String, dynamic>
+          ? MaintenanceSafetyAnalysis.fromJson(
+              json['aiSafetyAnalysis'] as Map<String, dynamic>)
           : null,
     );
   }

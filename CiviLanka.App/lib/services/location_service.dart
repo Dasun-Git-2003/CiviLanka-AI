@@ -1,51 +1,36 @@
 import 'package:geolocator/geolocator.dart';
 
-class LocationResult {
-  final double latitude;
-  final double longitude;
-  const LocationResult({required this.latitude, required this.longitude});
-}
-
 class LocationService {
-  /// Request permission and return current GPS position.
-  /// Returns null if permission is denied — caller must handle gracefully.
-  Future<LocationResult?> getCurrentLocation() async {
-    // Check if location services are enabled
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  Future<Position?> getCurrentPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return null; // GPS is off — do not crash
+      return null;
     }
 
-    // Check/request permission
-    LocationPermission permission = await Geolocator.checkPermission();
+    permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return null; // Permission denied — return null, not throw
+        return null;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return null; // Permanently denied — user must go to settings
+      return null;
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 15),
-      );
-      return LocationResult(
-        latitude: position.latitude,
-        longitude: position.longitude,
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
     } catch (_) {
       return null;
     }
-  }
-
-  Future<bool> get isPermissionGranted async {
-    final permission = await Geolocator.checkPermission();
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
   }
 }

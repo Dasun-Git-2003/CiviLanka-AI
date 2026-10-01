@@ -1,72 +1,61 @@
 class WorkOrder {
   final String id;
-  final String workOrderNumber;
-  final String? hazardId;
-  final String? assetId;
+  final String orderNumber;
   final String title;
   final String description;
-  final String priority;
-  final String? severity;
   final String status;
-  final double? estimatedCost;
+  final String priority;
+  final String? assignedContractor;
+  final String? assignedContractorName;
+  final double estimatedCost;
   final double? actualCost;
-  final int? estimatedDurationHours;
-  final String? assignedToUserId;
-  final String? assignedWorkerName;
-  final String? contractorName;
-  final bool requiresDirectorApproval;
-  final DateTime? targetCompletionDate;
+  final String? hazardId;
+  final String? assetId;
   final DateTime createdAt;
+  final DateTime? targetCompletionDate;
 
-  const WorkOrder({
+  WorkOrder({
     required this.id,
-    required this.workOrderNumber,
-    this.hazardId,
-    this.assetId,
+    required this.orderNumber,
     required this.title,
     required this.description,
-    required this.priority,
-    this.severity,
     required this.status,
-    this.estimatedCost,
+    required this.priority,
+    this.assignedContractor,
+    this.assignedContractorName,
+    required this.estimatedCost,
     this.actualCost,
-    this.estimatedDurationHours,
-    this.assignedToUserId,
-    this.assignedWorkerName,
-    this.contractorName,
-    this.requiresDirectorApproval = false,
-    this.targetCompletionDate,
+    this.hazardId,
+    this.assetId,
     required this.createdAt,
+    this.targetCompletionDate,
   });
+
+  bool get isCritical => priority.toLowerCase() == 'critical';
+  bool get isInProgress => status.toLowerCase() == 'inprogress';
+  bool get isAssigned => status.toLowerCase() == 'assigned';
+  bool get isCompleted => status.toLowerCase() == 'completed';
 
   factory WorkOrder.fromJson(Map<String, dynamic> json) {
     return WorkOrder(
-      id: (json['id'] ?? '') as String,
-      workOrderNumber: (json['workOrderNumber'] ?? 'WO-PENDING') as String,
+      id: json['id'] as String? ?? '',
+      orderNumber: json['orderNumber'] as String? ?? 'WO-XXXX',
+      title: json['title'] as String? ?? 'Field Work Order',
+      description: json['description'] as String? ?? '',
+      status: json['status'] as String? ?? 'Assigned',
+      priority: json['priority'] as String? ?? 'Medium',
+      assignedContractor: json['assignedContractorId'] as String?,
+      assignedContractorName: json['contractorName'] as String? ?? json['assignedTo'] as String?,
+      estimatedCost: (json['estimatedCost'] as num?)?.toDouble() ?? 0.0,
+      actualCost: (json['actualCost'] as num?)?.toDouble(),
       hazardId: json['hazardId'] as String?,
       assetId: json['assetId'] as String?,
-      title: (json['title'] ?? 'Untitled Work Order') as String,
-      description: (json['description'] ?? '') as String,
-      priority: (json['priority'] ?? 'NORMAL') as String,
-      severity: json['severity'] as String?,
-      status: (json['status'] ?? 'PENDING') as String,
-      estimatedCost: json['estimatedCost'] != null ? (json['estimatedCost'] as num).toDouble() : null,
-      actualCost: json['actualCost'] != null ? (json['actualCost'] as num).toDouble() : null,
-      estimatedDurationHours: json['estimatedDurationHours'] as int?,
-      assignedToUserId: json['assignedToUserId'] as String?,
-      assignedWorkerName: json['assignedWorkerName'] as String?,
-      contractorName: json['contractorName'] as String?,
-      requiresDirectorApproval: json['requiresDirectorApproval'] as bool? ?? false,
-      targetCompletionDate: json['targetCompletionDate'] != null 
-          ? DateTime.tryParse(json['targetCompletionDate'] as String) 
-          : null,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now() 
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),
+      targetCompletionDate: json['targetCompletionDate'] != null
+          ? DateTime.tryParse(json['targetCompletionDate'] as String)
+          : null,
     );
   }
-
-  String get orderNumber => workOrderNumber;
-  String? get assignedCrew => assignedWorkerName ?? contractorName;
-  String? get hazardTicketNumber => hazardId;
 }

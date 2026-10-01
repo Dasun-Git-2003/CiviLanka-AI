@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
-import '../../main.dart';
-import '../register_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,21 +13,21 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'citizen@civilanka.gov.lk');
+  final _emailController = TextEditingController(text: 'citizen@test.com');
   final _passwordController = TextEditingController(text: 'Director123!');
   bool _obscurePassword = true;
   bool _loading = false;
   String? _errorMessage;
-  int _selectedRoleIndex = 0; // 0: Citizen, 1: Field Inspector
+  int _selectedRoleIndex = 0;
 
   void _applyDemoPreset(int roleIndex) {
     setState(() {
       _selectedRoleIndex = roleIndex;
       if (roleIndex == 0) {
-        _emailController.text = 'citizen@civilanka.gov.lk';
+        _emailController.text = 'citizen@test.com';
         _passwordController.text = 'Director123!';
       } else {
-        _emailController.text = 'worker@civilanka.gov.lk';
+        _emailController.text = 'fieldworker@test.com';
         _passwordController.text = 'Director123!';
       }
       _errorMessage = null;
@@ -45,14 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authService = context.read<AuthService>();
-      final authState = context.read<AuthState>();
-
       await authService.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      authState.setLoggedIn(true);
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -72,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: AppColors.cityBg,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -80,47 +75,43 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Brand Header
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 58,
+                  height: 58,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 1.5),
-                  ),
-                  child: const Icon(
-                    Icons.location_city_rounded,
-                    size: 44,
                     color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
+                  child: const Icon(Icons.shield_outlined, color: Colors.white, size: 32),
                 ),
                 const SizedBox(height: 16),
                 const Text(
                   'CiviLanka AI',
                   style: TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDark,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 const Text(
-                  'Municipal Infrastructure & Incident Portal',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
+                  'Smart Municipal Asset & Hazard Triage',
+                  style: TextStyle(fontSize: 13, color: AppColors.textGrey),
                 ),
-                const SizedBox(height: 28),
-
-                // Persona Segmented Tabs
+                const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
+                    color: AppColors.slate200,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.borderDark),
                   ),
                   child: Row(
                     children: [
@@ -130,24 +121,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _selectedRoleIndex == 0 ? AppColors.primary : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
+                              color: _selectedRoleIndex == 0 ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(9),
+                              boxShadow: _selectedRoleIndex == 0
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.06),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.person_outline,
+                                  Icons.person_pin,
                                   size: 16,
-                                  color: _selectedRoleIndex == 0 ? Colors.black : AppColors.textSecondary,
+                                  color: _selectedRoleIndex == 0 ? AppColors.primary : AppColors.slate500,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Citizen',
+                                  'Citizen Portal',
                                   style: TextStyle(
-                                    color: _selectedRoleIndex == 0 ? Colors.black : AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: 12,
+                                    fontWeight: _selectedRoleIndex == 0 ? FontWeight.bold : FontWeight.w600,
+                                    color: _selectedRoleIndex == 0 ? AppColors.primary : AppColors.slate600,
                                   ),
                                 ),
                               ],
@@ -161,24 +161,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              color: _selectedRoleIndex == 1 ? AppColors.tealAccent : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
+                              color: _selectedRoleIndex == 1 ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(9),
+                              boxShadow: _selectedRoleIndex == 1
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.06),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.engineering_outlined,
+                                  Icons.engineering,
                                   size: 16,
-                                  color: _selectedRoleIndex == 1 ? Colors.black : AppColors.textSecondary,
+                                  color: _selectedRoleIndex == 1 ? AppColors.teal : AppColors.slate500,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Field Inspector',
                                   style: TextStyle(
-                                    color: _selectedRoleIndex == 1 ? Colors.black : AppColors.textSecondary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                    fontSize: 12,
+                                    fontWeight: _selectedRoleIndex == 1 ? FontWeight.bold : FontWeight.w600,
+                                    color: _selectedRoleIndex == 1 ? AppColors.teal : AppColors.slate600,
                                   ),
                                 ),
                               ],
@@ -189,213 +198,125 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Quick Autofill Demo Pill
-                GestureDetector(
-                  onTap: () => _applyDemoPreset(_selectedRoleIndex),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.tealAccent.withOpacity(0.4)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.bolt, color: AppColors.tealAccent, size: 14),
-                        const SizedBox(width: 6),
-                        Text(
-                          _selectedRoleIndex == 0
-                              ? 'Tap to fill verified Citizen demo'
-                              : 'Tap to fill Field Inspector demo',
-                          style: const TextStyle(
-                            color: AppColors.tealAccent,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 20),
-
-                // Login Form Card
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.borderDark),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cityBorder),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (_errorMessage != null) ...[
+                        if (_errorMessage != null)
                           Container(
                             padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.critical.withOpacity(0.12),
+                              color: const Color(0xFFFEF2F2),
+                              border: Border.all(color: const Color(0xFFFCA5A5)),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.critical.withOpacity(0.4)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.error_outline, color: AppColors.critical, size: 18),
+                                const Icon(Icons.error_outline, color: AppColors.critical, size: 20),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     _errorMessage!,
-                                    style: const TextStyle(color: AppColors.critical, fontSize: 12),
+                                    style: const TextStyle(color: AppColors.critical, fontSize: 13),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Email Field
-                        const Text(
-                          'Email Address',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(color: AppColors.textLight),
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textMuted, size: 20),
-                            hintText: 'Enter your email',
-                            hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-                            filled: true,
-                            fillColor: AppColors.bgDark,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderDark)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderDark)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                          decoration: const InputDecoration(
+                            labelText: 'Official Email / Account',
+                            prefixIcon: Icon(Icons.mail_outline, size: 20),
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) return 'Email is required';
-                            if (!val.contains('@')) return 'Enter a valid email';
+                            if (!val.contains('@')) return 'Enter a valid email address';
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Password Field
-                        const Text(
-                          'Password',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(color: AppColors.textLight),
                           decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textMuted, size: 20),
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock_outline, size: 20),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: AppColors.textMuted,
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
                                 size: 20,
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
-                            hintText: 'Enter your password',
-                            hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-                            filled: true,
-                            fillColor: AppColors.bgDark,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderDark)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderDark)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
                           ),
                           validator: (val) {
                             if (val == null || val.isEmpty) return 'Password is required';
                             return null;
                           },
                         ),
-                        const SizedBox(height: 24),
-
-                        // Submit Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedRoleIndex == 0 ? AppColors.primary : AppColors.tealAccent,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            onPressed: _loading ? null : _submit,
-                            child: _loading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                                  )
-                                : Text(
-                                    _selectedRoleIndex == 0 ? 'Sign In as Citizen' : 'Sign In as Field Inspector',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
+                        const SizedBox(height: 22),
+                        ElevatedButton(
+                          onPressed: _loading ? null : _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedRoleIndex == 1 ? AppColors.teal : AppColors.primary,
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
+                          child: _loading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                )
+                              : Text(
+                                  _selectedRoleIndex == 1
+                                      ? 'Sign In to Field Portal'
+                                      : 'Sign In to Citizen Portal',
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Register Link
-                if (_selectedRoleIndex == 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'New Citizen? ',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('New Colombo citizen? ', style: TextStyle(color: AppColors.textGrey, fontSize: 13)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Register Account',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 13),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                          );
-                        },
-                        child: const Text(
-                          'Register for free',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

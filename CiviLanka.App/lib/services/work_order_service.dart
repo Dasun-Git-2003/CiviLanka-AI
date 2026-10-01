@@ -7,47 +7,31 @@ class WorkOrderService {
 
   WorkOrderService(this._api);
 
-  /// Fetch all work orders assigned to or accessible by the current user
-  Future<List<WorkOrder>> getWorkOrders() async {
+  Future<List<WorkOrder>> getAllWorkOrders() async {
     try {
       final response = await _api.dio.get('/api/workorders');
-      if (response.statusCode == 200 && response.data is List) {
-        return (response.data as List)
-            .map((item) => WorkOrder.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-      return [];
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => WorkOrder.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to load work orders');
+      throw _handleError(e);
     }
   }
 
-  /// Fetch work order by ID
-  Future<WorkOrder?> getWorkOrderById(String id) async {
+  Future<List<WorkOrder>> getMyAssignments() async {
     try {
-      final response = await _api.dio.get('/api/workorders/$id');
-      if (response.statusCode == 200 && response.data != null) {
-        return WorkOrder.fromJson(response.data as Map<String, dynamic>);
-      }
-      return null;
+      final response = await _api.dio.get('/api/workorders');
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map((json) => WorkOrder.fromJson(json as Map<String, dynamic>)).toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to load work order');
+      throw _handleError(e);
     }
   }
 
-  /// Update work order status (e.g. IN_PROGRESS, COMPLETED, REQUIRES_CORRECTION)
-  Future<bool> updateStatus(String id, String newStatus, {String? notes}) async {
-    try {
-      final response = await _api.dio.patch(
-        '/api/workorders/$id/status',
-        data: {
-          'status': newStatus,
-          'notes': notes,
-        },
-      );
-      return response.statusCode == 200 || response.statusCode == 204;
-    } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Failed to update work order status');
+  String _handleError(DioException e) {
+    final data = e.response?.data;
+    if (data is Map && data.containsKey('message')) {
+      return data['message'] as String;
     }
+    return 'Failed to load work orders.';
   }
 }
