@@ -30,7 +30,7 @@ namespace CiviLanka.API.Agents
         private readonly ILogger<HazardClassificationAgent> _logger;
 
         // Model identifier used for tracking / audit
-        private const string ModelName = "gemini-2.0-flash";
+        private const string ModelName = "gemini-3.8-flash";
 
         public HazardClassificationAgent(
             IConfiguration config,
@@ -64,12 +64,21 @@ namespace CiviLanka.API.Agents
                 {
                     var respStr = await res.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(respStr);
-                    if (doc.RootElement.TryGetProperty("result", out var resultEl))
+                    JsonElement resultEl = default;
+                    bool hasResult = doc.RootElement.TryGetProperty("result", out resultEl) ||
+                                     doc.RootElement.TryGetProperty("classification", out resultEl);
+                    if (hasResult && resultEl.ValueKind == JsonValueKind.Object)
                     {
                         var cat = resultEl.TryGetProperty("primary_category", out var catEl) ? catEl.GetString() : hazard.Category;
                         var sev = resultEl.TryGetProperty("assigned_severity", out var sevEl) ? sevEl.GetString() : "HIGH";
                         var conf = resultEl.TryGetProperty("confidence_score", out var confEl) ? confEl.GetDouble() : 0.95;
-                        var reason = resultEl.TryGetProperty("reasoning", out var reasEl) ? reasEl.GetString() : "Classified by LangGraph Workflow";
+                        var dept = resultEl.TryGetProperty("department", out var deptEl) ? deptEl.GetString() : "Municipal Engineering";
+                        var sla = resultEl.TryGetProperty("sla_resolution_hours", out var slaEl) ? slaEl.GetInt32() : 24;
+                        var urgency = resultEl.TryGetProperty("urgency_score", out var urgEl) ? urgEl.GetDouble() : 75.0;
+                        var safetySummary = resultEl.TryGetProperty("safety_risk_summary", out var reasEl) ? reasEl.GetString() 
+                            : (resultEl.TryGetProperty("reasoning", out var rEl) ? rEl.GetString() : "Classified by LangGraph Unified Agent");
+
+                        var fullReason = $"{safetySummary} [Assigned: {dept} | Target SLA: {sla}h | Urgency Score: {urgency:F0}/100]";
 
                         _logger.LogInformation("LangGraph successfully classified citizen hazard {Id}: Category={Category}, Severity={Severity}",
                             hazard.Id, cat, sev);
@@ -82,8 +91,8 @@ namespace CiviLanka.API.Agents
                             RiskLevel = NormalizeLevel(sev, new[] { "LOW", "MEDIUM", "HIGH", "CRITICAL" }, "HIGH"),
                             Priority = sev == "CRITICAL" ? "URGENT" : sev == "HIGH" ? "HIGH" : "NORMAL",
                             Confidence = Math.Clamp(conf, 0.0, 1.0),
-                            Reason = reason,
-                            ModelName = "LangGraph (gemini-3.8-flash)"
+                            Reason = fullReason,
+                            ModelName = "LangGraph Unified Agent (gemini-3.8-flash)"
                         };
                     }
                 }

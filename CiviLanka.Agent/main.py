@@ -269,6 +269,7 @@ def classify_hazard_endpoint(request: HazardClassifyRequest):
             image_url=request.image_url,
             thread_id=request.thread_id or str(uuid4()),
         )
+        res["result"] = res.get("classification")
         return res
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Hazard triage agent error: {str(ex)}")
