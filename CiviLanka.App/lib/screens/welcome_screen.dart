@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/auth_state.dart';
+import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -15,18 +16,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _isSinhala = false;
   bool _isDarkMode = true;
 
-  void _openLoginSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _LoginModalSheet(isSinhala: _isSinhala),
+  void _navigateToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(initialSinhala: _isSinhala),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: const Color(0xFF0A0F1D),
       body: Stack(
@@ -292,7 +292,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         width: double.infinity,
                         height: 54,
                         child: ElevatedButton(
-                          onPressed: _openLoginSheet,
+                          onPressed: _navigateToLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFEA580C),
                             foregroundColor: Colors.white,
@@ -336,6 +336,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
+<<<<<<< HEAD
 // â”€â”€ Interactive Login Modal Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _LoginModalSheet extends StatefulWidget {
   final bool isSinhala;
