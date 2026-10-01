@@ -400,7 +400,8 @@ class _HazardDetailsScreenState extends State<HazardDetailsScreen> {
             ],
           ),
 
-          if (ai.recommendedAction.isNotEmpty) ...[
+          if (ai.recommendedAction != null &&
+              ai.recommendedAction!.isNotEmpty) ...[
             const SizedBox(height: 14),
             const Text(
               'Recommended Action',
@@ -419,7 +420,7 @@ class _HazardDetailsScreenState extends State<HazardDetailsScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                ai.recommendedAction,
+                ai.recommendedAction!,
                 style: const TextStyle(fontSize: 12, color: AppColors.slate800),
               ),
             ),

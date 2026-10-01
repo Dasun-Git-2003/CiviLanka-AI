@@ -18,39 +18,6 @@ class HazardService {
     }
   }
 
-  Future<List<Hazard>> getAllHazards({
-    String? status,
-    String? severity,
-    String? category,
-  }) async {
-    try {
-      final queryParams = <String, dynamic>{};
-      if (status != null && status.isNotEmpty && status != 'All') {
-        queryParams['status'] = status;
-      }
-      if (severity != null && severity.isNotEmpty && severity != 'All') {
-        queryParams['severity'] = severity;
-      }
-      if (category != null && category.isNotEmpty && category != 'All') {
-        queryParams['category'] = category;
-      }
-      final response = await _api.dio.get('/api/hazards', queryParameters: queryParams);
-      final List<dynamic> data = response.data as List<dynamic>;
-      return data.map((json) => Hazard.fromJson(json as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<Hazard> getHazardById(String id) async {
-    try {
-      final response = await _api.dio.get('/api/hazards/$id');
-      return Hazard.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   Future<List<Hazard>> getMapHazards({
     String? category,
     String? severity,

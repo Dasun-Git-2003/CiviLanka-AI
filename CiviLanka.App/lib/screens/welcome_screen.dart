@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
+<<<<<<< HEAD
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/auth_state.dart';
-import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
+=======
+import 'package:flutter/material.dart';
+import 'login_screen.dart';
+>>>>>>> 497eeb7d19de8c979127a6a0657a8d59613316a9
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -20,7 +24,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
+        builder: (_) => LoginScreen(initialSinhala: _isSinhala),
       ),
     );
   }
@@ -336,6 +340,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
+<<<<<<< HEAD
+// â”€â”€ Interactive Login Modal Bottom Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _LoginModalSheet extends StatefulWidget {
   final bool isSinhala;
   const _LoginModalSheet({required this.isSinhala});
@@ -721,3 +727,5 @@ class _LoginModalSheetState extends State<_LoginModalSheet> {
     );
   }
 }
+=======
+>>>>>>> 497eeb7d19de8c979127a6a0657a8d59613316a9

@@ -21,53 +21,12 @@ class MaintenanceService {
   }
 
   Future<List<MaintenanceRecord>> getAllRecords() async {
-    return getAll();
-  }
-
-  Future<List<MaintenanceRecord>> getAll({String? status}) async {
     try {
-      final queryParams = <String, dynamic>{};
-      if (status != null && status.isNotEmpty && status != 'All') {
-        queryParams['status'] = status;
-      }
-      final response = await _api.dio.get('/api/maintenance-records', queryParameters: queryParams);
+      final response = await _api.dio.get('/api/maintenance-records');
       final List<dynamic> data = response.data as List<dynamic>;
       return data
           .map((json) => MaintenanceRecord.fromJson(json as Map<String, dynamic>))
           .toList();
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<List<MaintenanceRecord>> getPendingVerification() async {
-    return getAll(status: 'WorkCompleted');
-  }
-
-  Future<void> verify(String id, {String? notes}) async {
-    try {
-      await _api.dio.post(
-        '/api/maintenance-records/$id/verify',
-        data: {'notes': notes ?? 'Verified by supervisor'},
-      );
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Future<void> requestCorrection(
-    String id, {
-    required String requiredCorrections,
-    String? notes,
-  }) async {
-    try {
-      await _api.dio.post(
-        '/api/maintenance-records/$id/request-correction',
-        data: {
-          'requiredCorrections': requiredCorrections,
-          if (notes != null) 'notes': notes,
-        },
-      );
     } on DioException catch (e) {
       throw _handleError(e);
     }

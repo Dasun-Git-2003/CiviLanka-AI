@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/auth_state.dart';
 import '../theme/app_colors.dart';
-import 'auth/register_screen.dart';
+import 'register_screen.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});

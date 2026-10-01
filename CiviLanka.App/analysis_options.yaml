@@ -13,11 +13,15 @@ analyzer:
   exclude:
     - build/**
     - android/**
+<<<<<<< HEAD
     - ios/**
     - web/**
     - windows/**
     - macos/**
     - linux/**
+=======
+    - web/**
+>>>>>>> 497eeb7d19de8c979127a6a0657a8d59613316a9
 
 linter:
   # The lint rules applied to this project can be customized in the
