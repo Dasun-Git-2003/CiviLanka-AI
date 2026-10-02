@@ -10,7 +10,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   bool _isSinhala = false;
-  bool _isDarkMode = true;
 
   void _navigateToLogin() {
     Navigator.push(
@@ -90,7 +89,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/images/Logo.png',
+                            'assets/images/Logo.jpg',
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(
                               Icons.shield_rounded,
@@ -185,29 +184,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Theme Toggle Pill
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _isDarkMode = !_isDarkMode;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white24, width: 1),
-                          ),
-                          child: Icon(
-                            _isDarkMode ? Icons.wb_sunny_outlined : Icons.nightlight_round,
-                            color: const Color(0xFFFBBF24),
-                            size: 15,
                           ),
                         ),
                       ),

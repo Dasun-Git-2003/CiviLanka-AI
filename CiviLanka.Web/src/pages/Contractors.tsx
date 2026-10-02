@@ -68,7 +68,11 @@ export default function Contractors() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const currentUser = authService.getCurrentUser();
-  const canDelete = currentUser?.role === 'PublicWorksDirector' || currentUser?.role === 'Director';
+  const canDelete =
+    currentUser?.role === 'PublicWorksDirector' ||
+    currentUser?.role === 'Director' ||
+    currentUser?.role === 'FieldMaintenanceSupervisor' ||
+    currentUser?.role === 'MunicipalStaff';
 
   // Load contractors and assets
   const fetchData = async () => {
@@ -467,7 +471,7 @@ export default function Contractors() {
                 {canDelete && (
                   <button
                     onClick={() => setDeleteTarget(c)}
-                    title="Delete contractor (Director only)"
+                    title="Delete contractor"
                     className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
