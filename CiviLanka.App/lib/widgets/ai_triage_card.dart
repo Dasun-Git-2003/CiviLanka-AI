@@ -9,8 +9,6 @@ class AITriageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final confidencePct = (aiAnalysis.confidenceScore * 100).toStringAsFixed(0);
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -44,13 +42,20 @@ class AITriageCard extends StatelessWidget {
                   color: AppColors.success,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  '$confidencePct% MATCH',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.bolt, size: 12, color: Colors.white),
+                    SizedBox(width: 3),
+                    Text(
+                      '24H SLA TARGET',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

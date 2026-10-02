@@ -19,12 +19,12 @@ class _ReportHazardScreenState extends State<ReportHazardScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  final _addressController = TextEditingController(text: 'Colombo Fort (Zone 01)');
+  final _addressController = TextEditingController();
 
   String _selectedCategory = 'Pothole';
   String _selectedSeverity = 'Medium';
-  double _lat = 6.9344;
-  double _lng = 79.8428;
+  double _lat = 6.9271;
+  double _lng = 79.8612;
 
   File? _selectedImage;
   bool _gettingLocation = false;
@@ -59,24 +59,28 @@ class _ReportHazardScreenState extends State<ReportHazardScreen> {
         setState(() {
           _lat = pos.latitude;
           _lng = pos.longitude;
-          _addressController.text =
-              'GPS Captured: ${_lat.toStringAsFixed(4)}, ${_lng.toStringAsFixed(4)} (Colombo)';
+          if (_addressController.text.trim().isEmpty || _addressController.text.startsWith('GPS Captured:')) {
+            _addressController.text =
+                'Colombo (${_lat.toStringAsFixed(5)}, ${_lng.toStringAsFixed(5)})';
+          }
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('GPS Locked: ${_lat.toStringAsFixed(4)}° N, ${_lng.toStringAsFixed(4)}° E'),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('GPS unavailable. Used preset Colombo hotspot.')),
+          const SnackBar(
+            content: Text('Could not obtain live GPS coordinates. Please enter landmark manually.'),
+            backgroundColor: AppColors.critical,
+          ),
         );
       }
       setState(() => _gettingLocation = false);
     }
-  }
-
-  void _selectHotspot(ColomboHotspot spot) {
-    setState(() {
-      _lat = spot.lat;
-      _lng = spot.lng;
-      _addressController.text = '${spot.name} - ${spot.description}';
-    });
   }
 
   Future<void> _submitReport() async {
@@ -325,53 +329,117 @@ class _ReportHazardScreenState extends State<ReportHazardScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Incident Geolocation',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark),
-                  ),
-                  TextButton.icon(
-                    onPressed: _gettingLocation ? null : _detectGPS,
-                    icon: _gettingLocation
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.my_location, size: 16),
-                    label: const Text('Use Live GPS', style: TextStyle(fontSize: 12)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Location / Landmark Address *',
-                  prefixIcon: Icon(Icons.place_outlined),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cityBorder),
                 ),
-                validator: (val) =>
-                    (val == null || val.trim().isEmpty) ? 'Please enter address' : null,
-              ),
-              const SizedBox(height: 8),
-              const Text('Quick Colombo Zones:', style: TextStyle(fontSize: 11, color: AppColors.textGrey)),
-              const SizedBox(height: 6),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: kColomboHotspots.map((spot) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ActionChip(
-                        label: Text(spot.name, style: const TextStyle(fontSize: 11)),
-                        backgroundColor: Colors.white,
-                        onPressed: () => _selectHotspot(spot),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.location_on, color: AppColors.primary, size: 18),
+                            SizedBox(width: 6),
+                            Text(
+                              'Incident Geolocation',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: _gettingLocation ? null : _detectGPS,
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_gettingLocation)
+                                  const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                  )
+                                else
+                                  const Icon(Icons.my_location, size: 14, color: AppColors.primary),
+                                const SizedBox(width: 5),
+                                Text(
+                                  _gettingLocation ? 'Locating...' : 'Use Live GPS',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter street name, landmark, or intersection *',
+                        labelText: 'Location / Landmark Address *',
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIcon: const Icon(Icons.place_outlined, color: AppColors.primary),
+                        suffixIcon: _addressController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 16),
+                                onPressed: () {
+                                  setState(() {
+                                    _addressController.clear();
+                                  });
+                                },
+                              )
+                            : null,
                       ),
-                    );
-                  }).toList(),
+                      validator: (val) =>
+                          (val == null || val.trim().isEmpty) ? 'Please enter address or landmark' : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.cityBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.gps_fixed, size: 14, color: _lat != 0.0 ? AppColors.success : AppColors.textGrey),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'GPS Coords: ${_lat.toStringAsFixed(4)}° N, ${_lng.toStringAsFixed(4)}° E',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Colombo Sector',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.success),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),

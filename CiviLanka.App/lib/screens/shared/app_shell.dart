@@ -117,7 +117,7 @@ class _AppShellState extends State<AppShell> {
     } else {
       // CITIZEN
       pages = [
-        const CitizenHomeScreen(),
+        CitizenHomeScreen(onNavigateTab: _switchTab),
         const CitizenMapScreen(),
         const CitizenMyReportsScreen(),
         const NotificationCenterScreen(),
