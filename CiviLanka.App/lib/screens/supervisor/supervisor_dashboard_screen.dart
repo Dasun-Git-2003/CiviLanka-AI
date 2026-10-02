@@ -15,6 +15,7 @@ import '../citizen/hazard_details_screen.dart';
 import '../create_work_order_screen.dart';
 import '../work_order_details_screen.dart';
 import '../shared/profile_screen.dart';
+import '../../widgets/municipal_app_drawer.dart';
 
 class SupervisorDashboardScreen extends StatefulWidget {
   final Function(int)? onNavigateTab;
@@ -107,7 +108,18 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.cityBg,
+      drawer: const MunicipalAppDrawer(
+        role: 'supervisor',
+        activeRoute: '/supervisor-dashboard',
+      ),
       appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Operations Menu',
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -9,6 +9,7 @@ import '../../services/hazard_service.dart';
 import '../../services/work_order_service.dart';
 import '../../theme/app_colors.dart';
 import '../work_order_details_screen.dart';
+import '../../widgets/municipal_app_drawer.dart';
 
 class DirectorDashboardScreen extends StatefulWidget {
   final Function(int)? onNavigateTab;
@@ -86,7 +87,18 @@ class _DirectorDashboardScreenState extends State<DirectorDashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.cityBg,
+      drawer: const MunicipalAppDrawer(
+        role: 'director',
+        activeRoute: '/director-dashboard',
+      ),
       appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: 'Governance Menu',
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
