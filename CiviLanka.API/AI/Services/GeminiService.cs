@@ -61,8 +61,10 @@ namespace CiviLanka.API.AI.Services
                 return null;
             }
 
-            var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{_settings.Model}:generateContent?key={_apiKey}";
-            var maxRetries = Math.Max(1, _settings.MaxRetries);
+            var candidateModels = new[] { _settings.Model, "gemini-3.1-flash-lite", "gemini-3.5-flash" }
+                .Where(m => !string.IsNullOrWhiteSpace(m))
+                .Distinct()
+                .ToList();
 
             var requestBody = new
             {
@@ -87,11 +89,12 @@ namespace CiviLanka.API.AI.Services
 
             var jsonPayload = JsonSerializer.Serialize(requestBody);
 
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            foreach (var model in candidateModels)
             {
+                var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_apiKey}";
                 try
                 {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_settings.TimeoutSeconds));
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Min(12, _settings.TimeoutSeconds)));
                     using var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
                     var response = await _httpClient.PostAsync(endpoint, content, cts.Token);
@@ -99,11 +102,8 @@ namespace CiviLanka.API.AI.Services
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorDetails = await response.Content.ReadAsStringAsync();
-                        _logger.LogWarning("Gemini API HTTP {StatusCode} (Attempt {Attempt}/{Max}): {Details}",
-                            response.StatusCode, attempt, maxRetries, errorDetails);
-
-                        if (attempt == maxRetries) return null;
-                        await Task.Delay(500 * attempt);
+                        _logger.LogWarning("Gemini model {Model} returned HTTP {StatusCode}: {Details}. Trying next candidate model if available.",
+                            model, response.StatusCode, errorDetails);
                         continue;
                     }
 
@@ -118,17 +118,17 @@ namespace CiviLanka.API.AI.Services
                         parts[0].TryGetProperty("text", out var textElement))
                     {
                         var rawText = textElement.GetString()?.Trim();
-                        return CleanJsonText(rawText);
+                        var cleaned = CleanJsonText(rawText);
+                        if (!string.IsNullOrWhiteSpace(cleaned))
+                        {
+                            _logger.LogInformation("Successfully generated structured JSON using Gemini model {Model}", model);
+                            return cleaned;
+                        }
                     }
-
-                    _logger.LogWarning("Gemini API response did not contain text content. Raw: {Raw}", responseJson);
-                    return null;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Gemini API request failed on attempt {Attempt}/{Max}", attempt, maxRetries);
-                    if (attempt == maxRetries) return null;
-                    await Task.Delay(500 * attempt);
+                    _logger.LogWarning(ex, "Gemini API request failed for model {Model}. Trying fallback model.", model);
                 }
             }
 
