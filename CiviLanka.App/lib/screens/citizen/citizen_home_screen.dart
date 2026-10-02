@@ -357,7 +357,7 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
                   itemBuilder: (ctx, idx) => _buildHazardCard(displayList[idx]),
                 ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 84),
             ],
           ),
         ),
@@ -516,9 +516,9 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 1.55,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.30,
       children: [
         _buildMetricItem(
           label: 'My Submissions',
@@ -528,6 +528,8 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
           color: const Color(0xFF0284C7),
           bgColor: const Color(0xFFF0F9FF),
           borderColor: const Color(0xFFBAE6FD),
+          filterKey: 'all',
+          trendTag: 'Total',
         ),
         _buildMetricItem(
           label: 'Under Review',
@@ -537,6 +539,8 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
           color: const Color(0xFFD97706),
           bgColor: const Color(0xFFFFFBEB),
           borderColor: const Color(0xFFFDE68A),
+          filterKey: 'under_review',
+          trendTag: 'In Review',
         ),
         _buildMetricItem(
           label: 'Field Repair',
@@ -546,6 +550,8 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
           color: const Color(0xFF4F46E5),
           bgColor: const Color(0xFFEEF2FF),
           borderColor: const Color(0xFFC7D2FE),
+          filterKey: 'in_progress',
+          trendTag: 'Active',
         ),
         _buildMetricItem(
           label: 'Resolved',
@@ -555,6 +561,8 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
           color: const Color(0xFF059669),
           bgColor: const Color(0xFFF0FDF4),
           borderColor: const Color(0xFFA7F3D0),
+          filterKey: 'resolved',
+          trendTag: 'Verified',
         ),
       ],
     );
@@ -568,72 +576,165 @@ class _CitizenHomeScreenState extends State<CitizenHomeScreen> {
     required Color color,
     required Color bgColor,
     required Color borderColor,
+    required String filterKey,
+    required String trendTag,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    final isSelected = _statusFilter == filterKey;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _statusFilter = _statusFilter == filterKey ? 'all' : filterKey;
+          });
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(13),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isSelected
+                  ? [bgColor, Colors.white]
+                  : [bgColor.withValues(alpha: 0.55), Colors.white],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? color : const Color(0xFFE2E8F0),
+              width: isSelected ? 2.0 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? color.withValues(alpha: 0.18)
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: isSelected ? 10 : 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF64748B),
-                ),
+              // Top Row: Icon badge + Tag
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isSelected ? color : bgColor,
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(
+                        color: isSelected ? color : borderColor,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        if (isSelected)
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                      ],
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isSelected ? Colors.white : color,
+                      size: 16,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? color.withValues(alpha: 0.15)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected
+                            ? color.withValues(alpha: 0.35)
+                            : const Color(0xFFE2E8F0),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isSelected) ...[
+                          Icon(Icons.check_rounded, size: 10, color: color),
+                          const SizedBox(width: 3),
+                        ] else ...[
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          trendTag,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: isSelected ? color : const Color(0xFF64748B),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: borderColor, width: 0.7),
-                ),
-                child: Icon(icon, color: color, size: 14),
-              ),
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
+
+              const SizedBox(height: 4),
+
+              // Metric Number
               Text(
                 count,
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: 25,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF0F172A),
-                  letterSpacing: -0.5,
+                  color: isSelected ? color : const Color(0xFF0F172A),
+                  letterSpacing: -0.6,
+                  height: 1.0,
                 ),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
-                ),
+
+              // Bottom Info: Title & Subtitle
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1E293B),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? color.withValues(alpha: 0.85) : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
