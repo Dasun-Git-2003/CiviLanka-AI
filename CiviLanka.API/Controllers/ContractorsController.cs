@@ -153,10 +153,10 @@ namespace CiviLanka.API.Controllers
         }
 
         /// <summary>
-        /// Delete a contractor from the registry (PublicWorksDirector only).
+        /// Delete a contractor from the registry (Supervisors and Directors).
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "PublicWorksDirector,Director")]
+        [Authorize(Policy = "CanManageContractors")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteContractor(int id)
