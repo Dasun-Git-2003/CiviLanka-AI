@@ -182,8 +182,9 @@ class _GisMapScreenState extends State<GisMapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'lk.gov.civilanka.app',
+                urlTemplate: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                subdomains: const ['0', '1', '2', '3'],
+                maxZoom: 20,
               ),
               MarkerLayer(markers: markers),
             ],

@@ -63,9 +63,10 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Official Google Maps Tile servers (lyrs=m: Google Roadmap, lyrs=y: Google Hybrid Satellite)
     final tileUrl = _satelliteMode
-        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+        ? 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+        : 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
     return Scaffold(
       body: Stack(
@@ -76,13 +77,13 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> {
               initialCenter: LatLng(6.9271, 79.8612),
               initialZoom: 13.0,
               minZoom: 9.0,
-              maxZoom: 18.0,
+              maxZoom: 20.0,
             ),
             children: [
               TileLayer(
                 urlTemplate: tileUrl,
-                userAgentPackageName: 'com.civilanka.civilanka_app',
-                maxZoom: 19,
+                subdomains: const ['0', '1', '2', '3'],
+                maxZoom: 20,
               ),
               MarkerLayer(
                 markers: _filteredHazards.map((hazard) {
