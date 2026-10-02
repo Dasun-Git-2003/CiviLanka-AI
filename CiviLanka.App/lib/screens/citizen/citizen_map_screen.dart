@@ -65,7 +65,7 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> {
   Widget build(BuildContext context) {
     final tileUrl = _satelliteMode
         ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-        : 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png';
+        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     return Scaffold(
       body: Stack(
