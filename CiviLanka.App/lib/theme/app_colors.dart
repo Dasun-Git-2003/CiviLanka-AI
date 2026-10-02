@@ -22,6 +22,7 @@ class AppColors {
   static const Color textGrey = Color(0xFF64748B); // slate-500
   static const Color textLight = Color(0xFF94A3B8); // slate-400
 
+  static const Color slate50 = Color(0xFFF8FAFC);
   static const Color slate100 = Color(0xFFF1F5F9);
   static const Color slate200 = Color(0xFFE2E8F0);
   static const Color slate300 = Color(0xFFCBD5E1);

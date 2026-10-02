@@ -200,18 +200,55 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen>
       avgSafety = auditedRecords.map((r) => r.aiSafetyAnalysis!.safetyScore).reduce((a, b) => a + b) / auditedRecords.length;
     }
 
+    final totalOrders = _workOrders.isEmpty ? 1 : _workOrders.length;
+    final activeRatio = (activeOrders / totalOrders).clamp(0.1, 1.0);
+    final completedRatio = (_workOrders.isEmpty ? 0.8 : (completedThisWeek / totalOrders)).clamp(0.15, 1.0);
+    final pendingRatio = (_records.isEmpty ? 0.4 : (pendingMaintenance / _records.length)).clamp(0.2, 1.0);
+
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.4,
+      childAspectRatio: 1.24,
       children: [
-        CivicStatCard(title: 'Active Orders', value: activeOrders.toString(), icon: Icons.engineering, iconColor: AppColors.primary),
-        CivicStatCard(title: 'Completed (Week)', value: completedThisWeek.toString(), icon: Icons.check_circle, iconColor: AppColors.success),
-        CivicStatCard(title: 'Pending Maint.', value: pendingMaintenance.toString(), icon: Icons.build, iconColor: AppColors.warning),
-        CivicStatCard(title: 'Safety Score', value: '${avgSafety.toStringAsFixed(0)}%', icon: Icons.security, iconColor: avgSafety >= 80 ? AppColors.success : AppColors.critical),
+        CivicStatCard(
+          title: 'Active Orders',
+          value: activeOrders.toString(),
+          icon: Icons.engineering_outlined,
+          iconColor: const Color(0xFF2563EB),
+          badgeText: 'In Field',
+          subtitle: 'Orders underway',
+          progress: activeRatio,
+        ),
+        CivicStatCard(
+          title: 'Completed (Week)',
+          value: completedThisWeek.toString(),
+          icon: Icons.check_circle_outline,
+          iconColor: const Color(0xFF059669),
+          badgeText: 'On Track',
+          subtitle: 'Verified closed',
+          progress: completedRatio,
+        ),
+        CivicStatCard(
+          title: 'Pending Maint.',
+          value: pendingMaintenance.toString(),
+          icon: Icons.handyman_outlined,
+          iconColor: const Color(0xFFD97706),
+          badgeText: 'Scheduled',
+          subtitle: 'Pending action',
+          progress: pendingRatio,
+        ),
+        CivicStatCard(
+          title: 'Safety Score',
+          value: '${avgSafety.toStringAsFixed(0)}%',
+          icon: Icons.shield_outlined,
+          iconColor: avgSafety >= 80 ? const Color(0xFF0D9488) : const Color(0xFFE11D48),
+          badgeText: avgSafety >= 85 ? 'Optimal' : 'Needs Review',
+          subtitle: 'OHS Protocol Verified',
+          progress: (avgSafety / 100).clamp(0.0, 1.0),
+        ),
       ],
     );
   }
@@ -220,29 +257,92 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Field Action Hub',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.slate900),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.bolt, size: 14, color: AppColors.teal),
+                  SizedBox(width: 4),
+                  Text('Quick Ops', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.teal)),
+                ],
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
+              child: InkWell(
+                onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateMaintenanceScreen()));
                 },
-                icon: const Icon(Icons.add_task, color: Colors.white, size: 18),
-                label: const Text('Log Maintenance', style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.teal, padding: const EdgeInsets.symmetric(vertical: 12)),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFF0F766E).withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3)),
+                    ],
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.add_task_rounded, color: Colors.white, size: 24),
+                      SizedBox(height: 10),
+                      Text('Log Maintenance', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      SizedBox(height: 2),
+                      Text('Record field repairs', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
+              child: InkWell(
+                onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkOrdersScreen()));
                 },
-                icon: const Icon(Icons.list_alt, color: AppColors.teal, size: 18),
-                label: const Text('All Orders', style: TextStyle(color: AppColors.teal)),
-                style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.teal), padding: const EdgeInsets.symmetric(vertical: 12)),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.slate200, width: 1.2),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.format_list_bulleted_rounded, color: Color(0xFF2563EB), size: 24),
+                      SizedBox(height: 10),
+                      Text('All Work Orders', style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.bold, fontSize: 13)),
+                      SizedBox(height: 2),
+                      Text('Browse assignments', style: TextStyle(color: AppColors.slate500, fontSize: 10)),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
