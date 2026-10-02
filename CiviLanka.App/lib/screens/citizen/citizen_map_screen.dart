@@ -17,12 +17,27 @@ class CitizenMapScreen extends StatefulWidget {
   State<CitizenMapScreen> createState() => _CitizenMapScreenState();
 }
 
+class _ConditionFilterOption {
+  final String key;
+  final String label;
+  final Color dotColor;
+
+  const _ConditionFilterOption({
+    required this.key,
+    required this.label,
+    required this.dotColor,
+  });
+}
+
 class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
   List<Hazard> _hazards = [];
   bool _loading = true;
   Hazard? _selectedHazard;
-  String _selectedFilter = 'All';
+  String _conditionFilter = 'all'; // 'all', 'poor', 'fair', 'good'
+  String _categoryFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   bool _satelliteMode = false;
 
   // Live User Location
@@ -35,13 +50,21 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
   String? _routeDuration;
   bool _calculatingRoute = false;
 
-  final List<String> _filterCategories = [
+  static const List<_ConditionFilterOption> _conditionFilters = [
+    _ConditionFilterOption(key: 'all', label: 'All', dotColor: Color(0xFF94A3B8)),
+    _ConditionFilterOption(key: 'poor', label: 'Critical / Poor', dotColor: Color(0xFFDC2626)),
+    _ConditionFilterOption(key: 'fair', label: 'Moderate', dotColor: Color(0xFFD97706)),
+    _ConditionFilterOption(key: 'good', label: 'Good / Safe', dotColor: Color(0xFF059669)),
+  ];
+
+  static const List<String> _categoryFilterOptions = [
     'All',
-    'Critical',
     'Pothole',
     'Drainage',
     'Streetlight',
     'Water',
+    'Road Damage',
+    'Fallen Tree',
   ];
 
   @override
@@ -49,6 +72,12 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
     super.initState();
     _loadHazards();
     _determineUserPosition();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadHazards() async {
@@ -211,13 +240,45 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
     }
   }
 
+  String _getHazardCondition(Hazard h) {
+    final sev = h.severity.toUpperCase();
+    final stat = h.status.toLowerCase();
+    final isResolved = stat == 'resolved' || stat == 'closed';
+    if (isResolved) return 'good';
+    if (sev == 'CRITICAL' || sev == 'HIGH') return 'poor';
+    if (sev == 'LOW') return 'good';
+    return 'fair';
+  }
+
   List<Hazard> get _filteredHazards {
-    if (_selectedFilter == 'All') return _hazards;
-    if (_selectedFilter == 'Critical') {
-      return _hazards.where((h) => h.isCritical).toList();
-    }
     return _hazards.where((h) {
-      return h.category.toLowerCase().contains(_selectedFilter.toLowerCase());
+      // 1. Condition filter ('all', 'poor', 'fair', 'good')
+      if (_conditionFilter != 'all') {
+        final cond = _getHazardCondition(h);
+        if (cond != _conditionFilter) return false;
+      }
+
+      // 2. Category filter ('All', 'Pothole', etc.)
+      if (_categoryFilter != 'All') {
+        final cat = h.category.toLowerCase();
+        final sel = _categoryFilter.toLowerCase();
+        if (!cat.contains(sel)) return false;
+      }
+
+      // 3. Search query filter
+      if (_searchQuery.trim().isNotEmpty) {
+        final q = _searchQuery.trim().toLowerCase();
+        final matchTicket = h.ticketNumber.toLowerCase().contains(q);
+        final matchCat = h.category.toLowerCase().contains(q);
+        final matchAddr = h.locationAddress.toLowerCase().contains(q);
+        final matchTitle = h.title.toLowerCase().contains(q);
+        final matchDesc = h.description.toLowerCase().contains(q);
+        if (!matchTicket && !matchCat && !matchAddr && !matchTitle && !matchDesc) {
+          return false;
+        }
+      }
+
+      return true;
     }).toList();
   }
 
@@ -278,12 +339,11 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
                   // Upgraded Hazard Pins matching user screenshot 1:1
                   ..._filteredHazards.map((hazard) {
                     final isSelected = _selectedHazard?.id == hazard.id;
-                    final isCrit = hazard.isCritical;
-
-                    final markerColor = isCrit
+                    final cond = _getHazardCondition(hazard);
+                    final markerColor = cond == 'poor'
                         ? const Color(0xFFDC2626) // Red Critical / Poor
-                        : hazard.isResolved
-                            ? const Color(0xFF059669) // Emerald Green Resolved / Good
+                        : cond == 'good'
+                            ? const Color(0xFF059669) // Emerald Green Good / Safe
                             : const Color(0xFFD97706); // Orange / Amber Moderate
 
                     return Marker(
@@ -311,37 +371,66 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
             ],
           ),
 
-          // ── 2. TOP SEARCH BAR & FILTER CHIPS ─────────────────────────────────────
+          // ── 2. TOP SEARCH BAR & CONDITION / CATEGORY FILTERS ───────────────────
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Search Bar with elevation & refresh button
+                  // Search Bar with live search, clear X, and refresh button
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                          color: Colors.black.withValues(alpha: 0.10),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.search, color: Color(0xFF64748B), size: 22),
+                        const Icon(Icons.search_rounded, color: Color(0xFF64748B), size: 20),
                         const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Search Colombo Hazards & Hotspots',
-                            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (val) {
+                              setState(() => _searchQuery = val);
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Search pins or tickets...',
+                              hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF0F172A),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
+                        if (_searchQuery.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+                            ),
+                          ),
+                        const SizedBox(width: 4),
                         if (_loading)
                           const SizedBox(
                             width: 16,
@@ -350,41 +439,109 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
                           )
                         else
                           IconButton(
-                            icon: const Icon(Icons.refresh, size: 20, color: Color(0xFF2563EB)),
+                            icon: const Icon(Icons.refresh_rounded, size: 20, color: Color(0xFF2563EB)),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             onPressed: _loadHazards,
+                            tooltip: 'Refresh pins',
                           ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 8),
 
-                  // Filter Categories Row
+                  // Primary CONDITION Filter Row (Matching Website & User Screenshots 1:1)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
                     child: Row(
-                      children: _filterCategories.map((f) {
-                        final isSel = _selectedFilter == f;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: ChoiceChip(
-                            label: Text(f),
-                            selected: isSel,
-                            selectedColor: const Color(0xFF2563EB),
-                            backgroundColor: Colors.white,
-                            labelStyle: TextStyle(
-                              color: isSel ? Colors.white : const Color(0xFF0F172A),
-                              fontSize: 11,
-                              fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                      children: [
+                        // "CONDITION:" prefix label
+                        Container(
+                          padding: const EdgeInsets.only(left: 2, right: 6),
+                          child: const Text(
+                            'CONDITION:',
+                            style: TextStyle(
+                              color: Color(0xFF475569),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
                             ),
-                            elevation: 2,
-                            onSelected: (val) {
-                              if (val) setState(() => _selectedFilter = f);
-                            },
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        ..._conditionFilters.map((c) => _buildConditionChip(c)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Secondary Category Filter Row (Pothole, Drainage, Streetlight, Water, etc.)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.only(left: 2, right: 6),
+                          child: const Text(
+                            'CATEGORY:',
+                            style: TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ),
+                        ..._categoryFilterOptions.map((cat) => _buildCategoryChip(cat)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Status Counter & Legend Bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Showing ${_filteredHazards.length} of ${_hazards.length} markers on Colombo map',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF475569),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildLegendDot(const Color(0xFFDC2626), 'Critical'),
+                            const SizedBox(width: 8),
+                            _buildLegendDot(const Color(0xFFD97706), 'Moderate'),
+                            const SizedBox(width: 8),
+                            _buildLegendDot(const Color(0xFF059669), 'Resolved'),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 
@@ -693,6 +850,130 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildConditionChip(_ConditionFilterOption c) {
+    final isSel = _conditionFilter == c.key;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _conditionFilter = c.key;
+          });
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSel ? const Color(0xFF2563EB) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSel ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isSel ? 0.2 : 0.08),
+                blurRadius: isSel ? 5 : 3,
+                offset: const Offset(0, 1.5),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSel) ...[
+                const Icon(Icons.check_rounded, color: Colors.white, size: 13),
+                const SizedBox(width: 4),
+              ] else ...[
+                Container(
+                  width: 7.5,
+                  height: 7.5,
+                  decoration: BoxDecoration(
+                    color: c.dotColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                c.label,
+                style: TextStyle(
+                  color: isSel ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 11.5,
+                  fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String cat) {
+    final isSel = _categoryFilter == cat;
+    return Padding(
+      padding: const EdgeInsets.only(right: 5),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _categoryFilter = cat;
+          });
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+          decoration: BoxDecoration(
+            color: isSel ? const Color(0xFF0F172A) : Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSel ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Text(
+            cat,
+            style: TextStyle(
+              color: isSel ? Colors.white : const Color(0xFF334155),
+              fontSize: 10.5,
+              fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendDot(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 3.5),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF64748B),
+          ),
+        ),
+      ],
     );
   }
 }
