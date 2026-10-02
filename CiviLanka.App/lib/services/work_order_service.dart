@@ -168,6 +168,24 @@ class WorkOrderService {
     );
   }
 
+  /// Runs the Cost Estimator AI Agent for an existing work order on the backend (POST /api/workorders/{id}/estimate).
+  ///
+  /// The backend executes Semantic Kernel / CostEstimatorAgent using project municipal benchmarks,
+  /// computes materials, equipment, crew size, labour hours, and estimated costs, and evaluates
+  /// arterial road risk and director approval threshold requirements.
+  /// Returns the updated [WorkOrder].
+  Future<WorkOrder> generateCostEstimate(String id) async {
+    try {
+      final response = await _api.dio.post(
+        '/api/workorders/$id/estimate',
+        data: {},
+      );
+      return WorkOrder.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
 
   // ΓöÇΓöÇ APPROVAL WORKFLOW (DIRECTOR ONLY) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
