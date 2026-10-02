@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/hazard.dart';
 import 'api_service.dart';
 
@@ -125,6 +126,68 @@ class HazardService {
       return response.data['url'] as String? ?? response.data['imageUrl'] as String?;
     } catch (_) {
       return null;
+    }
+  }
+
+  Future<String?> uploadImages(List<File> files) async {
+    if (files.isEmpty) return null;
+    if (files.length == 1) return uploadImage(files.first);
+    try {
+      final multipartFiles = <MultipartFile>[];
+      for (final f in files) {
+        multipartFiles.add(await MultipartFile.fromFile(
+          f.path,
+          filename: 'hazard_${DateTime.now().millisecondsSinceEpoch}_${multipartFiles.length}.jpg',
+        ));
+      }
+      final formData = FormData.fromMap({
+        'files': multipartFiles,
+      });
+      final response = await _api.dio.post(
+        '/api/hazards/upload-images',
+        data: formData,
+      );
+      return response.data['imageUrl'] as String? ?? response.data['url'] as String?;
+    } catch (_) {
+      return uploadImage(files.first);
+    }
+  }
+
+  Future<String?> uploadXFiles(List<XFile> files) async {
+    if (files.isEmpty) return null;
+    try {
+      final multipartFiles = <MultipartFile>[];
+      for (int i = 0; i < files.length; i++) {
+        final f = files[i];
+        final bytes = await f.readAsBytes();
+        multipartFiles.add(MultipartFile.fromBytes(
+          bytes,
+          filename: f.name.isNotEmpty ? f.name : 'hazard_${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
+        ));
+      }
+      final formData = FormData.fromMap({
+        'files': multipartFiles,
+      });
+      final response = await _api.dio.post(
+        '/api/hazards/upload-images',
+        data: formData,
+      );
+      return response.data['imageUrl'] as String? ?? response.data['url'] as String?;
+    } catch (_) {
+      try {
+        final f = files.first;
+        final bytes = await f.readAsBytes();
+        final formData = FormData.fromMap({
+          'file': MultipartFile.fromBytes(
+            bytes,
+            filename: f.name.isNotEmpty ? f.name : 'hazard_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          ),
+        });
+        final response = await _api.dio.post('/api/hazards/upload-image', data: formData);
+        return response.data['imageUrl'] as String? ?? response.data['url'] as String?;
+      } catch (_) {
+        return null;
+      }
     }
   }
 
