@@ -19,22 +19,18 @@ import {
   ArrowRight,
   Building2,
   Users,
-  Activity,
   CloudRain,
   School,
   Hospital,
   Compass,
   AlertCircle,
   RefreshCw,
-  CheckSquare,
   Copy,
   Check,
   FileText,
-  ExternalLink,
   Zap,
   Waves,
   ShieldCheck,
-  Car,
 } from 'lucide-react';
 import { apiClient } from '../services/apiService';
 import { aiService, type HazardClassificationResult } from '../services/aiService';

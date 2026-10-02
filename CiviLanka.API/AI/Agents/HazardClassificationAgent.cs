@@ -42,6 +42,14 @@ namespace CiviLanka.API.AI.Agents
         {
             ArgumentNullException.ThrowIfNull(input);
 
+            if (!_gemini.IsConfigured)
+            {
+                _logger.LogWarning("Gemini is not configured. Creating AI_FAILED record for hazard {Id}.", input.HazardId);
+                var fallback = BuildUnavailableFallback(input);
+                await PersistAnalysisAsync(input.HazardId, fallback);
+                return fallback;
+            }
+
             HazardClassificationResult? result = null;
 
             if (_gemini.IsConfigured)
