@@ -106,7 +106,7 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
       }
 
       final position = await Geolocator.getCurrentPosition(
-        timeLimit: const Duration(seconds: 8),
+        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 8)),
       );
 
       if (mounted) {
@@ -262,14 +262,16 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
                 ),
 
               // Markers Layer (Live User Location + Upgraded Google Pins)
+              // Markers Layer (Live User Location + Upgraded Google Pins)
               MarkerLayer(
                 markers: [
-                  // Live User Location Dot (Radar wave + core dot)
+                  // Live User Location Dot (Animated radar wave + GPS core dot)
                   if (_userLocation != null)
                     Marker(
                       point: _userLocation!,
-                      width: 36,
-                      height: 36,
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
                       child: const _LiveUserLocationDot(),
                     ),
 
@@ -279,26 +281,28 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
                     final isCrit = hazard.isCritical;
 
                     final markerColor = isCrit
-                        ? const Color(0xFFDC2626) // Red Critical
+                        ? const Color(0xFFEA4335) // Google Maps Red Critical
                         : hazard.isResolved
-                            ? const Color(0xFF059669) // Emerald Resolved
+                            ? const Color(0xFF10B981) // Emerald Green Resolved
                             : (hazard.severity.toUpperCase() == 'MEDIUM')
-                                ? const Color(0xFFD97706) // Amber Medium
-                                : const Color(0xFF2563EB); // Blue In Progress
+                                ? const Color(0xFFF59E0B) // Google Amber Medium
+                                : const Color(0xFF1D4ED8); // Google Royal Blue In Progress
 
                     return Marker(
                       point: LatLng(hazard.latitude, hazard.longitude),
-                      width: isSelected ? 52 : 40,
-                      height: isSelected ? 58 : 46,
-                      alignment: Alignment.topCenter,
+                      width: isSelected ? 160 : 46,
+                      height: isSelected ? 88 : 54,
+                      alignment: Alignment.bottomCenter,
                       child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () {
                           setState(() {
                             _selectedHazard = hazard;
                           });
-                          _mapController.move(LatLng(hazard.latitude, hazard.longitude), 14.5);
+                          _mapController.move(LatLng(hazard.latitude, hazard.longitude), 15.0);
                         },
                         child: _UpgradedGooglePin(
+                          hazard: hazard,
                           color: markerColor,
                           category: hazard.category,
                           isCritical: isCrit,
@@ -700,12 +704,14 @@ class _CitizenMapScreenState extends State<CitizenMapScreen> with TickerProvider
 
 // ── UPGRADED GOOGLE MAPS PIN (Matching Google Maps AdvancedMarker) ────────────
 class _UpgradedGooglePin extends StatelessWidget {
+  final Hazard hazard;
   final Color color;
   final String category;
   final bool isCritical;
   final bool isSelected;
 
   const _UpgradedGooglePin({
+    required this.hazard,
     required this.color,
     required this.category,
     required this.isCritical,
@@ -714,91 +720,216 @@ class _UpgradedGooglePin extends StatelessWidget {
 
   IconData _getCategoryIcon() {
     final cat = category.toLowerCase();
-    if (cat.contains('pothole') || cat.contains('road')) return Icons.broken_image_outlined;
+    if (cat.contains('pothole')) return Icons.circle_outlined;
+    if (cat.contains('road')) return Icons.construction_rounded;
     if (cat.contains('water') || cat.contains('leak')) return Icons.water_drop_rounded;
     if (cat.contains('traffic') || cat.contains('signal')) return Icons.traffic_rounded;
-    if (cat.contains('light') || cat.contains('street')) return Icons.lightbulb_outline_rounded;
+    if (cat.contains('light') || cat.contains('street')) return Icons.lightbulb_rounded;
     if (cat.contains('drain')) return Icons.waves_rounded;
-    if (cat.contains('tree')) return Icons.park_outlined;
+    if (cat.contains('tree')) return Icons.park_rounded;
     return Icons.warning_amber_rounded;
+  }
+
+  String _getCategoryEmoji() {
+    final cat = category.toLowerCase();
+    if (cat.contains('pothole')) return '🕳️';
+    if (cat.contains('water') || cat.contains('leak')) return '💧';
+    if (cat.contains('traffic') || cat.contains('signal')) return '🚦';
+    if (cat.contains('light') || cat.contains('street')) return '💡';
+    if (cat.contains('drain')) return '🌊';
+    if (cat.contains('tree')) return '🌿';
+    return '⚠️';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.none,
+    final pinWidth = isSelected ? 42.0 : 36.0;
+    final pinHeight = isSelected ? 52.0 : 44.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Selection Halo Ring (Pulse effect when pin is selected)
-        if (isSelected)
-          Positioned(
-            top: 2,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
-                border: Border.all(color: const Color(0xFF60A5FA), width: 1.5),
-              ),
+        // Floating Callout Tooltip Pill (When selected)
+        if (isSelected) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.28),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+              border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.0),
             ),
-          ),
-
-        // Pin Body
-        CustomPaint(
-          size: Size(isSelected ? 44 : 36, isSelected ? 52 : 42),
-          painter: _TeardropMarkerPainter(
-            color: color,
-            borderColor: Colors.white,
-            borderWidth: isSelected ? 2.8 : 2.0,
-          ),
-          child: SizedBox(
-            width: isSelected ? 44 : 36,
-            height: isSelected ? 44 : 36,
-            child: Center(
-              child: Icon(
-                _getCategoryIcon(),
-                color: Colors.white,
-                size: isSelected ? 20 : 16,
-              ),
-            ),
-          ),
-        ),
-
-        // Urgent Exclamation Badge on top-right for Critical Hazards (Like Web)
-        if (isCritical)
-          Positioned(
-            top: -2,
-            right: isSelected ? 2 : 0,
-            child: Container(
-              width: 15,
-              height: 15,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFBBF24), // Vibrant gold
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 3,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_getCategoryEmoji(), style: const TextStyle(fontSize: 12)),
+                const SizedBox(width: 5),
+                Text(
+                  hazard.category,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                if (isCritical) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'CRITICAL',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
-              ),
-              child: const Center(
-                child: Text(
-                  '!',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w900,
+              ],
+            ),
+          ),
+          // Downward pointer caret
+          CustomPaint(
+            size: const Size(10, 5),
+            painter: _CaretPainter(color: const Color(0xFF0F172A)),
+          ),
+          const SizedBox(height: 2),
+        ],
+
+        // Pin Body Stack
+        SizedBox(
+          width: pinWidth + 8,
+          height: pinHeight + 4,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.none,
+            children: [
+              // Glowing Selection Aura Ring
+              if (isSelected)
+                Positioned(
+                  top: 0,
+                  child: Container(
+                    width: pinWidth + 4,
+                    height: pinWidth + 4,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                      border: Border.all(color: const Color(0xFF38BDF8), width: 1.8),
+                    ),
+                  ),
+                ),
+
+              // Pin Teardrop Shape
+              CustomPaint(
+                size: Size(pinWidth, pinHeight),
+                painter: _TeardropMarkerPainter(
+                  color: color,
+                  borderColor: Colors.white,
+                  borderWidth: isSelected ? 2.6 : 2.0,
+                ),
+                child: SizedBox(
+                  width: pinWidth,
+                  height: pinWidth,
+                  child: Center(
+                    // White contrast disk inside head
+                    child: Container(
+                      width: isSelected ? 24 : 20,
+                      height: isSelected ? 24 : 20,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          _getCategoryIcon(),
+                          color: color,
+                          size: isSelected ? 15 : 12,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+
+              // Urgent Gold Exclamation Badge for Critical Hazards
+              if (isCritical)
+                Positioned(
+                  top: -2,
+                  right: 0,
+                  child: Container(
+                    width: isSelected ? 16 : 14,
+                    height: isSelected ? 16 : 14,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBBF24), // Vibrant gold
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '!',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
+        ),
       ],
     );
   }
+}
+
+// Custom Painter for Caret Triangle
+class _CaretPainter extends CustomPainter {
+  final Color color;
+  _CaretPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // Custom Painter for Authentic Google Maps Teardrop Shape
@@ -817,35 +948,43 @@ class _TeardropMarkerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
+    final r = w / 2;
 
-    // Drop shadow at the bottom needle tip
+    // Contact drop shadow directly below the needle point on the ground
     final shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w / 2, h - 1), width: w * 0.45, height: 4),
+      Rect.fromCenter(center: Offset(w / 2, h - 1.5), width: w * 0.52, height: 4.5),
       shadowPaint,
     );
 
-    // Teardrop path
+    // Exact Google Maps teardrop path
     final path = Path();
-    path.moveTo(w / 2, h);
-    path.cubicTo(w * 0.08, h * 0.62, 0, h * 0.42, 0, w / 2);
+    path.moveTo(w / 2, h - 2); // Bottom needle tip
+    path.cubicTo(w * 0.08, h * 0.58, 0, h * 0.40, 0, r);
     path.arcToPoint(
-      Offset(w, w / 2),
-      radius: Radius.circular(w / 2),
+      Offset(w, r),
+      radius: Radius.circular(r),
       clockwise: true,
     );
-    path.cubicTo(w, h * 0.42, w * 0.92, h * 0.62, w / 2, h);
+    path.cubicTo(w, h * 0.40, w * 0.92, h * 0.58, w / 2, h - 2);
     path.close();
 
-    // Fill
+    // Fill with subtle vertical gradient for 3D depth
     final fillPaint = Paint()
-      ..color = color
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          color,
+          Color.lerp(color, Colors.black, 0.12)!,
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, w, h))
       ..style = PaintingStyle.fill;
     canvas.drawPath(path, fillPaint);
 
-    // White Border
+    // Crisp White Border
     final strokePaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
@@ -861,42 +1000,89 @@ class _TeardropMarkerPainter extends CustomPainter {
   }
 }
 
-// ── LIVE USER LOCATION DOT (Radar pulsing wave + solid blue core) ─────────────
-class _LiveUserLocationDot extends StatelessWidget {
+// ── LIVE USER LOCATION DOT (Animated Pulsing Radar Wave + Core GPS Dot) ────────
+class _LiveUserLocationDot extends StatefulWidget {
   const _LiveUserLocationDot();
 
   @override
+  State<_LiveUserLocationDot> createState() => _LiveUserLocationDotState();
+}
+
+class _LiveUserLocationDotState extends State<_LiveUserLocationDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Outer pulsing radar wave
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.25),
-            border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.5)),
-          ),
-        ),
-        // Inner solid GPS blue dot
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2563EB),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 4,
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        final val = _animController.value;
+        return SizedBox(
+          width: 44,
+          height: 44,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer pulsing radar wave (expands and fades)
+              Container(
+                width: 14 + (val * 28),
+                height: 14 + (val * 28),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF2563EB).withValues(alpha: (1.0 - val) * 0.35),
+                  border: Border.all(
+                    color: const Color(0xFF60A5FA).withValues(alpha: (1.0 - val) * 0.6),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              // Soft inner blue halo
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                ),
+              ),
+              // Google Maps Core Solid Blue Dot
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D4ED8),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
+
