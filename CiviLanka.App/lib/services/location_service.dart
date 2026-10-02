@@ -33,4 +33,6 @@ class LocationService {
       return null;
     }
   }
+
+  Future<Position?> getCurrentLocation() => getCurrentPosition();
 }

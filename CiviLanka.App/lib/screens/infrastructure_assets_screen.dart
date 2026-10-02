@@ -741,7 +741,7 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
   Future<void> _detectLocationOnOpen() async {
     try {
       final locService = context.read<LocationService>();
-      final pos = await locService.getCurrentLocation();
+      final pos = await locService.getCurrentPosition();
       if (pos != null && mounted) {
         setState(() {
           _latCtrl.text = pos.latitude.toStringAsFixed(4);
@@ -755,7 +755,7 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
   Future<void> _detectLocation() async {
     try {
       final locService = context.read<LocationService>();
-      final pos = await locService.getCurrentLocation();
+      final pos = await locService.getCurrentPosition();
       if (pos != null && mounted) {
         setState(() {
           _latCtrl.text = pos.latitude.toStringAsFixed(4);
@@ -1170,7 +1170,7 @@ class _EditAssetModalState extends State<EditAssetModal> {
   Future<void> _detectLocation() async {
     try {
       final locService = context.read<LocationService>();
-      final pos = await locService.getCurrentLocation();
+      final pos = await locService.getCurrentPosition();
       if (pos != null && mounted) {
         setState(() {
           _latCtrl.text = pos.latitude.toStringAsFixed(4);
