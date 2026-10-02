@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'citizen@civilanka.gov.lk');
-  final _passwordController = TextEditingController(text: 'Password123!');
+  final _emailController = TextEditingController(text: 'citizen@test.com');
+  final _passwordController = TextEditingController(text: 'Director123!');
   bool _obscurePassword = true;
   bool _rememberMe = true;
   bool _loading = false;
@@ -24,32 +24,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final List<Map<String, dynamic>> _demoRoles = [
     {
       'role': 'Citizen',
-      'email': 'citizen@civilanka.gov.lk',
-      'password': 'Password123!',
+      'email': 'citizen@test.com',
+      'password': 'Director123!',
       'icon': Icons.person_outline_rounded,
       'badge': 'CIVILIAN',
       'color': AppColors.primary,
     },
     {
       'role': 'Field Worker',
-      'email': 'fieldworker@civilanka.gov.lk',
-      'password': 'Password123!',
+      'email': 'fieldworker@test.com',
+      'password': 'Director123!',
       'icon': Icons.engineering_outlined,
       'badge': 'FIELD OPS',
       'color': AppColors.teal,
     },
     {
       'role': 'Supervisor',
-      'email': 'supervisor@civilanka.gov.lk',
-      'password': 'Password123!',
+      'email': 'supervisor@test.com',
+      'password': 'Director123!',
       'icon': Icons.supervisor_account_outlined,
       'badge': 'TRIAGE & BOQ',
       'color': AppColors.warning,
     },
     {
       'role': 'Director',
-      'email': 'director@civilanka.gov.lk',
-      'password': 'Password123!',
+      'email': 'director@test.com',
+      'password': 'Director123!',
       'icon': Icons.admin_panel_settings_outlined,
       'badge': 'GOVERNANCE',
       'color': AppColors.purple,
