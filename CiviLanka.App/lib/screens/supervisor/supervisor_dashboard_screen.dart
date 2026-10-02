@@ -14,6 +14,7 @@ import '../../theme/app_colors.dart';
 import '../citizen/hazard_details_screen.dart';
 import '../create_work_order_screen.dart';
 import '../work_order_details_screen.dart';
+import '../shared/profile_screen.dart';
 
 class SupervisorDashboardScreen extends StatefulWidget {
   final Function(int)? onNavigateTab;
@@ -122,9 +123,26 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh Operations',
             onPressed: _loadDashboardData,
           ),
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, color: AppColors.purple),
+            tooltip: 'Supervisor Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: AppColors.critical),
+            tooltip: 'Sign Out',
+            onPressed: () => _confirmSignOut(context),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: _loading
@@ -143,6 +161,9 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Supervisor Profile Header Card
+                        _buildSupervisorProfileCard(user),
+
                         // Metrics 2x2 Grid
                         Row(
                           children: [
@@ -366,6 +387,234 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: const [
+            Icon(Icons.logout_rounded, color: AppColors.critical),
+            SizedBox(width: 8),
+            Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to sign out of your supervisor operations session?',
+          style: TextStyle(fontSize: 13.5, color: Color(0xFF475569)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AuthService>().logout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.critical,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupervisorProfileCard(dynamic user) {
+    final fullName = user?.fullName ?? 'Municipal Operations Lead';
+    final email = user?.email ?? 'supervisor@cmc.gov.lk';
+    final initial = fullName.isNotEmpty ? fullName[0].toUpperCase() : 'S';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF0F172A),
+            Color(0xFF2E1065),
+            Color(0xFF1E1B4B),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2E1065).withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(2.5),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFA855F7), Color(0xFF8B5CF6)],
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: const Color(0xFF1E1B4B),
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFD8B4FE),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            fullName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFA855F7), width: 0.8),
+                          ),
+                          child: const Text(
+                            'SUPERVISOR',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFD8B4FE),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      email,
+                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11.5),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Colombo Municipal Operations • Zone 01 Dispatch',
+                      style: TextStyle(
+                        color: Color(0xFFC084FC),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: Color(0xFF334155), height: 1),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.person_outline_rounded, color: Colors.white, size: 15),
+                        SizedBox(width: 6),
+                        Text(
+                          'My Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () => _confirmSignOut(context),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.logout_rounded, color: Color(0xFFFCA5A5), size: 15),
+                        SizedBox(width: 6),
+                        Text(
+                          'Sign Out',
+                          style: TextStyle(
+                            color: Color(0xFFFCA5A5),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
