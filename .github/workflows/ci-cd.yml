@@ -230,13 +230,6 @@ jobs:
           name: civilanka-agent-bundle
           path: ./release/agent
 
-      - name: Deploy Backend to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'civialanka-etb2hch9gjftcudm'
-          package: ./release/api
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CIVIALANKA_ETB2HCH9GJFTCUDM || secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-
       - name: Generate Checksums & Deployment Manifest
         run: |
           echo "=== CiviLanka Production Release Manifest ===" > ./release/MANIFEST.txt
