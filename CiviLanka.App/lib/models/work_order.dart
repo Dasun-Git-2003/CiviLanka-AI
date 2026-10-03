@@ -214,6 +214,14 @@ class WorkOrder {
   bool get isRejected =>
       approvalStatus.toUpperCase() == 'REJECTED' ||
       status.toUpperCase() == 'REJECTED';
+
+  String get orderNumber => workOrderNumber.isNotEmpty ? workOrderNumber : id;
+  String? get assignedContractor => assignedContractorName ?? assignedContractorId?.toString();
+  DateTime? get targetCompletionDate => scheduledDate;
+  bool get isCritical => priority.toLowerCase() == 'critical';
+  bool get isInProgress => status.toLowerCase() == 'inprogress' || status.toUpperCase() == 'IN_PROGRESS';
+  bool get isAssigned => status.toLowerCase() == 'assigned' || status.toUpperCase() == 'ASSIGNED';
+  bool get isCompleted => status.toLowerCase() == 'completed' || status.toUpperCase() == 'COMPLETED';
 }
 
 class WorkOrderItem {
@@ -380,7 +388,16 @@ class CreateWorkOrderInput {
   final String title;
   final String description;
   final String priority;
+  final String? assignedCrew;
+  final DateTime? scheduledDate;
   final double? estimatedCost;
+  final double? materialCost;
+  final double? labourCost;
+  final double? equipmentCost;
+  final double? estimatedDurationHours;
+  final int? recommendedCrewSize;
+  final String? estimateReason;
+  final List<Map<String, dynamic>>? items;
 
   const CreateWorkOrderInput({
     this.hazardId,
@@ -388,7 +405,16 @@ class CreateWorkOrderInput {
     required this.title,
     required this.description,
     this.priority = 'NORMAL',
+    this.assignedCrew,
+    this.scheduledDate,
     this.estimatedCost,
+    this.materialCost,
+    this.labourCost,
+    this.equipmentCost,
+    this.estimatedDurationHours,
+    this.recommendedCrewSize,
+    this.estimateReason,
+    this.items,
   });
 
   Map<String, dynamic> toJson() => {
@@ -397,8 +423,69 @@ class CreateWorkOrderInput {
         'title': title,
         'description': description,
         'priority': priority.toUpperCase(),
+        if (assignedCrew != null && assignedCrew!.isNotEmpty) 'assignedCrew': assignedCrew,
+        if (scheduledDate != null) 'scheduledDate': scheduledDate!.toUtc().toIso8601String(),
         if (estimatedCost != null) 'estimatedCost': estimatedCost,
+        if (materialCost != null) 'materialCost': materialCost,
+        if (labourCost != null) 'labourCost': labourCost,
+        if (equipmentCost != null) 'equipmentCost': equipmentCost,
+        if (estimatedDurationHours != null) 'estimatedDurationHours': estimatedDurationHours,
+        if (recommendedCrewSize != null) 'recommendedCrewSize': recommendedCrewSize,
+        if (estimateReason != null && estimateReason!.isNotEmpty) 'estimateReason': estimateReason,
+        if (items != null && items!.isNotEmpty) 'items': items,
       };
+}
+
+/// DTO for Previewing an AI Cost and Material Estimate before saving.
+class CostEstimatePreviewResponse {
+  final double estimatedCost;
+  final String currency;
+  final double materialCost;
+  final double labourCost;
+  final double equipmentCost;
+  final double estimatedLabourHours;
+  final int recommendedCrewSize;
+  final double estimatedDurationHours;
+  final double confidence;
+  final String reason;
+  final String modelName;
+  final List<WorkOrderItem> items;
+
+  const CostEstimatePreviewResponse({
+    required this.estimatedCost,
+    this.currency = 'LKR',
+    required this.materialCost,
+    required this.labourCost,
+    required this.equipmentCost,
+    required this.estimatedLabourHours,
+    required this.recommendedCrewSize,
+    required this.estimatedDurationHours,
+    required this.confidence,
+    required this.reason,
+    required this.modelName,
+    required this.items,
+  });
+
+  factory CostEstimatePreviewResponse.fromJson(Map<String, dynamic> json) {
+    return CostEstimatePreviewResponse(
+      estimatedCost: (json['estimatedCost'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency'] as String? ?? 'LKR',
+      materialCost: (json['materialCost'] as num?)?.toDouble() ?? 0.0,
+      labourCost: (json['labourCost'] as num?)?.toDouble() ?? 0.0,
+      equipmentCost: (json['equipmentCost'] as num?)?.toDouble() ?? 0.0,
+      estimatedLabourHours: (json['estimatedLabourHours'] as num?)?.toDouble() ?? 0.0,
+      recommendedCrewSize: (json['recommendedCrewSize'] as num?)?.toInt() ?? 2,
+      estimatedDurationHours: (json['estimatedDurationHours'] as num?)?.toDouble() ?? 4.0,
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.9,
+      reason: json['reason'] as String? ?? '',
+      modelName: json['modelName'] as String? ?? '',
+      items: json['items'] != null && json['items'] is List
+          ? (json['items'] as List)
+              .map((i) => WorkOrderItem.fromJson(i as Map<String, dynamic>))
+              .toList()
+          : [],
+    );
+  }
 }
 
 /// DTO for updating an existing Work Order on the backend (PUT /api/workorders/{id}).
@@ -464,12 +551,16 @@ class HazardOption {
   final String ticketNumber;
   final String category;
   final String description;
+  final String priority;
+  final String? address;
 
   const HazardOption({
     required this.id,
     required this.ticketNumber,
     required this.category,
     required this.description,
+    this.priority = 'NORMAL',
+    this.address,
   });
 
   factory HazardOption.fromJson(Map<String, dynamic> json) => HazardOption(
@@ -477,6 +568,8 @@ class HazardOption {
         ticketNumber: json['ticketNumber'] as String? ?? '',
         category: json['category'] as String? ?? '',
         description: json['description'] as String? ?? '',
+        priority: json['priority'] as String? ?? 'NORMAL',
+        address: json['address'] as String?,
       );
 }
 
@@ -485,17 +578,23 @@ class AssetOption {
   final String id;
   final String name;
   final String type;
+  final String location;
+  final String condition;
 
   const AssetOption({
     required this.id,
     required this.name,
     required this.type,
+    this.location = '',
+    this.condition = 'Good',
   });
 
   factory AssetOption.fromJson(Map<String, dynamic> json) => AssetOption(
         id: json['id'] as String? ?? '',
         name: json['name'] as String? ?? '',
         type: json['type'] as String? ?? '',
+        location: json['location'] as String? ?? '',
+        condition: json['latestCondition'] as String? ?? json['condition'] as String? ?? 'Good',
       );
 }
 

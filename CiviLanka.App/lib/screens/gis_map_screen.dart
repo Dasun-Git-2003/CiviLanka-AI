@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/hazard.dart';
 import '../models/infrastructure_asset.dart';
 import '../services/hazard_service.dart';
+import '../services/asset_service.dart';
 
 class GisMapScreen extends StatefulWidget {
   final List<Hazard>? initialHazards;
@@ -43,11 +44,15 @@ class _GisMapScreenState extends State<GisMapScreen> {
     setState(() => _loading = true);
     try {
       final hazardService = context.read<HazardService>();
-      final stats = await hazardService.getSupervisorStats();
+      final assetService = context.read<AssetService>();
+      final results = await Future.wait([
+        hazardService.getAllHazards(),
+        assetService.getAssets(),
+      ]);
       if (mounted) {
         setState(() {
-          _hazards = stats.hazards;
-          _assets = stats.assets;
+          _hazards = results[0] as List<Hazard>;
+          _assets = results[1] as List<InfrastructureAsset>;
           _loading = false;
         });
       }
@@ -62,21 +67,21 @@ class _GisMapScreenState extends State<GisMapScreen> {
     // 1. Hazard markers
     if (_filter == 'all' || _filter == 'hazards' || _filter == 'critical') {
       for (final h in _hazards) {
-        if (h.latitude == null || h.longitude == null || h.isCancelled) continue;
-        final isCritical = (h.severity ?? '').toUpperCase() == 'CRITICAL' ||
-            (h.severity ?? '').toUpperCase() == 'HIGH' ||
-            (h.priority ?? '').toUpperCase() == 'URGENT';
+        if (h.status.toLowerCase() == 'cancelled') continue;
+        final isCritical = h.severity.toUpperCase() == 'CRITICAL' ||
+            h.severity.toUpperCase() == 'HIGH' ||
+            h.priority.toUpperCase() == 'URGENT';
         if (_filter == 'critical' && !isCritical) continue;
 
         final color = isCritical
             ? const Color(0xFFDC2626) // Red
-            : (h.severity ?? '').toUpperCase() == 'MEDIUM'
+            : h.severity.toUpperCase() == 'MEDIUM'
                 ? const Color(0xFFD97706) // Amber
                 : const Color(0xFF059669); // Emerald
 
         markers.add(
           Marker(
-            point: LatLng(h.latitude!, h.longitude!),
+            point: LatLng(h.latitude, h.longitude),
             width: 44,
             height: 44,
             child: GestureDetector(
@@ -182,8 +187,9 @@ class _GisMapScreenState extends State<GisMapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'lk.gov.civilanka.app',
+                urlTemplate: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                subdomains: const ['0', '1', '2', '3'],
+                maxZoom: 20,
               ),
               MarkerLayer(markers: markers),
             ],
@@ -266,7 +272,7 @@ class _GisMapScreenState extends State<GisMapScreen> {
     final title = isHazard ? '${pin.ticketNumber} — ${pin.category}' : (pin as InfrastructureAsset).name;
     final sub = isHazard ? (pin.description) : (pin.location);
     final status = isHazard ? pin.status : pin.status;
-    final severityOrCond = isHazard ? (pin.severity ?? 'MEDIUM') : (pin.latestCondition ?? 'Fair');
+    final severityOrCond = isHazard ? pin.severity : (pin.latestCondition ?? 'Fair');
 
     return Card(
       elevation: 8,

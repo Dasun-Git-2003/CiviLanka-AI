@@ -1,261 +1,254 @@
-# CivitaGuard AI — Member 1: Citizen Hazard Management
+# CivitaGuard AI (CiviLanka) — Municipal Infrastructure & Autonomous Agentic AI Platform
 
-> **Project**: CivitaGuard AI – Municipal Infrastructure Hazard & Maintenance Work-Order System  
-> **Member**: 1 — Citizen Incident Reporting & Hazard Classification  
-> **Stack**: ASP.NET Core 8 · PostgreSQL · Semantic Kernel + Gemini · Flutter 3.x
+> **CivitaGuard AI** is an enterprise-grade municipal infrastructure management and incident response ecosystem designed for Sri Lankan municipal councils (CMC, RDA, NWSDB, CEB). The platform unifies citizen incident reporting, infrastructure asset digital twins, automated work-order dispatching, and field maintenance auditing into a cohesive, multi-agent AI system.
 
----
-
-## Repository Structure
-
-```
-CiviLanka-AI/
-├── CiviLanka.API/          ← Shared ASP.NET Core 8 backend (Members 1 & 2)
-├── CiviLanka.App/          ← Flutter citizen mobile app (Member 1)
-├── CiviLanka.Web/          ← React + Vite municipal dashboard (Member 2)
-└── CiviLanka.Agent/        ← Agentic AI RAG system with BM25 + Vector Search (Member 2)
-```
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev/)
+[![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Python%203.11+-green.svg)](https://langchain.com/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.1%20Flash--Lite-orange.svg)](https://aistudio.google.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791.svg)](https://www.postgresql.org/)
 
 ---
 
-## Prerequisites
+## 🏛️ System Architecture & Subsystems
 
-| Tool       | Version                  |
-| ---------- | ------------------------ |
-| .NET SDK   | 8.0+                     |
-| PostgreSQL | 14+                      |
-| Flutter    | 3.x                      |
-| Python     | 3.10+ (tested with 3.13) |
-| Node.js    | 18+ (for CiviLanka.Web)  |
-| dotnet-ef  | installed globally       |
+```
+                                  ┌───────────────────────────────┐
+                                  │      Flutter Mobile App       │
+                                  │ (Citizen, Field Worker, Sup.) │
+                                  └───────────────┬───────────────┘
+                                                  │ HTTP / JWT
+                                                  ▼
+┌───────────────────────────────┐  HTTP / JWT  ┌───────────────────────────────┐
+│     React 19 Web Portal       ├─────────────►│     ASP.NET Core 8 Web API    │
+│  (Supervisor & Director Ops)  │              │ (Business Logic & EF Core DB) │
+└───────────────────────────────┘              └───────┬───────────────┬───────┘
+                                                       │               │
+                                     LangGraph REST    │               │ EF Core
+                                     (Port 8001)       ▼               ▼
+                                       ┌───────────────────────┐ ┌───────────────┐
+                                       │ Python LangGraph RAG  │ │  PostgreSQL   │
+                                       │ (CIDA BSR Vector DB)  │ │  Database     │
+                                       └───────────┬───────────┘ └───────────────┘
+                                                   │
+                                                   ▼
+                                       ┌───────────────────────┐
+                                       │ Google Gemini 3.1 LLM │
+                                       └───────────────────────┘
+```
+
+The repository is modularized into four integrated components:
+
+| Subsystem | Tech Stack | Role & Responsibilities |
+|---|---|---|
+| **`CiviLanka.API`** | ASP.NET Core 8, EF Core, PostgreSQL, JWT | Central municipal backend, multi-agent orchestrator, RBAC security, REST endpoints, and persistent audit trail. |
+| **`CiviLanka.Agent`** | Python 3.11+, LangGraph, ChromaDB, FastAPI | Microservice performing RAG semantic search over Sri Lanka CIDA / BSR standard schedule of rates and municipal repair manuals. |
+| **`CiviLanka.Web`** | React 19, TypeScript, Vite, Tailwind CSS, Lucide | Executive and supervisory desktop web platform for GIS tracking, live AI triage, work order management, and director treasury approvals. |
+| **`CiviLanka.App`** | Flutter 3.x, Provider, Dio, Material 3 | Multirole cross-platform mobile application for citizen hazard reporting, field worker job execution, and offline-ready operations. |
 
 ---
 
-## Backend Setup (`CiviLanka.API`)
+## 👥 Four-Member Academic Scope Matrix
 
-### 1. Configure PostgreSQL
-
-Edit `CiviLanka.API/appsettings.json`:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=CiviLankaDb;Username=postgres;Password=YOUR_POSTGRES_PASSWORD"
-  },
-  "GeminiSettings": {
-    "ApiKey": "YOUR_GEMINI_API_KEY"
-  }
-}
-```
-
-Get a free Gemini API key at: https://aistudio.google.com
-
-### 2. Apply Database Migrations
-
-```bash
-cd CiviLanka.API
-dotnet ef database update
-```
-
-This automatically creates all tables (Hazards, HazardAIAnalyses, AspNetUsers, etc.) and seeds the three user roles: `Citizen`, `MunicipalStaff`, `Director`.
-
-### 3. Run the API
-
-```bash
-dotnet run --project CiviLanka.API
-```
-
-The API starts at `http://localhost:5000`.  
-Swagger UI is available at `http://localhost:5000` (root).
+| Member | Domain & Role | Primary Features & Deliverables |
+|---|---|---|
+| **Member 1** | **Citizen Incident Reporting & Hazard Classification AI** | • Citizen incident intake with photo, geolocation & category selection<br>• Real-time Multilingual NLP triage (English, සිංහල, தமிழ்)<br>• Automated severity classification and priority scoring with Gemini 3.1<br>• Municipal Councils Ordinance §14 statutory threat grounding |
+| **Member 2** | **Infrastructure Asset Registry & GIS Spatial Intelligence** | • Municipal infrastructure digital twin registry (Bridges, Culverts, Water Mains)<br>• GIS interactive spatial map with health condition pins<br>• Asset structural degradation modeling and predictive risk scoring<br>• QR code asset tagging and field asset association |
+| **Member 3** | **Municipal Work Orders & Autonomous Cost Estimator AI** | • End-to-end work order lifecycle (Draft &rarr; Dispatched &rarr; In-Progress &rarr; Completed)<br>• Autonomous Bill of Quantities (BOQ) generator calibrated against CIDA / BSR 2026 rates<br>• Multi-level financial approval hierarchy (Supervisor limit: Rs. 100k; Director treasury queue: > Rs. 100k)<br>• Contractor directory and automated dispatch routing |
+| **Member 4** | **Field Maintenance Operations & Safety / OHS Compliance AI** | • Field worker execution hub with before/after visual proof capture<br>• AI safety and OHS compliance auditor validating PPE and carriageway cones<br>• Supervisor verification and quality assurance correction queues<br>• Immutable municipal audit ledger and human-in-the-loop override logging |
 
 ---
 
-## REST API Endpoints
+## 🤖 Multi-Tier Resilient AI Inference Ladder
 
-| Method | Route                           | Auth      | Description                   |
-| ------ | ------------------------------- | --------- | ----------------------------- |
-| POST   | `/api/auth/register`            | Public    | Register citizen              |
-| POST   | `/api/auth/login`               | Public    | Get JWT token                 |
-| POST   | `/api/hazards`                  | JWT       | Submit hazard                 |
-| GET    | `/api/hazards/my`               | JWT       | My hazard list                |
-| GET    | `/api/hazards/{id}`             | JWT       | Hazard detail                 |
-| PUT    | `/api/hazards/{id}`             | JWT       | Update (editable states only) |
-| DELETE | `/api/hazards/{id}`             | JWT       | Soft-cancel                   |
-| POST   | `/api/hazards/{id}/analyze`     | Staff JWT | Re-trigger AI                 |
-| GET    | `/api/hazards/{id}/ai-analysis` | JWT       | Latest AI result              |
-| GET    | `/api/hazards`                  | Staff JWT | All hazards (Members 2–4)     |
-| POST   | `/api/hazards/upload-image`     | JWT       | Upload photo                  |
-| GET    | `/health`                       | Public    | Health check                  |
+To ensure zero downtime during network outages or external API quota exhaustion, all AI operations follow a 3-tier fallback hierarchy:
 
----
-
-## AI Hazard Classification Agent
-
-Built with **Microsoft Semantic Kernel + Google Gemini `gemini-2.0-flash`**.
-
-The agent uses two tool functions:
-
-- `GeocodeAddress(lat, lon)` — Nominatim reverse geocoding
-- `GetNearbyInfrastructureHint(lat, lon)` — Location context
-
-The agent produces:
-
-```json
-{
-  "category": "Pothole",
-  "severity": "HIGH",
-  "riskLevel": "HIGH",
-  "priority": "URGENT",
-  "confidence": 0.91,
-  "reason": "Large pothole near school entrance poses significant safety risk."
-}
 ```
-
-> **Fallback**: If Gemini API key is not configured, the agent uses a rule-based fallback to ensure the system remains functional.
-
----
-
-## Flutter App Setup (`CiviLanka.App`)
-
-### 1. Install dependencies
-
-```bash
-cd CiviLanka.App
-flutter pub get
-```
-
-### 2. Configure API URL
-
-Edit `lib/services/api_service.dart`:
-
-```dart
-static const String _baseUrl = 'http://10.0.2.2:5000'; // Android emulator
-// static const String _baseUrl = 'http://192.168.1.X:5000'; // Physical device
-```
-
-### 3. Run the app
-
-```bash
-flutter run
+[Tier 1: Google Gemini 3.1 Flash-Lite]
+       │
+       ▼ (if rate-limited 429 or 503)
+[Tier 2: Python LangGraph Agent (Port 8001)]
+       │
+       ▼ (if agent offline or unreachable)
+[Tier 3: Deterministic Sri Lanka Municipal Expert Heuristic Engine]
+       │
+       └── Guaranteed 100% Availability with BSR 2026 standard rates and statutory threat indices
 ```
 
 ---
 
-## Member 2: Agentic AI Infrastructure Cost Estimator (`CiviLanka.Agent`)
+## 🚀 Quick Start Guide
 
-Built with **LangChain + LangGraph + ChromaDB + BM25 + Google Gemini** for Sri Lanka municipal civil infrastructure (CIDA/BSR rates, CMC/RDA/NWSDB repair specifications).
-
-### Setup & Run Commands (Windows PowerShell)
-
-#### 1. Navigate to directory:
-
-```powershell
-cd "d:\IT24103847_Infrastructure & Asset Registry\CiviLanka-AI\CiviLanka-AI\CiviLanka.Agent"
-```
-
-#### 2. Create and activate virtual environment:
-
-```powershell
-python -m venv .venv
-
-# Allow execution if restricted on PowerShell:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-
-.\.venv\Scripts\Activate.ps1
-```
-
-#### 3. Upgrade pip and install dependencies:
-
-```powershell
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m pip install jupyterlab ipykernel
-```
-
-#### 4. Configure `.env` (Gemini API Key):
-
-```powershell
-Copy-Item .env.example .env
-notepad .env
-# Set: GEMINI_API_KEY=AIzaSy...
-```
-
-#### 5. Register Jupyter kernel:
-
-```powershell
-python -m ipykernel install --user --name civilanka-agent --display-name "CiviLanka Agent (Sri Lanka RAG)"
-```
-
-#### 6. Launch testing notebook:
-
-```powershell
-python -m jupyter lab agent_testing.ipynb
-```
-
-#### 7. Run FastAPI REST backend server:
-
-```powershell
-uvicorn main:app --reload --port 8001
-```
-
-- Swagger UI: `http://127.0.0.1:8001/docs`
-- Health check: `http://127.0.0.1:8001/health`
+### 1. Prerequisites
+- **.NET 8.0 SDK** ([Download](https://dotnet.microsoft.com/download/dotnet/8.0))
+- **PostgreSQL 14+** (Default port `5432`)
+- **Node.js 18+** & npm
+- **Flutter 3.x SDK** ([Install guide](https://docs.flutter.dev/get-started/install))
+- **Python 3.11+** with virtual environment support
 
 ---
 
-## Integration with Other Members
+### 2. Backend Setup (`CiviLanka.API`)
 
-| Member                        | How to Integrate                                                                                           |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Member 2** (Infrastructure) | `GET /api/hazards/{id}` with Staff JWT returns full hazard + GPS                                           |
-| **Member 3** (Work Orders)    | `GET /api/hazards` returns all hazards with `severity`, `riskLevel`, `priority`, `latestAIAnalysis.reason` |
-| **Member 4** (Maintenance)    | Same as Member 3; filter by `status=AnalysisComplete`                                                      |
-
-All members add their own models/controllers to `CiviLanka.API` and their own `DbSet<>` entries in `Data/AppDbContext.cs`.
-
----
-
-## Soft Delete Design
-
-Municipal hazard records are **never physically deleted**. Instead, `IsCancelled = true` and `Status = "Cancelled"` is set. This preserves:
-
-- Safety audit trails
-- Legal compliance records
-- Municipal reporting history
-
-Citizens cannot see cancelled hazards in their list, but municipal staff can.
-
----
-
-## Hazard Lifecycle
-
-```
-Submitted → PendingAIAnalysis → AnalysisComplete → UnderReview → InProgress → Resolved
-                                                         ↑
-                                                   (Cancelled if citizen cancels early)
-```
-
-Citizens may edit/cancel only in `Submitted` or `PendingAIAnalysis` states.
+1. Navigate to the API folder:
+   ```bash
+   cd CiviLanka.API
+   ```
+2. Configure database connection and Gemini API key in `appsettings.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Host=localhost;Port=5432;Database=CiviLankaDb;Username=postgres;Password=YOUR_PASSWORD"
+     },
+     "GeminiSettings": {
+       "ApiKey": "YOUR_GEMINI_API_KEY",
+       "Model": "gemini-3.1-flash-lite"
+     }
+   }
+   ```
+3. Apply database migrations:
+   ```bash
+   dotnet ef database update
+   ```
+4. Run the API:
+   ```bash
+   dotnet run --launch-profile http
+   ```
+   - **Base URL**: `http://localhost:5000`
+   - **Swagger Documentation**: `http://localhost:5000/swagger`
 
 ---
 
-## Definition of Done ✅
+### 3. Agent Setup (`CiviLanka.Agent`)
 
-- [x] Citizen registration works
-- [x] Citizen login works
-- [x] JWT authentication works
-- [x] Citizen can CREATE a hazard
-- [x] Citizen can READ their hazards
-- [x] Citizen can UPDATE an eligible hazard
-- [x] Citizen can DELETE/CANCEL an eligible hazard
-- [x] Photo upload works
-- [x] GPS capture works
-- [x] Hazard data stored in PostgreSQL
-- [x] Hazard Classification Agent works (Semantic Kernel + Gemini)
-- [x] AI returns category, severity, risk, priority, confidence, reason
-- [x] AI analysis stored in PostgreSQL (audit history)
-- [x] Citizen can see AI assessment in app
-- [x] API documented with Swagger
-- [x] Proper JWT auth/authorization implemented
-- [x] Member 2, 3, 4 can consume hazard data via shared API
-- [x] Code organized and documented
+1. Navigate to the agent folder:
+   ```bash
+   cd CiviLanka.Agent
+   ```
+2. Create and activate a Python virtual environment:
+   ```bash
+   # Windows PowerShell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Configure `.env`:
+   ```env
+   GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+   CHAT_MODEL=gemini-3.1-flash-lite
+   ```
+5. Run the FastAPI microservice:
+   ```bash
+   uvicorn main:app --port 8001 --reload
+   ```
+   - **Health Endpoint**: `http://127.0.0.1:8001/health`
+   - **Swagger Docs**: `http://127.0.0.1:8001/docs`
+
+---
+
+### 4. Web Application Setup (`CiviLanka.Web`)
+
+1. Navigate to the web folder:
+   ```bash
+   cd CiviLanka.Web
+   ```
+2. Install npm packages:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   - **Web Application URL**: `http://localhost:5173`
+
+---
+
+### 5. Mobile Application Setup (`CiviLanka.App`)
+
+1. Navigate to the mobile folder:
+   ```bash
+   cd CiviLanka.App
+   ```
+2. Fetch Flutter packages:
+   ```bash
+   flutter pub get
+   ```
+3. Launch on Chrome (Debug Web) or Android Emulator:
+   ```bash
+   # Run in Chrome
+   flutter run -d chrome
+
+   # Run on connected device / emulator
+   flutter run
+   ```
+
+---
+
+## 🔐 Default Demo Accounts & RBAC Matrix
+
+| Role | Email | Password | Permissions & Dashboard |
+|---|---|---|---|
+| **Citizen** | `citizen@civilanka.gov.lk` | `Citizen@123` | Incident reporting, photo upload, personal report tracking, mobile notifications. |
+| **Field Worker** | `worker@civilanka.gov.lk` | `Worker@123` | Task execution hub, before/after maintenance evidence upload, work order status transitions. |
+| **Supervisor** | `supervisor@civilanka.gov.lk` | `Supervisor@123` | Incident triage, work order creation (< Rs. 100k), AI estimation, maintenance verification queue. |
+| **Director** | `director@civilanka.gov.lk` | `Director@123` | Executive treasury approval (> Rs. 100k / URGENT), budget analytics, municipal compliance audit ledger. |
+
+---
+
+## 📡 Core API Endpoints
+
+### ⚠️ Hazard Intelligence & Triage AI
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/ai/hazards/classify-live` | Public | Live interactive multimodal incident classification (title, description, zone, language). |
+| `POST` | `/api/ai/hazards/{id}/analyze` | Staff | Run deep contextual classification on an existing persisted citizen hazard. |
+| `GET` | `/api/ai/hazards/{id}/analysis` | Authenticated | Retrieve latest AI analysis dossier for a hazard. |
+
+### 🛠️ Work Orders & Autonomous Quantity Surveying
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/workorders/preview-estimate` | Staff | Pre-calculate CIDA/BSR rates, material items, crew size, and duration before saving. |
+| `POST` | `/api/workorders` | Staff | Create an authorized municipal work order. |
+| `GET` | `/api/workorders` | Staff / Field | Fetch work orders with role-based visibility. |
+| `POST` | `/api/workorders/{id}/approve` | Director | Authorize high-budget (> Rs. 100k) or urgent work orders. |
+| `POST` | `/api/workorders/{id}/reject` | Director | Reject work order with mandatory audit reason. |
+
+### 🦺 Maintenance Records & Safety Audits
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/maintenance-records` | Field Worker | Log completed repair work with materials and photographic proof. |
+| `POST` | `/api/ai/maintenance/{id}/safety-analysis` | Staff | Run OHS compliance audit against site safety protocols. |
+| `PUT` | `/api/maintenance-records/{id}/verify` | Supervisor | Verify and close completed field maintenance tasks. |
+
+---
+
+## 🧪 Quality Assurance & Verification
+
+- **API Integrity**:
+  ```bash
+  dotnet test
+  ```
+- **Web Type Safety**:
+  ```bash
+  cd CiviLanka.Web
+  npm run build
+  ```
+- **Mobile Static Analysis**:
+  ```bash
+  cd CiviLanka.App
+  flutter analyze
+  ```
+
+---
+
+## 📜 Legal & Compliance Framework
+
+CivitaGuard AI operations are grounded in statutory governance:
+- **Municipal Councils Ordinance (No. 16 of 1947)** — Sections 14, 40 & 131 (Public hazard isolation & roadway maintenance).
+- **CIDA (Construction Industry Development Authority) Bulletin of Scheduled Rates (BSR 2024–2026)** — Material and labour benchmarks.
+- **National Environmental Act & Sri Lanka Road Development Authority (RDA) Standard Specifications**.

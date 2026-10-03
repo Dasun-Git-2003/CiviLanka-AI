@@ -122,7 +122,7 @@ namespace CiviLanka.API.Controllers
         /// Open to all authenticated users (Citizens, Field Workers, Supervisors, Directors).
         /// </summary>
         [HttpGet("map")]
-        [Authorize]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(List<HazardResponseDto>), 200)]
         public async Task<IActionResult> GetMapHazards()
         {
