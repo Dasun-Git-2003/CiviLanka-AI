@@ -42,7 +42,7 @@ export default function CiviLankaLogo({
             </span>
           </div>
           <span
-            className={`text-[10px] font-mono font-medium tracking-wider uppercase ${
+            className={`text-[10px] font-mono font-medium tracking-wider uppercase hidden sm:block ${
               lightText ? 'text-slate-400' : 'text-slate-500'
             }`}
           >

@@ -9,7 +9,6 @@ import {
   HardHat,
   Wrench,
   FileText,
-  RotateCcw,
   Loader2,
   Database,
   MapPin,
@@ -298,10 +297,11 @@ export const AgentEstimatorPage: React.FC = () => {
             </h1>
           </div>
 
-          {/* Service Live Indicator */}
+          {/* Service Live Indicator - Green / Red Dot Only */}
           <div
-            className="flex items-center gap-2.5 bg-slate-800/80 px-3 py-2 rounded-xl border border-slate-700/60"
-            title={healthLoading ? 'Checking Agent Status…' : health ? 'Agent Online' : 'Agent Offline'}
+            onClick={checkAgentHealth}
+            className="flex items-center justify-center p-2.5 rounded-full bg-slate-800/80 border border-slate-700/60 shadow-xs cursor-pointer hover:bg-slate-800 transition-colors"
+            title={healthLoading ? 'Checking Agent Status…' : health ? 'Agent Online (Click to refresh)' : 'Agent Offline (Click to refresh)'}
           >
             <span className="relative flex h-3 w-3">
               {health ? (
@@ -310,18 +310,12 @@ export const AgentEstimatorPage: React.FC = () => {
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
                 </>
               ) : (
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-50" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                </>
               )}
             </span>
-
-            <button
-              onClick={checkAgentHealth}
-              disabled={healthLoading}
-              title="Refresh connection status"
-              className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 transition-colors"
-            >
-              <RotateCcw className={`w-3.5 h-3.5 ${healthLoading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
       </div>
@@ -340,7 +334,7 @@ export const AgentEstimatorPage: React.FC = () => {
                   Click to prefill
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {PRESETS.map((p) => (
                   <button
                     key={p.name}
@@ -663,7 +657,7 @@ export const AgentEstimatorPage: React.FC = () => {
                     <Wrench className="w-3.5 h-3.5 text-cyan-600" />
                     <span>Material Requirements (CIDA BSR Rates)</span>
                   </h3>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                         <tr>
@@ -704,7 +698,7 @@ export const AgentEstimatorPage: React.FC = () => {
                     <HardHat className="w-3.5 h-3.5 text-amber-600" />
                     <span>Labor & Plant Hire (Mandays & Equipment)</span>
                   </h3>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                         <tr>
