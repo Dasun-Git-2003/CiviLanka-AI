@@ -20,7 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 // ── PostgreSQL + Entity Framework Core ─────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? builder.Configuration.GetConnectionString("SupabaseConnection")
-    ?? "Host=aws-0-ap-northeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.zwegexewlnvmqegfvtgc;Password=K5xSS6Mz0GLMt4HQ;SSL Mode=Require;Trust Server Certificate=true";
+    ?? builder.Configuration["DATABASE_URL"];
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Database connection string is missing. Please set 'ConnectionStrings:DefaultConnection' or 'DATABASE_URL' in Azure App Service Configuration / Environment Variables.");
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
