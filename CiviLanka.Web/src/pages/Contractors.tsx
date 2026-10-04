@@ -590,7 +590,11 @@ function AddContractorModal({
     const e: Partial<CreateContractorDto> = {};
     if (!form.name.trim()) e.name = 'Company name is required.';
     if (!form.location.trim()) e.location = 'Location is required.';
-    if (!form.phone.trim()) e.phone = 'Phone number is required.';
+    if (!form.phone.trim()) {
+      e.phone = 'Phone number is required.';
+    } else if (!/^\d{10}$/.test(form.phone.trim())) {
+      e.phone = 'Phone number must be exactly 10 digits.';
+    }
     return e;
   };
 
@@ -684,18 +688,65 @@ function AddContractorModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Phone Number <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Phone Number <span className="text-rose-500">*</span>
+                </label>
+                <span
+                  className={`text-[10px] ${
+                    form.phone.length === 10
+                      ? 'text-emerald-500 font-semibold'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  {form.phone.length}/10 digits
+                </span>
+              </div>
               <input
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
                 value={form.phone}
-                onChange={(e) => {
-                  setForm({ ...form, phone: e.target.value });
-                  setErrors({ ...errors, phone: '' });
+                onKeyDown={(e) => {
+                  if (
+                    [
+                      'Backspace',
+                      'Delete',
+                      'Tab',
+                      'Escape',
+                      'Enter',
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'Home',
+                      'End',
+                    ].includes(e.key) ||
+                    ((e.ctrlKey || e.metaKey) &&
+                      ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                  ) {
+                    return;
+                  }
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
                 }}
-                placeholder="011-234-5678"
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setForm({ ...form, phone: numericValue });
+                  if (numericValue.length === 10) {
+                    setErrors((prev) => ({ ...prev, phone: '' }));
+                  } else if (numericValue.length > 0 && numericValue.length < 10) {
+                    setErrors((prev) => ({ ...prev, phone: 'Must be exactly 10 digits' }));
+                  } else {
+                    setErrors((prev) => ({ ...prev, phone: '' }));
+                  }
+                }}
+                placeholder="0771234567"
+                className={`w-full px-3 py-2 text-xs rounded-xl border bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 ${
+                  errors.phone
+                    ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500'
+                    : 'border-slate-300 dark:border-slate-700 focus:ring-amber-500/20 focus:border-amber-500'
+                }`}
               />
               {errors.phone && <p className="text-[11px] text-rose-500 mt-1">{errors.phone}</p>}
             </div>
@@ -756,10 +807,20 @@ function EditContractorModal({
     rating: contractor.rating,
     isAvailable: contractor.isAvailable,
   });
+  const [phoneError, setPhoneError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanPhone = form.phone.trim();
+    if (!cleanPhone) {
+      setPhoneError('Phone number is required.');
+      return;
+    }
+    if (!/^\d{10}$/.test(cleanPhone)) {
+      setPhoneError('Phone number must be exactly 10 digits.');
+      return;
+    }
     try {
       setSubmitting(true);
       await onSubmit(form);
@@ -835,14 +896,68 @@ function EditContractorModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Phone <span className="text-rose-500">*</span>
+                </label>
+                <span
+                  className={`text-[10px] ${
+                    form.phone.length === 10
+                      ? 'text-emerald-500 font-semibold'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  {form.phone.length}/10 digits
+                </span>
+              </div>
               <input
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onKeyDown={(e) => {
+                  if (
+                    [
+                      'Backspace',
+                      'Delete',
+                      'Tab',
+                      'Escape',
+                      'Enter',
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'Home',
+                      'End',
+                    ].includes(e.key) ||
+                    ((e.ctrlKey || e.metaKey) &&
+                      ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                  ) {
+                    return;
+                  }
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setForm({ ...form, phone: numericValue });
+                  if (numericValue.length === 10) {
+                    setPhoneError('');
+                  } else if (numericValue.length > 0 && numericValue.length < 10) {
+                    setPhoneError('Must be exactly 10 digits');
+                  } else {
+                    setPhoneError('');
+                  }
+                }}
+                placeholder="0771234567"
                 required
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className={`w-full px-3 py-2 text-xs rounded-xl border bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 ${
+                  phoneError
+                    ? 'border-rose-500 focus:ring-rose-500/20 focus:border-rose-500'
+                    : 'border-slate-300 dark:border-slate-700 focus:ring-amber-500/20 focus:border-amber-500'
+                }`}
               />
+              {phoneError && <p className="text-[11px] text-rose-500 mt-1">{phoneError}</p>}
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email</label>

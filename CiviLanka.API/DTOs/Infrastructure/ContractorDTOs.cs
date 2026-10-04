@@ -17,7 +17,8 @@ namespace CiviLanka.API.DTOs.Infrastructure
         public string Location { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone is required")]
-        [MaxLength(50)]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone number must be exactly 10 digits")]
+        [MaxLength(10)]
         public string Phone { get; set; } = string.Empty;
 
         [EmailAddress]
@@ -40,7 +41,7 @@ namespace CiviLanka.API.DTOs.Infrastructure
         public string Location { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone is required")]
-        [MaxLength(50)]
+        [RegularExpression(@"^(\d{10}|\d{3}-\d{3}-\d{4})$", ErrorMessage = "Phone number must be exactly 10 digits")]
         public string Phone { get; set; } = string.Empty;
 
         [EmailAddress]
