@@ -35,7 +35,8 @@ jobs:
       - name: Package Agent Application
         run: |
           mkdir -p agent-package
-          cp -r CiviLanka.Agent/main.py CiviLanka.Agent/ingest.py CiviLanka.Agent/requirements.txt CiviLanka.Agent/agent CiviLanka.Agent/data agent-package/ 2>/dev/null || cp -r CiviLanka.Agent/* agent-package/
+          cp -r CiviLanka.Agent/main.py CiviLanka.Agent/ingest.py CiviLanka.Agent/requirements.txt CiviLanka.Agent/startup.sh CiviLanka.Agent/agent CiviLanka.Agent/data agent-package/ 2>/dev/null || cp -r CiviLanka.Agent/* agent-package/
+          chmod +x agent-package/startup.sh 2>/dev/null || true
           rm -rf agent-package/antenv
 
       - name: Upload artifact for deployment jobs
