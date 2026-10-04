@@ -1,4 +1,5 @@
 import { apiClient, getErrorMessage } from './apiService';
+import { getAgentApiUrl } from './agentService';
 
 export interface HazardClassificationResult {
   category: string;
@@ -206,9 +207,10 @@ export const aiService = {
       }
       throw new Error('Primary AI returned AI_FAILED');
     } catch (error) {
-      // Direct LangGraph fallback on port 8001
+      // Direct LangGraph fallback
       try {
-        const pyRes = await fetch('http://127.0.0.1:8001/api/agent/hazard/classify', {
+        const agentUrl = getAgentApiUrl();
+        const pyRes = await fetch(`${agentUrl.replace(/\/$/, '')}/api/agent/hazard/classify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

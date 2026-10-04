@@ -47,8 +47,8 @@ export const LoginPage: React.FC = () => {
             alt="Colombo Night Building Top"
             className="w-full h-full object-cover filter brightness-[0.85] contrast-[1.1] animate-slow-pan"
           />
-          {/* Overlay of Large Red Crane in Night Skyline */}
-          <div className="absolute top-12 left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
+          {/* Overlay of Large Red Crane in Night Skyline (desktop only to prevent mobile text collision) */}
+          <div className="hidden md:block absolute top-12 left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
             <img
               src="https://images.unsplash.com/photo-1568732165911-51cf4bfd9b7c?auto=format&fit=crop&w=800&q=85"
               alt="Large Red Crane"
@@ -75,23 +75,23 @@ export const LoginPage: React.FC = () => {
         </Link>
 
         {/* Left Branding Overlay */}
-        <div className="absolute bottom-10 left-8 right-8 z-20 space-y-3 text-white">
+        <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-8 right-6 sm:right-8 z-20 space-y-2 sm:space-y-3 text-white">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-cyan-300 bg-black/60 px-3 py-1 rounded-full border border-cyan-500/40 backdrop-blur-md shadow-xs">
             <Shield className="w-3.5 h-3.5 text-cyan-400" />
             <span>{t.platformBadge}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
             {t.brandTitle}
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-300 font-normal max-w-md leading-relaxed">
+          <p className="text-xs sm:text-base text-slate-300 font-normal max-w-md leading-relaxed hidden sm:block">
             {t.brandDesc1}
             <br />
             <span className="font-bold text-cyan-400">{t.brandDesc2}</span>
           </p>
 
-          <div className="pt-2 flex items-center gap-3 text-[11px] font-mono text-slate-400">
+          <div className="pt-1 sm:pt-2 flex items-center gap-3 text-[10px] sm:text-[11px] font-mono text-slate-400">
             <span>{t.telemetry}</span>
             <span>&bull;</span>
             <span className="text-emerald-400 font-bold">EPSG:4326 / WGS84</span>
@@ -101,13 +101,23 @@ export const LoginPage: React.FC = () => {
 
       {/* ── RIGHT 50%: Form Panel (Unified with Landing Page Amber Theme & Dark Mode) ── */}
       <div className="relative md:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-        {/* Top-Right Language & Theme Toggle Controls */}
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-2.5">
-          <LanguageToggle isScrolled={true} />
-          <ThemeToggle />
-        </div>
+        <div className="max-w-md w-full space-y-6 sm:space-y-8">
+          {/* Top Utility Row (Language & Theme Controls) */}
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors md:invisible"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{t.backToHome}</span>
+            </Link>
 
-        <div className="max-w-md w-full space-y-8">
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              <LanguageToggle isScrolled={true} />
+              <ThemeToggle />
+            </div>
+          </div>
+
           {/* Header */}
           <div className="space-y-1.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">

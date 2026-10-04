@@ -1,20 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../core/constants/app_constants.dart';
 
 /// Base HTTP client for all API communication.
 /// Automatically attaches the JWT Bearer token to every authenticated request.
 /// Handles token storage, retrieval, and 401 interception.
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 class ApiService {
-  static String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:5000';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:5000';
-    } catch (_) {}
-    return 'http://localhost:5000';
-  }
+  static String get _baseUrl => ApiConstants.defaultBaseUrl;
 
   static const String _tokenKey = 'jwt_token';
 

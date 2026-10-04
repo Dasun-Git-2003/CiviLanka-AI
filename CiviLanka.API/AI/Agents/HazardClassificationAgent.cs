@@ -116,7 +116,8 @@ namespace CiviLanka.API.AI.Agents
                 };
                 var jsonPayload = JsonSerializer.Serialize(payload);
                 var httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                var res = await http.PostAsync("http://127.0.0.1:8001/api/agent/hazard/classify", httpContent);
+                var agentBase = Environment.GetEnvironmentVariable("AGENT_SERVICE_URL") ?? "http://127.0.0.1:8001";
+                var res = await http.PostAsync($"{agentBase.TrimEnd('/')}/api/agent/hazard/classify", httpContent);
                 if (res.IsSuccessStatusCode)
                 {
                     var respStr = await res.Content.ReadAsStringAsync();

@@ -31,6 +31,8 @@ permissions:
   packages: write
   checks: write
   pull-requests: write
+  id-token: write
+
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -78,6 +80,9 @@ jobs:
             --configuration Release \
             --no-build \
             --output ./artifacts/api
+          if [ ! -f "./artifacts/api/appsettings.json" ]; then
+            cp CiviLanka.API/appsettings.example.json ./artifacts/api/appsettings.json
+          fi
 
       - name: Upload API Artifact
         uses: actions/upload-artifact@v4
@@ -210,6 +215,9 @@ jobs:
     needs: [backend-ci, frontend-ci, ai-agent-ci, security-audit]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Download Backend Artifact
@@ -229,6 +237,19 @@ jobs:
         with:
           name: civilanka-agent-bundle
           path: ./release/agent
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_30E04C46574C413490AC279FA82900D2 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C45DB3928E0546A3B077CEB06B1D4EF7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3A46B11914446D9801AA670D4080A7B }}
+
+      - name: Deploy Backend to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'CiviLanka'
+          package: ./release/api
 
       - name: Generate Checksums & Deployment Manifest
         run: |
@@ -254,4 +275,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** \`${{ github.event.inputs.deploy_environment || 'staging' }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**All 105 API unit tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend API:** https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**AI Agent:** https://civilanka-agent-f9bxh6ewaxbwe9f5.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**All API unit tests:** Passed" >> $GITHUB_STEP_SUMMARY

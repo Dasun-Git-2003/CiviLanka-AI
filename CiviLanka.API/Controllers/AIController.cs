@@ -18,11 +18,13 @@ namespace CiviLanka.API.Controllers
     {
         private readonly IAIAgentOrchestrator _orchestrator;
         private readonly AppDbContext _db;
+        private readonly Microsoft.Extensions.Logging.ILogger<AIController> _logger;
 
-        public AIController(IAIAgentOrchestrator orchestrator, AppDbContext db)
+        public AIController(IAIAgentOrchestrator orchestrator, AppDbContext db, Microsoft.Extensions.Logging.ILogger<AIController> logger)
         {
             _orchestrator = orchestrator;
             _db = db;
+            _logger = logger;
         }
 
         // ── HAZARD AI ────────────────────────────────────────────────────────────
@@ -109,9 +111,21 @@ namespace CiviLanka.API.Controllers
         [Authorize(Roles = "FieldMaintenanceSupervisor,PublicWorksDirector,Director,MunicipalStaff")]
         public async Task<IActionResult> AnalyzeAssetRisk(string assetId)
         {
-            var userId = GetUserId();
-            var result = await _orchestrator.AnalyzeAssetRiskAsync(assetId, userId);
-            return Ok(result);
+            try
+            {
+                var userId = GetUserId();
+                var result = await _orchestrator.AnalyzeAssetRiskAsync(assetId, userId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to analyze risk for asset {AssetId}", assetId);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to analyze risk for asset: " + ex.Message });
+            }
         }
 
         /// <summary>Get the latest AI risk analysis for an infrastructure asset.</summary>

@@ -1,13 +1,30 @@
 import axios from 'axios';
 
-const AGENT_API_URL = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:8001';
+export const getAgentApiUrl = (): string => {
+  const envUrl = (import.meta.env.VITE_AGENT_API_URL || '').trim();
+  const isCloudHost =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
+  // If running on Vercel/cloud and configured with localhost, or if env is empty:
+  if (!envUrl || (isCloudHost && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1')))) {
+    return 'https://civilanka-agent-f9bxh6ewaxbwe9f5.indiasouthcentral-01.azurewebsites.net';
+  }
+  return envUrl;
+};
 
 export const agentClient = axios.create({
-  baseURL: AGENT_API_URL,
+  baseURL: getAgentApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 45000, // LangGraph agent can take 5-15s for full multi-step execution
+});
+
+agentClient.interceptors.request.use((config) => {
+  config.baseURL = getAgentApiUrl();
+  return config;
 });
 
 export interface AgentHealth {

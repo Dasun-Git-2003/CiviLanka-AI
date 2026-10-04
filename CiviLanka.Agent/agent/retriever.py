@@ -1,4 +1,5 @@
 import os
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -16,8 +17,25 @@ load_dotenv(AGENT_DIR.parent / ".env")
 
 DATA_DIR = AGENT_DIR / "data"
 CHROMA_DIR = str(AGENT_DIR / "chroma_db")
-COLLECTION = os.getenv("VECTOR_COLLECTION", "sri-lanka-infrastructure-bsr")
+DEFAULT_COLLECTION = "sri-lanka-infrastructure-bsr"
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "gemini-embedding-001")
+
+
+def get_collection_name() -> str:
+    """
+    Retrieve and validate Chroma collection name against Chroma's naming rules:
+    - 3-512 characters
+    - Only [a-zA-Z0-9._-]
+    - Starts and ends with alphanumeric [a-zA-Z0-9]
+    """
+    raw = (os.getenv("VECTOR_COLLECTION") or "").strip()
+    if 3 <= len(raw) <= 512 and raw[0].isalnum() and raw[-1].isalnum():
+        if re.match(r"^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$", raw):
+            return raw
+    return DEFAULT_COLLECTION
+
+
+COLLECTION = get_collection_name()
 
 
 def get_api_key() -> str:
@@ -38,15 +56,19 @@ def get_embeddings() -> Optional[GoogleGenerativeAIEmbeddings]:
 
 
 def get_vector_store() -> Optional[Chroma]:
-    """Get persistent Chroma vector store."""
-    embeddings = get_embeddings()
-    if embeddings is None:
+    """Get persistent Chroma vector store with exception resilience."""
+    try:
+        embeddings = get_embeddings()
+        if embeddings is None:
+            return None
+        return Chroma(
+            collection_name=get_collection_name(),
+            embedding_function=embeddings,
+            persist_directory=CHROMA_DIR,
+        )
+    except Exception as ex:
+        print(f"[Retriever] Chroma vector store init warning: {ex}")
         return None
-    return Chroma(
-        collection_name=COLLECTION,
-        embedding_function=embeddings,
-        persist_directory=CHROMA_DIR,
-    )
 
 
 @lru_cache(maxsize=1)
@@ -92,20 +114,20 @@ def hybrid_search(query: str, k: int = 4) -> list[Document]:
     falls back cleanly to BM25 keyword search.
     """
     vector_hits: list[Document] = []
-    vector_store = get_vector_store()
-    if vector_store is not None:
-        try:
+    try:
+        vector_store = get_vector_store()
+        if vector_store is not None:
             vector_hits = vector_store.similarity_search(query, k=8)
-        except Exception as ex:
-            print(f"[Retriever] Vector search warning: {ex}")
+    except Exception as ex:
+        print(f"[Retriever] Vector search warning: {ex}")
 
     keyword_hits: list[Document] = []
-    bm25 = get_bm25_retriever()
-    if bm25 is not None:
-        try:
+    try:
+        bm25 = get_bm25_retriever()
+        if bm25 is not None:
             keyword_hits = bm25.invoke(query)
-        except Exception as ex:
-            print(f"[Retriever] BM25 search warning: {ex}")
+    except Exception as ex:
+        print(f"[Retriever] BM25 search warning: {ex}")
 
     # If neither returned, return empty list
     if not vector_hits and not keyword_hits:

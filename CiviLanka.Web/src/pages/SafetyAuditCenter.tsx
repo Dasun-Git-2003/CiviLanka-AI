@@ -285,9 +285,23 @@ export default function SafetyAuditCenter() {
 
         setAuditLogs((prev) => [newAudit, ...prev]);
 
-        // If passed and in backend, advance status to VERIFIED
-        if (isPass) {
-          workOrderService.updateStatus(selectedOrder.id, 'VERIFIED', 'Verified by Municipal Safety & Audit Agent').catch(() => {});
+        // If audit passed and work order is already COMPLETED in field, advance status to VERIFIED in backend.
+        // For pre-work or in-progress orders (e.g. ASSIGNED), the safety audit certificate is authenticated
+        // without attempting an invalid lifecycle transition.
+        const currentStatus = (selectedOrder.status || '').toUpperCase();
+        if (isPass && currentStatus === 'COMPLETED') {
+          workOrderService
+            .updateStatus(selectedOrder.id, 'VERIFIED', 'Verified by Municipal Safety & Audit Agent')
+            .then((updated) => {
+              if (updated?.status) {
+                setWorkOrders((prev) =>
+                  prev.map((wo) => (wo.id === selectedOrder.id ? { ...wo, status: updated.status } : wo))
+                );
+              }
+            })
+            .catch((err) => {
+              console.warn('Status transition to VERIFIED deferred:', err);
+            });
         }
 
         setIsEvaluating(false);
@@ -369,8 +383,20 @@ export default function SafetyAuditCenter() {
 
       setAuditLogs((prev) => [newAudit, ...prev]);
 
-      if (compliance === 'PASS') {
-        workOrderService.updateStatus(selectedOrder.id, 'VERIFIED', 'Verified by Municipal Safety & Audit Agent').catch(() => {});
+      const currentStatusFallback = (selectedOrder.status || '').toUpperCase();
+      if (compliance === 'PASS' && currentStatusFallback === 'COMPLETED') {
+        workOrderService
+          .updateStatus(selectedOrder.id, 'VERIFIED', 'Verified by Municipal Safety & Audit Agent')
+          .then((updated) => {
+            if (updated?.status) {
+              setWorkOrders((prev) =>
+                prev.map((wo) => (wo.id === selectedOrder.id ? { ...wo, status: updated.status } : wo))
+              );
+            }
+          })
+          .catch((err) => {
+            console.warn('Status transition to VERIFIED deferred:', err);
+          });
       }
 
       setIsEvaluating(false);

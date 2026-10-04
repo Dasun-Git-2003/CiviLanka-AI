@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/contractor.dart';
 import '../services/api_service.dart';
 import '../services/contractor_service.dart';
@@ -1222,13 +1223,21 @@ class _RegisterContractorModalState extends State<RegisterContractorModal> {
                         _buildFieldLabel('Phone Number *', isDark),
                         TextFormField(
                           controller: _phoneController,
-                          keyboardType: TextInputType.phone,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
                           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           decoration: _buildInputDecoration(
-                            hint: '011-234-5678',
+                            hint: '0771234567',
                             isDark: isDark,
                           ),
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Phone is required' : null,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Phone is required';
+                            if (v.trim().length != 10) return 'Phone number must be exactly 10 digits';
+                            return null;
+                          },
                         ),
                       ],
                     ),

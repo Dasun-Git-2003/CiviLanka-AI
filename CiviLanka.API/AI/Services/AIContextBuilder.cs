@@ -128,26 +128,46 @@ namespace CiviLanka.API.AI.Services
                 .Where(w => w.AssetId == asset.Id)
                 .OrderByDescending(w => w.CreatedAt)
                 .Take(5)
-                .Select(w => $"{w.WorkOrderNumber} ({w.Status}): {w.Title}, Cost: LKR {w.ActualCost:N0}")
+                .Select(w => new
+                {
+                    w.WorkOrderNumber,
+                    w.Status,
+                    w.Title,
+                    ActualCost = w.ActualCost ?? 0m
+                })
                 .ToListAsync();
 
-            input.MaintenanceHistory = workOrders;
+            input.MaintenanceHistory = workOrders
+                .Select(w => $"{w.WorkOrderNumber} ({w.Status}): {w.Title}, Cost: LKR {w.ActualCost:N0}")
+                .ToList();
 
             // Related citizen hazards near this asset
             if (asset.Latitude != 0 && asset.Longitude != 0)
             {
+                double minLat = asset.Latitude - 0.01;
+                double maxLat = asset.Latitude + 0.01;
+                double minLon = asset.Longitude - 0.01;
+                double maxLon = asset.Longitude + 0.01;
+
                 var relatedHazards = await _db.Hazards
                     .AsNoTracking()
                     .Where(h => h.Latitude.HasValue && h.Longitude.HasValue &&
-                                Math.Abs(h.Latitude.Value - asset.Latitude) < 0.01 &&
-                                Math.Abs(h.Longitude.Value - asset.Longitude) < 0.01)
+                                h.Latitude.Value >= minLat && h.Latitude.Value <= maxLat &&
+                                h.Longitude.Value >= minLon && h.Longitude.Value <= maxLon)
                     .OrderByDescending(h => h.CreatedAt)
                     .Take(5)
-                    .Select(h => $"{h.TicketNumber} ({h.Category}, {h.Status})")
+                    .Select(h => new
+                    {
+                        h.TicketNumber,
+                        h.Category,
+                        h.Status
+                    })
                     .ToListAsync();
 
-                input.RelatedHazards = relatedHazards;
-                input.IncidentCount = relatedHazards.Count;
+                input.RelatedHazards = relatedHazards
+                    .Select(h => $"{h.TicketNumber} ({h.Category}, {h.Status})")
+                    .ToList();
+                input.IncidentCount = input.RelatedHazards.Count;
             }
 
             return input;
@@ -226,15 +246,23 @@ namespace CiviLanka.API.AI.Services
             }
 
             // Previous similar completed work orders
-            var similar = await _db.WorkOrders
+            var similarWorkOrders = await _db.WorkOrders
                 .AsNoTracking()
                 .Where(w => w.Id != workOrder.Id && w.Status == "Completed" && w.ActualCost > 0)
                 .OrderByDescending(w => w.CreatedAt)
                 .Take(3)
-                .Select(w => $"{w.WorkOrderNumber} ({w.Title}): Estimated LKR {w.EstimatedCost:N0}, Actual LKR {w.ActualCost:N0}")
+                .Select(w => new
+                {
+                    w.WorkOrderNumber,
+                    w.Title,
+                    EstimatedCost = w.EstimatedCost ?? 0m,
+                    ActualCost = w.ActualCost ?? 0m
+                })
                 .ToListAsync();
 
-            input.PreviousSimilarWorkOrders = similar;
+            input.PreviousSimilarWorkOrders = similarWorkOrders
+                .Select(w => $"{w.WorkOrderNumber} ({w.Title}): Estimated LKR {w.EstimatedCost:N0}, Actual LKR {w.ActualCost:N0}")
+                .ToList();
 
             return input;
         }

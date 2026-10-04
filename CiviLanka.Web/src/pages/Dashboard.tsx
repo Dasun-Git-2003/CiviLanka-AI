@@ -190,6 +190,7 @@ function MapInner({
       defaultCenter={{ lat: 6.9271, lng: 79.8612 }}
       mapId="DEMO_MAP_ID"
       style={{ width: '100%', height: '100%' }}
+      gestureHandling={'greedy'}
       onClick={() => onMarkerSelect(null)}
     >
       {/* Live location of current user */}
@@ -801,9 +802,12 @@ export default function Dashboard() {
         </div>
 
         {/* ── Map Canvas & Inspector Panel Grid ────────────────────────────── */}
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 items-stretch">
           {/* Map Container */}
-          <div className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative shadow-inner" style={{ height: '560px' }}>
+          <div
+            className="w-full lg:flex-1 h-[420px] sm:h-[500px] lg:h-[580px] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative shadow-inner shrink-0"
+            style={{ minHeight: '380px' }}
+          >
             {loading ? (
               <div className="h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950/70 text-slate-500 dark:text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-2" />
@@ -940,9 +944,10 @@ export default function Dashboard() {
                           .filter(Boolean)
                           .map((imgUrl, i) => {
                             const cleanUrl = imgUrl.trim();
+                            const backendBase = import.meta.env.VITE_API_URL || 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
                             const resolvedUrl = cleanUrl.startsWith('http')
                               ? cleanUrl
-                              : `http://localhost:5000${cleanUrl}`;
+                              : `${backendBase.replace(/\/$/, '')}${cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`}`;
 
                             return (
                               <button
