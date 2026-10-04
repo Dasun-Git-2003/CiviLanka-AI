@@ -251,12 +251,6 @@ jobs:
           app-name: 'CiviLanka'
           package: ./release/api
 
-      - name: Deploy AI Agent to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'civilanka-agent'
-          package: ./release/agent
-
       - name: Generate Checksums & Deployment Manifest
         run: |
           echo "=== CiviLanka Production Release Manifest ===" > ./release/MANIFEST.txt
