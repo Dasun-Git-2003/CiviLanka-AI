@@ -939,6 +939,7 @@ export default function Dashboard() {
                           .split(',')
                           .filter(Boolean)
                           .map((imgUrl, i) => {
+                            const cleanUrl = imgUrl.trim();
                             const backendBase = import.meta.env.VITE_API_URL || 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
                             const resolvedUrl = cleanUrl.startsWith('http')
                               ? cleanUrl
