@@ -129,6 +129,7 @@ builder.Services.AddCors(options =>
         var defaultOrigins = new[]
         {
             "https://civi-lanka-ai.vercel.app",
+            "https://civi-lanka-ai-vt3k.vercel.app",
             "http://localhost:3000",
             "http://localhost:5173",
             "http://localhost:5174",
@@ -307,6 +308,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Global exception handling ensuring CORS headers are always returned on errors
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+        var message = feature?.Error?.Message ?? "An internal server error occurred.";
+        await context.Response.WriteAsJsonAsync(new { message });
+    });
+});
 
 // CORS must be evaluated before static files, authentication, and endpoint routing
 app.UseCors();

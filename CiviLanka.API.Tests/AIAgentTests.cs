@@ -225,6 +225,66 @@ namespace CiviLanka.API.Tests
         }
 
         [Fact]
+        public async Task AIContextBuilder_BuildAssetRiskContextAsync_TranslatesSuccessfully()
+        {
+            using var db = CreateInMemoryDbContext();
+            var contextBuilder = new AIContextBuilder(db);
+
+            var asset = new InfrastructureAsset
+            {
+                Id = "AST-001",
+                Name = "Main St Water Pipe",
+                Type = "Water",
+                Status = "Active",
+                Location = "Downtown, Colombo",
+                Latitude = 6.9271,
+                Longitude = 79.8612,
+                InstallationDate = DateTime.UtcNow.AddYears(-15),
+                Inspections = new List<AssetInspection>
+                {
+                    new AssetInspection
+                    {
+                        InspectionDate = DateTime.UtcNow.AddDays(-10),
+                        Condition = "Poor",
+                        IssuesFound = "Corrosion leak"
+                    }
+                }
+            };
+            db.InfrastructureAssets.Add(asset);
+
+            var hazard = new Hazard
+            {
+                TicketNumber = "HAZ-001",
+                Category = "WaterLeak",
+                Description = "Pipe leakage",
+                Latitude = 6.9272,
+                Longitude = 79.8613
+            };
+            db.Hazards.Add(hazard);
+
+            var workOrder = new WorkOrder
+            {
+                WorkOrderNumber = "WO-001",
+                AssetId = "AST-001",
+                Title = "Pipe section joint fix",
+                Status = "COMPLETED",
+                ActualCost = 45000m
+            };
+            db.WorkOrders.Add(workOrder);
+
+            await db.SaveChangesAsync();
+
+            var context = await contextBuilder.BuildAssetRiskContextAsync("AST-001");
+
+            Assert.NotNull(context);
+            Assert.Equal("AST-001", context.AssetId);
+            Assert.Single(context.RecentInspections);
+            Assert.Single(context.MaintenanceHistory);
+            Assert.Single(context.RelatedHazards);
+            Assert.Equal(1, context.IncidentCount);
+        }
+
+        [Fact]
         public async Task CostMaterialEstimatorAgent_ThresholdEvaluation_FlagsDirectorApproval()
         {
             using var db = CreateInMemoryDbContext();

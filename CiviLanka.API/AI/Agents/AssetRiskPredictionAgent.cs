@@ -93,24 +93,31 @@ namespace CiviLanka.API.AI.Agents
 
         private async Task PersistAnalysisAsync(string assetId, AssetRiskResult result)
         {
-            var entity = new AssetRiskAnalysis
+            try
             {
-                AssetId = assetId,
-                RiskLevel = result.RiskLevel,
-                RiskScore = result.RiskScore,
-                Confidence = result.Confidence,
-                ConditionAssessment = result.ConditionAssessment,
-                FailureLikelihood = result.FailureLikelihood,
-                Reason = result.Reason,
-                RecommendedInspectionFrequency = result.RecommendedInspectionFrequency,
-                RecommendedAction = result.RecommendedAction,
-                Urgency = result.Urgency,
-                ModelName = result.ModelName,
-                CreatedAt = DateTime.UtcNow
-            };
+                var entity = new AssetRiskAnalysis
+                {
+                    AssetId = assetId,
+                    RiskLevel = result.RiskLevel ?? "MEDIUM",
+                    RiskScore = result.RiskScore,
+                    Confidence = result.Confidence,
+                    ConditionAssessment = result.ConditionAssessment ?? "Deteriorating",
+                    FailureLikelihood = result.FailureLikelihood ?? "Moderate",
+                    Reason = result.Reason ?? string.Empty,
+                    RecommendedInspectionFrequency = result.RecommendedInspectionFrequency ?? "Monthly",
+                    RecommendedAction = result.RecommendedAction ?? string.Empty,
+                    Urgency = result.Urgency ?? "Medium",
+                    ModelName = result.ModelName ?? "gemini-2.5-flash",
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _db.AssetRiskAnalyses.Add(entity);
-            await _db.SaveChangesAsync();
+                _db.AssetRiskAnalyses.Add(entity);
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to persist risk analysis for asset {AssetId}. Returning computed risk result.", assetId);
+            }
         }
 
         private AssetRiskResult BuildLocalExpertRiskAssessment(AssetRiskInput input)
