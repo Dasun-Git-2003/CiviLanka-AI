@@ -14,10 +14,24 @@ load_dotenv(AGENT_DIR / ".env")
 load_dotenv(AGENT_DIR.parent / ".env")
 
 
+import re
+
 DATA_DIR = AGENT_DIR / "data"
 CHROMA_DIR = str(AGENT_DIR / "chroma_db")
-COLLECTION = os.getenv("VECTOR_COLLECTION", "sri-lanka-infrastructure-bsr")
+DEFAULT_COLLECTION = "sri-lanka-infrastructure-bsr"
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "gemini-embedding-001")
+
+
+def get_collection_name() -> str:
+    """Retrieve and validate Chroma collection name."""
+    raw = (os.getenv("VECTOR_COLLECTION") or "").strip()
+    if 3 <= len(raw) <= 512 and raw[0].isalnum() and raw[-1].isalnum():
+        if re.match(r"^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$", raw):
+            return raw
+    return DEFAULT_COLLECTION
+
+
+COLLECTION = get_collection_name()
 
 
 def ingest_documents() -> int:
@@ -35,7 +49,7 @@ def ingest_documents() -> int:
     )
 
     vector_store = Chroma(
-        collection_name=COLLECTION,
+        collection_name=get_collection_name(),
         embedding_function=embeddings,
         persist_directory=CHROMA_DIR,
     )
