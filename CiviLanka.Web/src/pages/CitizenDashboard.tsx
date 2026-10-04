@@ -1007,9 +1007,11 @@ export const CitizenDashboard: React.FC = () => {
                         {h.imageUrl && (
                           <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                             {h.imageUrl.split(',').filter(Boolean).map((imgUrl, i) => {
-                              const resolvedUrl = imgUrl.trim().startsWith('http')
-                                ? imgUrl.trim()
-                                : `http://localhost:5000${imgUrl.trim()}`;
+                              const cleanImg = imgUrl.trim();
+                              const backendBase = import.meta.env.VITE_API_URL || 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
+                              const resolvedUrl = cleanImg.startsWith('http')
+                                ? cleanImg
+                                : `${backendBase.replace(/\/$/, '')}${cleanImg.startsWith('/') ? cleanImg : `/${cleanImg}`}`;
                               return (
                                 <button
                                   key={i}
@@ -1693,9 +1695,11 @@ export const CitizenDashboard: React.FC = () => {
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {detailsHazard.imageUrl.split(',').filter(Boolean).map((imgUrl, i) => {
-                      const resolvedUrl = imgUrl.trim().startsWith('http')
-                        ? imgUrl.trim()
-                        : `http://localhost:5000${imgUrl.trim()}`;
+                      const cleanImg = imgUrl.trim();
+                      const backendBase = import.meta.env.VITE_API_URL || 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
+                      const resolvedUrl = cleanImg.startsWith('http')
+                        ? cleanImg
+                        : `${backendBase.replace(/\/$/, '')}${cleanImg.startsWith('/') ? cleanImg : `/${cleanImg}`}`;
                       return (
                         <button
                           key={i}
@@ -1891,9 +1895,11 @@ export const CitizenDashboard: React.FC = () => {
                     <p className="text-[10px] uppercase font-bold text-slate-400">{isSinhala ? 'වත්මන් ඡායාරූප:' : 'Current Photos:'}</p>
                     <div className="grid grid-cols-3 gap-2">
                       {editExistingImages.map((imgUrl, i) => {
-                        const resolvedUrl = imgUrl.trim().startsWith('http')
-                          ? imgUrl.trim()
-                          : `http://localhost:5000${imgUrl.trim()}`;
+                        const cleanImg = imgUrl.trim();
+                        const backendBase = import.meta.env.VITE_API_URL || 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
+                        const resolvedUrl = cleanImg.startsWith('http')
+                          ? cleanImg
+                          : `${backendBase.replace(/\/$/, '')}${cleanImg.startsWith('/') ? cleanImg : `/${cleanImg}`}`;
                         return (
                           <div key={i} className="relative group rounded-lg overflow-hidden border border-slate-200 aspect-video bg-slate-100">
                             <img src={resolvedUrl} alt="Existing" className="w-full h-full object-cover" />

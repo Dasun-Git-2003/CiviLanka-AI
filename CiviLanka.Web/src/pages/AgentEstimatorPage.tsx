@@ -278,7 +278,7 @@ export const AgentEstimatorPage: React.FC = () => {
       setEstimatorError(
         err.response?.data?.detail ||
           err.message ||
-          'Failed to connect to the agent service at http://localhost:8001. Ensure the Python FastAPI server is running.'
+          'Failed to connect to the agent service. Ensure the Azure agent service is running.'
       );
     } finally {
       setEstimating(false);
