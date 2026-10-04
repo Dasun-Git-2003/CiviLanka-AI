@@ -324,11 +324,11 @@ export const AgentEstimatorPage: React.FC = () => {
                   {healthLoading
                     ? 'Checking Status…'
                     : health
-                    ? 'AGENT ONLINE (Port 8001)'
+                    ? 'AGENT ONLINE (Azure Cloud)'
                     : 'AGENT OFFLINE'}
                 </div>
                 <div className="text-[10px] text-slate-400">
-                  {health ? health.retrieval_mode : 'Run: uvicorn main:app --port 8001'}
+                  {health ? health.retrieval_mode : 'Connecting to Azure Cloud Agent...'}
                 </div>
               </div>
             </div>
