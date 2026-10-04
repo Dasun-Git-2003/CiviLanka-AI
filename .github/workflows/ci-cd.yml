@@ -254,7 +254,7 @@ jobs:
       - name: Deploy AI Agent to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'civilanka-agent-f9bxh6ewaxbwe9f5'
+          app-name: 'civilanka-agent'
           package: ./release/agent
 
       - name: Generate Checksums & Deployment Manifest
