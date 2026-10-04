@@ -208,7 +208,9 @@ export const aiService = {
     } catch (error) {
       // Direct LangGraph fallback
       try {
-        const agentUrl = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:8001';
+        const agentUrl =
+          import.meta.env.VITE_AGENT_API_URL ||
+          'https://civilanka-agent-f9bxh6ewaxbwe9f5.indiasouthcentral-01.azurewebsites.net';
         const pyRes = await fetch(`${agentUrl.replace(/\/$/, '')}/api/agent/hazard/classify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
