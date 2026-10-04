@@ -296,11 +296,6 @@ export const AgentEstimatorPage: React.FC = () => {
               <Bot className="w-7 h-7 text-cyan-400" />
               Sri Lanka Municipal Infrastructure Cost & Material Estimator
             </h1>
-            <p className="text-sm text-slate-400 max-w-3xl">
-              Powered by <strong>LangGraph</strong> stateful self-correcting graphs and{' '}
-              <strong>BM25 + ChromaDB Hybrid Search (Reciprocal Rank Fusion)</strong> grounded in
-              authentic Sri Lanka CIDA/BSR 2024–2026 schedule of rates.
-            </p>
           </div>
 
           {/* Service Live Indicator */}
