@@ -3,17 +3,14 @@ import { useLocation } from 'react-router-dom';
 import {
   Bot,
   Sparkles,
-  Search,
   CheckCircle2,
   AlertCircle,
   Clock,
   HardHat,
   Wrench,
-  DollarSign,
   FileText,
   RotateCcw,
   Loader2,
-  Layers,
   Database,
   MapPin,
   ChevronDown,
@@ -341,26 +338,6 @@ export const AgentEstimatorPage: React.FC = () => {
             >
               <RotateCcw className={`w-3.5 h-3.5 ${healthLoading ? 'animate-spin' : ''}`} />
             </button>
-          </div>
-        </div>
-
-        {/* Feature Highlights Pills */}
-        <div className="mt-5 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Layers className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>LangGraph Multi-Step Workflow</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <Search className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>BM25 + Vector RRF Retrieval</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>CIDA/BSR 2024–2026 in LKR</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>Pydantic Schema Validation</span>
           </div>
         </div>
       </div>
