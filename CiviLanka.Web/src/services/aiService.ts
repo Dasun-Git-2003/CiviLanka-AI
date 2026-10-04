@@ -187,6 +187,7 @@ export interface AIOverrideRequestDto {
 }
 
 export interface LiveHazardClassificationRequest {
+  title?: string;
   description: string;
   location: string;
   categorySupplied: string;
@@ -214,7 +215,7 @@ export const aiService = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: request.description.substring(0, 60),
+            title: request.title || request.description.substring(0, 60),
             description: request.description,
             location: request.proximityZone ? `${request.location} (${request.proximityZone})` : request.location,
             category_supplied: request.categorySupplied,
@@ -244,25 +245,83 @@ export const aiService = {
       }
 
       // Local heuristic fallback for guaranteed uptime
-      const descLower = (request.description + ' ' + (request.proximityZone || '')).toLowerCase();
-      const isWater = descLower.includes('water') || descLower.includes('pipe') || descLower.includes('burst');
+      const descLower = ((request.title || '') + ' ' + request.description + ' ' + (request.proximityZone || '') + ' ' + (request.categorySupplied || '')).toLowerCase();
+      const isWater = descLower.includes('water') || descLower.includes('pipe') || descLower.includes('burst') || descLower.includes('leak') || descLower.includes('nwsdb');
+      const isElectric = descLower.includes('electric') || descLower.includes('wire') || descLower.includes('transformer') || descLower.includes('pole') || descLower.includes('ceb');
+      const isDrain = descLower.includes('drain') || descLower.includes('canal') || descLower.includes('flood') || descLower.includes('culvert');
+      const isTree = descLower.includes('tree') || descLower.includes('branch') || descLower.includes('collapse');
+      const isManhole = descLower.includes('manhole') || descLower.includes('cover missing') || descLower.includes('open chamber');
+      const isBridge = descLower.includes('bridge') || descLower.includes('structural') || descLower.includes('flyover');
+      const isRoad = descLower.includes('pothole') || descLower.includes('asphalt') || descLower.includes('pavement') || descLower.includes('crater');
       const isSensitive = descLower.includes('school') || descLower.includes('hospital') || (request.proximityZone === 'School Zone');
 
+      // Category Determination (Preserving 'Other' when appropriate)
+      let resolvedCategory: string;
+      if (isWater) resolvedCategory = 'Water Main Burst & Distribution Failure';
+      else if (isElectric) resolvedCategory = 'Street Lighting & Electrical Hazard';
+      else if (isDrain) resolvedCategory = 'Drain Blockage & Stormwater Inundation';
+      else if (isTree) resolvedCategory = 'Fallen Tree & Roadway Obstruction';
+      else if (isManhole) resolvedCategory = 'Open Manhole & Pedestrian Cavity';
+      else if (isBridge) resolvedCategory = 'Structural Bridge & Pavement Failure';
+      else if (isRoad) resolvedCategory = 'Pothole & Asphalt Pavement Defect';
+      else if (request.categorySupplied && request.categorySupplied !== 'Other') resolvedCategory = request.categorySupplied;
+      else resolvedCategory = 'Other';
+
+      // 4-Tier Severity Determination (CRITICAL, HIGH, MEDIUM, LOW)
+      const isCritical = isManhole || descLower.includes('live wire') || descLower.includes('electrocution') || descLower.includes('sinkhole') || descLower.includes('danger to life') || descLower.includes('critical');
+      const isLow = descLower.includes('minor') || descLower.includes('cosmetic') || descLower.includes('small') || descLower.includes('paint') || descLower.includes('bulb') || (resolvedCategory === 'Other' && !descLower.includes('broken') && !descLower.includes('heavy'));
+
+      let severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+      let slaHours: number;
+      if (isCritical || (isBridge && descLower.includes('crack'))) {
+        severity = 'CRITICAL';
+        slaHours = 4;
+      } else if (isSensitive || isWater || descLower.includes('arterial') || descLower.includes('bus route') || descLower.includes('flood')) {
+        severity = 'HIGH';
+        slaHours = isSensitive ? 4 : 12;
+      } else if (isLow) {
+        severity = 'LOW';
+        slaHours = 72;
+      } else {
+        severity = 'MEDIUM';
+        slaHours = 48;
+      }
+
+      // Suggestions / Actions
+      let recommendedActions: string;
+      if (isWater) {
+        recommendedActions = 'Isolate local water distribution valve via NWSDB emergency depot; Deploy high-visibility reflective cones & hazard barrier perimeter; Notify NWSDB regional maintenance unit for excavation and pipe clamping';
+      } else if (isElectric) {
+        recommendedActions = 'Immediately de-energize circuit via CEB Colombo Control Room; Cordon off 10-meter perimeter with non-conductive hazard tape; Dispatch CEB high-voltage emergency crew with aerial bucket truck';
+      } else if (isDrain) {
+        recommendedActions = 'Deploy municipal gully emptier / suction bowser to clear culvert choke; Erect temporary pedestrian walkway ramps over flooded corridor; Clear upstream trash rack and silt trap grates';
+      } else if (isTree) {
+        recommendedActions = 'Deploy chainsaw crew and aerial lift to clear roadway clearance envelope; Cordon off active traffic lane in coordination with traffic police; Liaise with CMC Lands Division for timber removal and green waste haulage';
+      } else if (isManhole) {
+        recommendedActions = 'Install heavy-duty steel safety plate / chamber barricade over cavity; Deploy reflective warning flashers for nighttime visibility; Expedite precast ductile iron cover replacement from CMC central depot';
+      } else if (isBridge) {
+        recommendedActions = 'Restrict heavy vehicle transit across affected bridge spans; Notify RDA Bridge Design & Maintenance Division for structural load assessment; Install deflection monitoring targets and safety perimeter';
+      } else if (isRoad) {
+        recommendedActions = 'Place reflective advance warning signs 50m upstream of road defect; Deploy asphalt cold-mix rapid patch crew for temporary leveling; Schedule permanent hot-mix asphalt compaction with vibrating roller';
+      } else {
+        recommendedActions = 'Log incident in Municipal Council Central Registry for zonal dispatch; Dispatch Zonal Field Inspector to verify site conditions and evaluate intervention requirements; Deploy standard municipal caution markers if pedestrian or vehicular traffic is affected';
+      }
+
       return {
-        category: isWater ? 'Water Main Burst & Distribution Failure' : (request.categorySupplied !== 'Other' ? request.categorySupplied : 'Municipal Road Distress'),
-        severity: isSensitive ? 'CRITICAL' : 'HIGH',
-        riskLevel: isSensitive ? 'CRITICAL' : 'HIGH',
-        priority: isSensitive ? 'URGENT' : 'HIGH',
+        category: resolvedCategory,
+        severity: severity,
+        riskLevel: severity,
+        priority: severity === 'CRITICAL' ? 'URGENT' : severity === 'HIGH' ? 'HIGH' : severity === 'MEDIUM' ? 'MEDIUM' : 'LOW',
         confidence: 0.94,
         reason: isSensitive
-          ? 'Identified critical public safety risk adjacent to a sensitive zone. Immediate physical hazards to students and morning commute transit traffic.'
-          : 'Hazard identified on municipal corridor exceeding standard operational threshold.',
-        recommendedAction: isWater
-          ? 'Dispatch emergency utility isolation unit and deploy high-visibility warning perimeter.'
-          : 'Dispatch district rapid response team for hazard containment.',
-        recommendedCrewSize: isSensitive ? 4 : 2,
-        estimatedResponseHours: isSensitive ? 2 : 8,
-        modelName: 'CiviLanka-Triage-Heuristic-v2.5',
+          ? 'Identified elevated public safety risk adjacent to a sensitive zone. Immediate physical hazards to students and commute transit corridor.'
+          : (resolvedCategory === 'Other'
+            ? 'General municipal incident catalogued under Municipal Councils Ordinance §14. Routine field verification scheduled.'
+            : 'Hazard identified on municipal corridor exceeding standard operational threshold.'),
+        recommendedAction: recommendedActions,
+        recommendedCrewSize: severity === 'CRITICAL' ? 5 : severity === 'HIGH' ? 4 : 2,
+        estimatedResponseHours: slaHours,
+        modelName: 'CiviLanka-Triage-Matrix-v2.6',
         status: 'AI_ANALYZED',
         timestamp: new Date().toISOString(),
       };

@@ -319,11 +319,12 @@ export const HazardClassificationAIPage: React.FC = () => {
   // Immediate actions parser
   const getActionList = (actionStr: string): string[] => {
     if (!actionStr) return ['Conduct on-site safety cordon verification', 'Notify zonal supervisor'];
-    if (actionStr.includes(';')) return actionStr.split(';').map((s) => s.trim());
+    if (actionStr.includes(';')) return actionStr.split(';').map((s) => s.trim()).filter(Boolean);
+    if (actionStr.includes('\n')) return actionStr.split('\n').map((s) => s.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
     return [
       actionStr,
-      'Deploy high-visibility reflective cones & hazard barrier',
-      'Coordinate rapid utility valve isolation or lane closure',
+      'Deploy high-visibility reflective cones & hazard barrier perimeter',
+      'Notify zonal municipal dispatch team for priority field verification',
     ];
   };
 
@@ -638,7 +639,7 @@ export const HazardClassificationAIPage: React.FC = () => {
                   onChange={(e) => setCategorySupplied(e.target.value)}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-800"
                 >
-                  <option value="Other">Other (Forces AI Re-Classification Discovery)</option>
+                  <option value="Other">Other / Unclassified Municipal Issue</option>
                   <option value="Pothole">Pothole</option>
                   <option value="Water Leak">Water Leak</option>
                   <option value="DrainageProblem">Drainage Problem</option>
@@ -647,7 +648,7 @@ export const HazardClassificationAIPage: React.FC = () => {
                   <option value="BridgeDamage">Bridge Damage / Structural Joint</option>
                 </select>
                 <p className="text-[10px] text-slate-500 mt-1.5 italic">
-                  Tip: Selecting &quot;Other&quot; tests the AI reasoning engine to autonomously discover the true physical failure mode.
+                  Tip: The AI agent dynamically assesses the incident context, preserving &quot;Other&quot; for general civic matters or deducing root physical failures.
                 </p>
               </div>
             </div>
@@ -874,7 +875,11 @@ export const HazardClassificationAIPage: React.FC = () => {
                 <div className="text-[10px] text-cyan-700 font-semibold flex items-center gap-1 pt-1">
                   <span>Input: &quot;{categorySupplied}&quot;</span>
                   <ArrowRight className="w-3 h-3 inline" />
-                  <span className="font-bold text-emerald-600">Reclassified</span>
+                  {result.category.toLowerCase() === categorySupplied.toLowerCase() || (categorySupplied === 'Other' && result.category === 'Other') ? (
+                    <span className="font-bold text-cyan-600">Preserved / Verified</span>
+                  ) : (
+                    <span className="font-bold text-emerald-600">Reclassified</span>
+                  )}
                 </div>
               </div>
 

@@ -97,23 +97,23 @@ Retrieved Municipal Hazard Standards & SLA Rules:
 {docs}
 
 Instructions & Calibration Rules:
-1. Determine the exact Primary Category (e.g. Pothole & Asphalt Failure, Water Main Burst, Drain Blockage & Gully Overflow, Street Lighting Failure, Fallen Tree & Utility Obstruction, Structural Damage, Open Manhole).
-   - CATEGORY OVERRIDE: If the citizen marked "Other" or an ambiguous label, do NOT output "Other". Deduce the true category from the description and location context (e.g. a burst pipe is "Water Main Burst").
-2. Assign the responsible Municipal Authority: CMC Engineering Department, RDA (Road Development Authority), NWSDB (National Water Supply & Drainage Board), CEB/LECO (Electricity), or Disaster Management Centre.
+1. Determine the exact Primary Category (e.g. Pothole & Asphalt Failure, Water Main Burst, Drain Blockage & Gully Overflow, Street Lighting Failure, Fallen Tree & Utility Obstruction, Structural Damage, Open Manhole, or Other).
+   - CATEGORY HANDLING & PRESERVING "Other": If the citizen classified the hazard as "Other" and the incident describes an unlisted, miscellaneous, or general municipal issue (or if the category is truly "Other"), PRESERVE "Other". Do NOT force-reclassify "Other" reports into arbitrary road or water categories. Only if the description clearly and unambiguously refers to a specific known utility (e.g., explicitly broken water pipe or fallen electric wire) should you reclassify it; otherwise retain "Other".
+2. Assign the responsible Municipal Authority: CMC Engineering Department, RDA (Road Development Authority), NWSDB (National Water Supply & Drainage Board), CEB/LECO (Electricity), CMC Public Health & General Administration, or Disaster Management Centre.
 3. Calibrate Severity to one of: CRITICAL, HIGH, MEDIUM, LOW.
    - SCHOOL / SENSITIVE ZONE RISK MULTIPLIER: Hazards situated near Schools, Kindergartens, Hospitals, or Pedestrian Crossing Corridors present elevated public safety risk!
    - Example: A burst water pipe near a school MUST be classified as HIGH risk (or CRITICAL if flooding the roadway) due to child foot-traffic hazards, slipping risks, and morning traffic gridlock.
-   - CRITICAL: Manhole open, main water burst (>100mm) on active road, live CEB wire fallen, tree blocking major arterial, bridge structural fracture, sinkhole. SLA: 2 to 4 hours.
-   - HIGH: Water pipe rupture near school/hospital, pothole >100mm on bus route, blocked drain during rainy/monsoon season, low hanging live wire. SLA: 12 to 24 hours.
-   - MEDIUM: Pothole 50-100mm on residential collector, minor water service leak, drain siltation. SLA: 48 hours.
-   - LOW: Cosmetic pavement defect, burned street bulb, minor curb chip. SLA: 168 hours (7 days).
+   - CRITICAL: Manhole open, main water burst (>100mm) on active road, live CEB wire fallen, tree blocking major arterial, bridge structural fracture, sinkhole, direct threat to life. SLA: 2 to 4 hours.
+   - HIGH: Water pipe rupture near school/hospital, pothole >100mm on bus route, blocked drain during rainy/monsoon season, low hanging wire, heavy public disruption. SLA: 12 to 24 hours.
+   - MEDIUM: Pothole 50-100mm on residential collector, minor water service leak, drain siltation, moderate sidewalk crack, standard municipal defect. SLA: 48 hours.
+   - LOW: Cosmetic pavement defect, burned street bulb, minor curb chip, general non-urgent civic complaint, minor "Other" report with no immediate danger. SLA: 72 to 168 hours (3 to 7 days).
 4. Calculate Urgency Score (0.0 to 100.0) factoring in Colombo Urban Risk Multipliers:
    - Base score: Critical=85, High=65, Medium=45, Low=20.
    - Proximity to school/hospital/religious site: +25
    - Location on Class-A arterial corridor (Galle Rd, Baseline Rd, Kandy Rd, High Level Rd, Pettah): +20
    - Monsoon or flood-prone drainage: +15
    - Cap maximum score at 100.0.
-5. Identify immediate containment safety actions (e.g. reflective barrier cones, gully suction bowser, valve shutoff).
+5. Identify immediate containment safety actions (e.g. reflective barrier cones, gully suction bowser, valve shutoff, field inspection dispatch, perimeter cordon). Provide actionable, category-specific suggestions.
 6. Recommend crew sizing and state whether Police Traffic Support is required.
 7. Flag monsoon flood risk and environmental risk factors.
 """

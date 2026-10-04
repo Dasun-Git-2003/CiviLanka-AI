@@ -142,13 +142,13 @@ namespace CiviLanka.API.AI.Agents
 
                         return new HazardClassificationResult
                         {
-                            Category = string.IsNullOrWhiteSpace(cat) || cat.Equals("Other", StringComparison.OrdinalIgnoreCase) ? "Water Main Burst & Distribution Failure" : cat,
+                            Category = string.IsNullOrWhiteSpace(cat) ? (string.IsNullOrWhiteSpace(input.CategorySupplied) ? "Other" : input.CategorySupplied) : cat,
                             Severity = NormalizeSeverity(sev),
                             RiskLevel = NormalizeSeverity(sev),
                             Priority = sev == "CRITICAL" ? "URGENT" : (sev == "HIGH" ? "HIGH" : "NORMAL"),
                             Confidence = conf > 0 ? conf : 0.95,
                             Reason = fullReason,
-                            RecommendedAction = $"Dispatch {dept} rapid response maintenance unit under {sla}h SLA.",
+                            RecommendedAction = $"Dispatch {dept} rapid response maintenance unit under {sla}h SLA; Establish warning perimeter and safety signage; Verify site clearance with zonal supervisor.",
                             RecommendedCrewSize = sev == "CRITICAL" ? 6 : (sev == "HIGH" ? 4 : 2),
                             EstimatedResponseHours = sla > 0 ? sla : 12,
                             ModelName = "LangGraph StateGraph Agent (gemini-3.1-flash-lite)",
@@ -318,21 +318,62 @@ namespace CiviLanka.API.AI.Agents
             }
             else
             {
-                category = string.IsNullOrWhiteSpace(input.CategorySupplied) || input.CategorySupplied.Equals("Other", StringComparison.OrdinalIgnoreCase) 
-                    ? "MunicipalRoadDistress" 
-                    : input.CategorySupplied;
-                severity = isSensitiveLocation ? "HIGH" : "MEDIUM";
-                riskLevel = isSensitiveLocation ? "HIGH" : "MEDIUM";
-                priority = isSensitiveLocation ? "HIGH" : "NORMAL";
-                confidence = 0.91;
-                responseHours = isSensitiveLocation ? 4 : 12;
-                crewSize = 3;
-                action = isSensitiveLocation 
-                    ? "Dispatch district rapid response maintenance unit to assess safety hazard near sensitive perimeter."
-                    : "Schedule standard district road maintenance crew within next scheduled patrol cycle.";
-                reason = isSensitiveLocation 
-                    ? "Incident is located in close proximity to a school/pedestrian zone. Elevated to HIGH priority for public safety protection."
-                    : "Municipal distress indicators classified within standard operational tolerance. Prioritized under standard district SLA response window.";
+                category = string.IsNullOrWhiteSpace(input.CategorySupplied) ? "Other" : input.CategorySupplied;
+
+                bool isCriticalThreat = text.Contains("electrocution") || text.Contains("live wire") || text.Contains("explosion") ||
+                                       text.Contains("chemical") || text.Contains("fatal") || text.Contains("collapse");
+                bool isSevereThreat = isCriticalThreat || text.Contains("danger") || text.Contains("severe") || text.Contains("deep hole") || 
+                                     text.Contains("injury") || text.Contains("urgent") || text.Contains("fire") || text.Contains("spark");
+                bool isLowImpact = !isSevereThreat && !isSensitiveLocation && (text.Contains("minor") || text.Contains("small") || 
+                                   text.Contains("cosmetic") || text.Contains("faded") || text.Contains("paint") || text.Contains("litter") || 
+                                   text.Contains("noise") || text.Contains("light"));
+
+                if (isCriticalThreat)
+                {
+                    severity = "CRITICAL";
+                    riskLevel = "CRITICAL";
+                    priority = "URGENT";
+                    confidence = 0.95;
+                    responseHours = 2;
+                    crewSize = 6;
+                    action = "Immediate emergency response dispatch; Cordon off perimeter within 25m radius; Notify police and specialized emergency authority.";
+                    reason = "Critical imminent public safety hazard detected in reported conditions. Immediate threat to human life requires emergency protocol activation.";
+                }
+                else if (isSevereThreat || isSensitiveLocation)
+                {
+                    severity = "HIGH";
+                    riskLevel = "HIGH";
+                    priority = "HIGH";
+                    confidence = 0.93;
+                    responseHours = 4;
+                    crewSize = 4;
+                    action = "Dispatch district rapid response team for hazard containment; Deploy high-visibility caution barriers and warning signage; Initiate priority site survey.";
+                    reason = isSensitiveLocation
+                        ? "Incident is situated in close proximity to a school, hospital, or pedestrian thoroughfare. Risk level elevated to HIGH to safeguard pedestrians and students."
+                        : "Elevated hazard indicators present on active municipal roadway. Prioritized under rapid municipal escalation protocol.";
+                }
+                else if (isLowImpact)
+                {
+                    severity = "LOW";
+                    riskLevel = "LOW";
+                    priority = "LOW";
+                    confidence = 0.90;
+                    responseHours = 48;
+                    crewSize = 2;
+                    action = "Log in municipal maintenance backlog for routine inspection; Assign to local ward patrol during scheduled weekly maintenance rounds.";
+                    reason = "Reported condition indicates localized low-impact defect with negligible immediate hazard to pedestrians or traffic flow.";
+                }
+                else
+                {
+                    severity = "MEDIUM";
+                    riskLevel = "MEDIUM";
+                    priority = "NORMAL";
+                    confidence = 0.91;
+                    responseHours = 12;
+                    crewSize = 3;
+                    action = "Dispatch municipal field inspector to assess site conditions; Schedule corrective maintenance within standard district SLA; Coordinate with ward supervisor.";
+                    reason = "Municipal report classified under standard operational guidelines. Poses moderate localized disruption without immediate life-safety peril.";
+                }
             }
 
             return new HazardClassificationResult

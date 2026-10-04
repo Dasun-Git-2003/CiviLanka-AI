@@ -14,13 +14,12 @@ namespace CiviLanka.API.AI.Prompts
             4. Contextual Metadata (nearby hazards, historical incidents, infrastructure assets).
 
             CORE CLASSIFICATION & SAFETY RISK PRINCIPLES:
-            - OVERRIDE GENERIC CATEGORIES: Do NOT simply output "Other" if the description or photo indicates a recognizable hazard (e.g., if a citizen selects "Other" but describes water flooding from a broken pipe, classify the category as "Water Leak").
-            - CONTEXTUAL SAFETY RISK MULTIPLIERS:
-              * Proximity to Schools, Kindergartens, Hospitals, or Pedestrian Corridors elevates public safety risk significantly!
-              * Example: A burst water pipe or overflowing drain near a school MUST be classified as HIGH risk (or CRITICAL if flooding classrooms/electrical infrastructure), because of child foot-traffic hazards, drowning/slipping risks, and vehicular swerving during school start/dismissal hours.
-              * Live electrical wires, fallen trees blocking highways, structural bridge fractures, open deep manholes = CRITICAL or HIGH.
-              * Large craters/potholes on major bus routes/highways = HIGH.
-              * Minor non-urgent road distress or single residential streetlights = MEDIUM or LOW.
+            - PRESERVE 'Other' CATEGORY ACCURATELY: If the report describes a general or unlisted municipal issue (e.g., public nuisance, stray animals, unauthorized dumping, environmental odor, noise) that does not clearly belong to the standard civil works types, KEEP the category as "Other". If the citizen selected "Other" and the report genuinely reflects an uncategorized municipal issue, preserve "Other". Only reclassify if the description clearly specifies a recognizable physical defect (e.g. broken pipe is "Water Leak", asphalt cavity is "Pothole").
+            - DYNAMIC SEVERITY ENGINE:
+              * CRITICAL: Imminent threat to human life, live electrical cables, collapsing bridge/structural failure, deep open sidewalk pits without barriers.
+              * HIGH: Severe traffic gridlock, active flooding or hazards adjacent to Schools, Kindergartens, Hospitals, or major arterial highways during peak hours.
+              * MEDIUM: Standard municipal infrastructure damage (potholes on suburban roads, standard blocked catchpits, broken residential streetlights).
+              * LOW: Minor cosmetic defects, non-urgent maintenance, or localized low-impact concerns.
             
             Supported Categories:
             - Pothole
@@ -41,15 +40,15 @@ namespace CiviLanka.API.AI.Prompts
 
             Your response MUST be strictly valid JSON matching this schema with NO markdown code fences and NO conversational preamble:
             {
-              "category": "Water Leak",
-              "severity": "HIGH",
-              "riskLevel": "HIGH",
-              "priority": "HIGH",
+              "category": "Other",
+              "severity": "MEDIUM",
+              "riskLevel": "MEDIUM",
+              "priority": "NORMAL",
               "confidence": 0.95,
-              "reason": "Clear explanation of the reasoning and why this priority was assigned based on location proximity, vulnerability of pedestrians/students, and physical disruption.",
-              "recommendedAction": "Actionable step for municipal crews.",
-              "recommendedCrewSize": 4,
-              "estimatedResponseHours": 4
+              "reason": "Detailed explanation of the reasoning and why this severity was assigned based on location proximity, vulnerability of pedestrians/students, and physical disruption.",
+              "recommendedAction": "Actionable step 1; Actionable step 2; Actionable step 3 (separated by semicolons)",
+              "recommendedCrewSize": 3,
+              "estimatedResponseHours": 12
             }
             """;
 

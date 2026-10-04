@@ -114,56 +114,71 @@ def _fallback_hazard_classification(title: str, desc: str, loc: str, cat_supplie
     t = (title + " " + desc + " " + loc + " " + cat_supplied + " " + meta).lower()
 
     is_school_zone = any(k in t for k in ["school", "college", "kindergarten", "hospital", "clinic", "preschool", "පාසල"])
-    is_water_leak = any(k in t for k in ["pipe", "water", "burst", "leak", "nwsdb", "tap", "flushing"])
+    is_water_leak = any(k in t for k in ["pipe", "water", "burst", "leak", "nwsdb", "tap", "flushing", "නළ"])
+    is_electric = any(k in t for k in ["wire", "light", "transformer", "pole", "ceb", "electric", "spark", "cable", "විදුලි"])
+    is_drain = any(k in t for k in ["drain", "canal", "overflow", "culvert", "clog", "monsoon", "flood", "කාණු"])
+    is_tree = any(k in t for k in ["tree", "branch", "collapse", "ගස"])
+    is_manhole = any(k in t for k in ["manhole", "cover missing", "open chamber", "cavity"])
+    is_bridge = any(k in t for k in ["bridge", "crack", "structural", "flyover", "pillar", "beam"])
+    is_road = any(k in t for k in ["pothole", "asphalt", "crater", "tarmac", "road damage", "pavement"])
 
     # Department & Category Detection
+    is_supplied_other = cat_supplied.strip().lower() in ["other", "none", "unknown", ""]
+    
     if is_water_leak:
         cat = "Water Main Burst & Distribution Failure"
         dept = "NWSDB (National Water Supply & Drainage Board)"
-    elif any(k in t for k in ["drain", "canal", "overflow", "culvert", "clog", "monsoon", "flood"]):
+    elif is_drain:
         cat = "Drain Blockage & Stormwater Inundation"
         dept = "CMC Drainage & Flood Control Division"
-    elif any(k in t for k in ["wire", "light", "transformer", "pole", "ceb", "electric"]):
+    elif is_electric:
         cat = "Street Lighting & Electrical Hazard"
         dept = "CEB / CMC Electrical Division"
-    elif any(k in t for k in ["tree", "branch", "collapse"]):
+    elif is_tree:
         cat = "Fallen Tree & Roadway Obstruction"
         dept = "Disaster Management Unit & CMC Lands Division"
-    elif any(k in t for k in ["manhole", "cover missing", "open chamber"]):
+    elif is_manhole:
         cat = "Open Manhole & Pedestrian Cavity"
         dept = "CMC Engineering Department"
-    elif any(k in t for k in ["bridge", "crack", "structural", "flyover"]):
+    elif is_bridge:
         cat = "Structural Bridge & Pavement Failure"
         dept = "CMC Engineering Department / RDA"
-    else:
+    elif is_road:
         cat = "Pothole & Asphalt Pavement Defect"
         dept = "CMC Engineering Department / RDA"
+    elif is_supplied_other:
+        cat = "Other"
+        dept = "CMC Municipal Works & General Administration"
+    else:
+        cat = cat_supplied
+        dept = "CMC Engineering Department / Municipal Administration"
 
-    # Severity & SLA calibration with School Zone / Sensitive Area Multiplier
-    if any(k in t for k in ["manhole", "live wire", "bridge", "sinkhole", "critical"]):
+    # Dynamic Severity Calibration across 4 tiers (CRITICAL, HIGH, MEDIUM, LOW)
+    is_critical_keyword = any(k in t for k in [
+        "manhole", "live wire", "electrocution", "sparking", "collapse",
+        "sinkhole", "critical", "fatal", "danger to life", "hazard", "explosion"
+    ])
+    is_low_keyword = any(k in t for k in [
+        "minor", "low", "cosmetic", "small", "paint", "notice", "clean",
+        "trash", "slight", "surface", "bulb", "chipped"
+    ])
+
+    if is_critical_keyword or (is_bridge and "crack" in t) or (is_electric and any(k in t for k in ["fallen", "live", "ground"])):
         sev = "CRITICAL"
         sla = 4
-        base_urgency = 88.0
-    elif is_water_leak and is_school_zone:
+        base_urgency = 90.0
+    elif is_school_zone or any(k in t for k in ["arterial", "bus route", "heavy flood", "high", "urgent", "galle road", "baseline"]):
         sev = "HIGH"
-        sla = 12
-        base_urgency = 78.0
-    elif any(k in t for k in ["arterial", "bus route", "heavy", "flood", "high", "galle road", "baseline"]):
-        sev = "HIGH"
-        sla = 24
-        base_urgency = 68.0
-    elif is_school_zone:
-        sev = "HIGH"
-        sla = 24
-        base_urgency = 65.0
-    elif any(k in t for k in ["moderate", "medium", "pothole"]):
-        sev = "MEDIUM"
-        sla = 48
-        base_urgency = 45.0
+        sla = 12 if is_water_leak or is_school_zone else 24
+        base_urgency = 72.0
+    elif is_low_keyword or (cat == "Other" and not any(k in t for k in ["heavy", "deep", "flood", "broken"])):
+        sev = "LOW"
+        sla = 72
+        base_urgency = 25.0
     else:
         sev = "MEDIUM"
         sla = 48
-        base_urgency = 40.0
+        base_urgency = 50.0
 
     if is_school_zone:
         base_urgency += 15.0
@@ -172,12 +187,63 @@ def _fallback_hazard_classification(title: str, desc: str, loc: str, cat_supplie
 
     urgency = min(100.0, base_urgency)
     is_arterial = any(k in t for k in ["galle", "baseline", "high level", "kandy"])
-    is_flood = any(k in t for k in ["monsoon", "drain", "canal", "flood", "overflow"])
+    is_flood = is_drain or any(k in t for k in ["monsoon", "canal", "flood", "overflow"])
 
     risk_desc = (
-        f"Identified {sev} risk in sensitive zone ({'School / Hospital' if is_school_zone else 'Urban Corridor'}). "
-        f"Substantial hazard to pedestrian and student transit."
+        f"Calibrated {sev} priority incident ({cat}) in {'School / Hospital Sensitive Zone' if is_school_zone else 'Urban Municipality Corridor'}. "
+        f"{'Elevated risk to public pedestrian transit and student safety.' if is_school_zone else 'Standard municipal operational protocol applied.'}"
     )
+
+    # Category-tailored suggestions / immediate actions
+    if is_water_leak:
+        actions = [
+            "Isolate local water distribution valve via NWSDB emergency depot",
+            "Deploy high-visibility reflective cones & hazard barrier perimeter",
+            "Notify NWSDB regional maintenance unit for excavation and pipe clamping"
+        ]
+    elif is_electric:
+        actions = [
+            "Immediately de-energize circuit via CEB Colombo Control Room",
+            "Cordon off 10-meter perimeter with non-conductive hazard tape",
+            "Dispatch CEB high-voltage emergency crew with aerial bucket truck"
+        ]
+    elif is_drain:
+        actions = [
+            "Deploy municipal gully emptier / suction bowser to clear culvert choke",
+            "Erect temporary pedestrian walkway ramps over flooded corridor",
+            "Clear upstream trash rack and silt trap grates"
+        ]
+    elif is_tree:
+        actions = [
+            "Deploy chainsaw crew and aerial lift to clear roadway clearance envelope",
+            "Cordon off active traffic lane in coordination with traffic police",
+            "Liaise with CMC Lands Division for timber removal and green waste haulage"
+        ]
+    elif is_manhole:
+        actions = [
+            "Install heavy-duty steel safety plate / chamber barricade over cavity",
+            "Deploy reflective warning flashers for nighttime visibility",
+            "Expedite precast concrete / ductile iron cover replacement from CMC central depot"
+        ]
+    elif is_bridge:
+        actions = [
+            "Restrict heavy vehicle transit across affected bridge spans",
+            "Notify RDA Bridge Design & Maintenance Division for structural load assessment",
+            "Install deflection monitoring targets and safety perimeter"
+        ]
+    elif is_road:
+        actions = [
+            "Place reflective advance warning signs 50m upstream of road defect",
+            "Deploy asphalt cold-mix rapid patch crew for temporary leveling",
+            "Schedule permanent hot-mix asphalt compaction with vibrating roller"
+        ]
+    else:
+        # Contextual actions for "Other" / general municipal issues
+        actions = [
+            "Log incident in Municipal Council Central Registry for zonal dispatch",
+            "Dispatch Zonal Field Inspector to verify site conditions and evaluate intervention requirements",
+            "Deploy standard municipal caution markers if pedestrian or vehicular traffic is affected"
+        ]
 
     return {
         "primary_category": cat,
@@ -186,11 +252,7 @@ def _fallback_hazard_classification(title: str, desc: str, loc: str, cat_supplie
         "urgency_score": round(urgency, 1),
         "sla_resolution_hours": sla,
         "safety_risk_summary": risk_desc,
-        "immediate_actions": [
-            "Deploy reflective high-visibility safety cones and hazard tape",
-            "Notify municipal zonal engineer for dispatch",
-            "Contact utility emergency hotline (NWSDB/CEB)" if (is_water_leak or "electric" in t) else "Isolate pedestrian walkway"
-        ],
+        "immediate_actions": actions,
         "crew_sizing": "Emergency Quick-Response Crew (2-person + utility van)" if sev in ["CRITICAL", "HIGH"] else "Routine Maintenance Crew",
         "requires_police_traffic_support": is_arterial or is_school_zone,
         "monsoon_flood_risk": is_flood,

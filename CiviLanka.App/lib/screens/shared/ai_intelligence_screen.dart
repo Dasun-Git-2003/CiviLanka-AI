@@ -1225,7 +1225,14 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
     final r = _triageResult!;
     final isCritical = r.severity == 'CRITICAL';
     final isHigh = r.severity == 'HIGH';
-    final badgeColor = isCritical ? AppColors.critical : isHigh ? AppColors.warning : AppColors.teal;
+    final isMedium = r.severity == 'MEDIUM';
+    final badgeColor = isCritical
+        ? AppColors.critical
+        : isHigh
+            ? AppColors.warning
+            : isMedium
+                ? const Color(0xFF2563EB)
+                : const Color(0xFF10B981);
 
     return Container(
       decoration: BoxDecoration(
@@ -1347,11 +1354,33 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
                     Text('Recommended Municipal Protocol', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  r.recommendedAction,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF047857), height: 1.3),
-                ),
+                const SizedBox(height: 8),
+                if (r.recommendedAction.contains(';'))
+                  ...r.recommendedAction.split(';').map((act) => act.trim()).where((act) => act.isNotEmpty).map(
+                        (actionItem) => Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 4, right: 6),
+                                child: Icon(Icons.check_circle, size: 12, color: Color(0xFF059669)),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  actionItem,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF047857), height: 1.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                else
+                  Text(
+                    r.recommendedAction,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF047857), height: 1.3),
+                  ),
               ],
             ),
           ),
