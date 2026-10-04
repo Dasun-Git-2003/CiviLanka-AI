@@ -254,7 +254,7 @@ jobs:
       - name: Deploy AI Agent to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'civilanka-agent'
+          app-name: 'civilanka-agent-f9bxh6ewaxbwe9f5'
           package: ./release/agent
 
       - name: Generate Checksums & Deployment Manifest
@@ -281,5 +281,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** \`${{ github.event.inputs.deploy_environment || 'staging' }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Live URL:** https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend API:** https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**AI Agent:** https://civilanka-agent-f9bxh6ewaxbwe9f5.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
           echo "**All API unit tests:** Passed" >> $GITHUB_STEP_SUMMARY
