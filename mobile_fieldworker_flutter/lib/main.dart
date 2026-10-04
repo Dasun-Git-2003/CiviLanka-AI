@@ -37,7 +37,7 @@ class CivitaGuardFieldWorkerApp extends StatelessWidget {
             letterSpacing: 0.5,
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: const Color(0xFF1E293B),
           elevation: 2,
           shape: RoundedRectangleBorder(

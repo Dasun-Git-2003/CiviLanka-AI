@@ -160,12 +160,11 @@ void main() {
 
     test('User.canAccessWorkOrders evaluates correctly by role', () {
       User makeUser(String role) => User(
-            id: 'u-1',
+            userId: 'u-1',
             fullName: 'Test User',
             email: 'test@civilanka.gov.lk',
             role: role,
             token: 'mock-token',
-            expiresAt: DateTime.now().add(const Duration(hours: 1)),
           );
 
       expect(
@@ -183,12 +182,11 @@ void main() {
         'User.canCreateWorkOrders and canManageWorkOrders enforce role hierarchy',
         () {
       User makeUser(String role) => User(
-            id: 'u-1',
+            userId: 'u-1',
             fullName: 'Test User',
             email: 'test@civilanka.gov.lk',
             role: role,
             token: 'mock-token',
-            expiresAt: DateTime.now().add(const Duration(hours: 1)),
           );
 
       // Authorized roles (Supervisors, Directors, Municipal Staff)
@@ -380,12 +378,11 @@ void main() {
         'User.canGenerateEstimate enforces backend estimation endpoint authorization',
         () {
       User makeUser(String role) => User(
-            id: 'u-1',
+            userId: 'u-1',
             fullName: 'Test User',
             email: 'test@civilanka.gov.lk',
             role: role,
             token: 'mock-token',
-            expiresAt: DateTime.now().add(const Duration(hours: 1)),
           );
 
       // Authorized roles on POST /api/workorders/{id}/estimate
@@ -513,12 +510,11 @@ void main() {
       final now = DateTime.now().add(const Duration(hours: 1));
 
       User createUser(String role) => User(
-            id: 'u-1',
+            userId: 'u-1',
             fullName: 'Test User',
             email: 'user@cmc.gov.lk',
             role: role,
             token: 'jwt-token',
-            expiresAt: now,
           );
 
       // Authorized Director roles:

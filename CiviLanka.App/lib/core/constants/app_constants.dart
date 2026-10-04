@@ -1,6 +1,17 @@
 class ApiConstants {
-  static const String defaultBaseUrl = 'http://localhost:5000';
-  static const String defaultAgentUrl = 'http://localhost:8001';
+  static const String hostedBaseUrl =
+      'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net';
+  static const String hostedAgentUrl =
+      'https://civilanka-agent-f9bxh6ewaxbwe9f5.indiasouthcentral-01.azurewebsites.net';
+
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: hostedBaseUrl,
+  );
+  static const String defaultAgentUrl = String.fromEnvironment(
+    'AGENT_URL',
+    defaultValue: hostedAgentUrl,
+  );
 
   // Auth endpoints
   static const String login = '/api/auth/login';

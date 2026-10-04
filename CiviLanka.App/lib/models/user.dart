@@ -28,7 +28,7 @@ class User {
       role.toLowerCase() == 'director' ||
       role.toLowerCase() == 'publicworksdirector';
 
-  bool get canAccessWorkOrders => !isCitizen;
+  bool get canAccessWorkOrders => isFieldWorker || isSupervisor;
   bool get canCreateWorkOrders => isSupervisor || isDirector;
   bool get canManageWorkOrders => isSupervisor || isDirector;
   bool get canGenerateEstimate => isSupervisor || isDirector;

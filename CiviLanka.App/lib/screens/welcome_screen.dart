@@ -384,12 +384,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.warning_amber_rounded, size: 19),
           const SizedBox(width: 8),
-          Text(
-            _isSinhala ? 'උපද්‍රවයක් වාර්තා කරන්න' : 'Report an Issue',
-            style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+          Flexible(
+            child: Text(
+              _isSinhala ? 'උපද්‍රවයක් වාර්තා කරන්න' : 'Report an Issue',
+              style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const SizedBox(width: 6),
           const Icon(Icons.arrow_forward_rounded, size: 17),
@@ -411,15 +415,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.shield_outlined, size: 19, color: Color(0xFFF59E0B)),
           const SizedBox(width: 8),
-          Text(
-            _isSinhala ? 'පද්ධතියට පිවිසෙන්න' : 'Sign In to Portal',
-            style: const TextStyle(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          Flexible(
+            child: Text(
+              _isSinhala ? 'පද්ධතියට පිවිසෙන්න' : 'Sign In to Portal',
+              style: const TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
