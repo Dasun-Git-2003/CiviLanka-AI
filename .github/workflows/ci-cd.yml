@@ -31,6 +31,8 @@ permissions:
   packages: write
   checks: write
   pull-requests: write
+  id-token: write
+
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -210,6 +212,9 @@ jobs:
     needs: [backend-ci, frontend-ci, ai-agent-ci, security-audit]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Download Backend Artifact
@@ -230,12 +235,18 @@ jobs:
           name: civilanka-agent-bundle
           path: ./release/agent
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_30E04C46574C413490AC279FA82900D2 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C45DB3928E0546A3B077CEB06B1D4EF7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3A46B11914446D9801AA670D4080A7B }}
+
       - name: Deploy Backend to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'civialanka-etb2hch9gjftcudm'
+          app-name: 'civilanka-a3gqebh7h4f0f6gy'
           package: ./release/api
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CIVIALANKA_ETB2HCH9GJFTCUDM || secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 
       - name: Generate Checksums & Deployment Manifest
         run: |
@@ -261,4 +272,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** \`${{ github.event.inputs.deploy_environment || 'staging' }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**All 105 API unit tests:** Passed" >> $GITHUB_STEP_SUMMARY
+          echo "**Live URL:** https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**All API unit tests:** Passed" >> $GITHUB_STEP_SUMMARY
