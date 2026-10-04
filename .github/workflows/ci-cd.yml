@@ -80,6 +80,9 @@ jobs:
             --configuration Release \
             --no-build \
             --output ./artifacts/api
+          if [ ! -f "./artifacts/api/appsettings.json" ]; then
+            cp CiviLanka.API/appsettings.example.json ./artifacts/api/appsettings.json
+          fi
 
       - name: Upload API Artifact
         uses: actions/upload-artifact@v4

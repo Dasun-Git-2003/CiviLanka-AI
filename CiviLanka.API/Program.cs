@@ -18,8 +18,12 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── PostgreSQL + Entity Framework Core ─────────────────────────────────────────
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("SupabaseConnection")
+    ?? "Host=aws-0-ap-northeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.zwegexewlnvmqegfvtgc;Password=K5xSS6Mz0GLMt4HQ;SSL Mode=Require;Trust Server Certificate=true";
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // ── ASP.NET Core Identity ──────────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -50,8 +54,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = jwtSettings["Issuer"] ?? "CiviLanka.API",
+        ValidAudience = jwtSettings["Audience"] ?? "CiviLanka.Clients",
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
 });
@@ -107,23 +111,56 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("FieldMaintenanceSupervisor", "PublicWorksDirector", "Director"));
 });
 
-// ── CORS (for React dashboard from other members) ──────────────────────────────
+// ── CORS (for React dashboard and other clients) ──────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        var allowedOrigins = builder.Configuration
+        var configuredOrigins = builder.Configuration
             .GetSection("Cors:AllowedOrigins")
             .Get<string[]>() ?? Array.Empty<string>();
 
-        policy.WithOrigins(allowedOrigins)
+        var defaultOrigins = new[]
+        {
+            "https://civi-lanka-ai.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:4200"
+        };
+
+        var allAllowedOrigins = configuredOrigins
+            .Concat(defaultOrigins)
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        policy.WithOrigins(allAllowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
-
-        // Allow all origins in development
-        if (builder.Environment.IsDevelopment())
-            policy.SetIsOriginAllowed(_ => true);
+              .AllowCredentials()
+              .SetIsOriginAllowed(origin =>
+              {
+                  if (string.IsNullOrWhiteSpace(origin)) return false;
+                  if (builder.Environment.IsDevelopment()) return true;
+                  if (allAllowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)) return true;
+                  try
+                  {
+                      var uri = new Uri(origin);
+                      if (uri.Host.Equals("civi-lanka-ai.vercel.app", StringComparison.OrdinalIgnoreCase)
+                          || uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase)
+                          || uri.Host == "localhost"
+                          || uri.Host == "127.0.0.1")
+                      {
+                          return true;
+                      }
+                  }
+                  catch
+                  {
+                      // Ignore malformed URI
+                  }
+                  return false;
+              });
     });
 });
 
@@ -265,10 +302,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// CORS must be evaluated before static files, authentication, and endpoint routing
+app.UseCors();
+
 // Serve uploaded images as static files
 app.UseStaticFiles();
 
-app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
