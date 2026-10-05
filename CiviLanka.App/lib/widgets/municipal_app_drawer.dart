@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_colors.dart';
+import 'server_config_dialog.dart';
 
 // Screens
 import '../screens/citizen/citizen_map_screen.dart';
@@ -729,62 +731,134 @@ class MunicipalAppDrawer extends StatelessWidget {
     final initial = fullName.isNotEmpty ? fullName[0].toUpperCase() : 'U';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: const BoxDecoration(
         color: Color(0xFF1E293B),
         border: Border(
           top: BorderSide(color: Color(0xFF334155), width: 1),
         ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 17,
-            backgroundColor: accentColor.withValues(alpha: 0.25),
-            child: Text(
-              initial,
-              style: TextStyle(
-                color: accentColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  fullName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12.5,
+          // ── Server Status Strip ───────────────────────────────────────
+          Consumer<ApiService>(
+            builder: (context, api, _) {
+              final isCloud = api.isUsingCloud;
+              return InkWell(
+                onTap: () {
+                  Navigator.pop(context); // Close drawer
+                  ServerConfigDialog.show(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isCloud
+                        ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                        : const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: const Color(0xFF334155).withValues(alpha: 0.6),
+                        width: 1,
+                      ),
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isCloud ? const Color(0xFF10B981) : const Color(0xFF60A5FA),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isCloud ? const Color(0xFF10B981) : const Color(0xFF60A5FA))
+                                  .withValues(alpha: 0.6),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Backend: ${api.serverDisplayName}',
+                          style: TextStyle(
+                            color: isCloud ? const Color(0xFF6EE7B7) : const Color(0xFF93C5FD),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        Icons.settings_outlined,
+                        size: 14,
+                        color: isCloud ? const Color(0xFF6EE7B7) : const Color(0xFF93C5FD),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  roleName.toUpperCase(),
-                  style: TextStyle(
-                    color: isDirector ? const Color(0xFFFCD34D) : const Color(0xFFC4B5FD),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+              );
+            },
+          ),
+
+          // ── Profile and Logout Row ───────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 17,
+                  backgroundColor: accentColor.withValues(alpha: 0.25),
+                  child: Text(
+                    initial,
+                    style: TextStyle(
+                      color: accentColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        fullName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        roleName.toUpperCase(),
+                        style: TextStyle(
+                          color: isDirector ? const Color(0xFFFCD34D) : const Color(0xFFC4B5FD),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded, color: Color(0xFFF87171), size: 20),
+                  tooltip: 'Sign Out',
+                  onPressed: () async {
+                    Navigator.pop(context); // Close drawer
+                    await context.read<AuthService>().logout();
+                  },
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFFF87171), size: 20),
-            tooltip: 'Sign Out',
-            onPressed: () async {
-              Navigator.pop(context); // Close drawer
-              await context.read<AuthService>().logout();
-            },
           ),
         ],
       ),

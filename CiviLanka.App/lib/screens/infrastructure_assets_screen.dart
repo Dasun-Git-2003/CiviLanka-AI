@@ -7,6 +7,7 @@ import '../models/infrastructure_asset.dart';
 import '../services/ai_service.dart';
 import '../services/asset_service.dart';
 import '../services/location_service.dart';
+import '../theme/app_colors.dart';
 import 'shared/ai_intelligence_screen.dart';
 
 class InfrastructureAssetsScreen extends StatefulWidget {
@@ -130,26 +131,65 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Column(
+        automaticallyImplyLeading: false,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        leadingWidth: 52,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? Colors.white : AppColors.textDark,
+              size: 22,
+            ),
+            tooltip: 'Back',
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).maybePop();
+              }
+            },
+          ),
+        ),
+        titleSpacing: 0,
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'Infrastructure Assets',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 17.5,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.textDark,
+                letterSpacing: -0.2,
+              ),
             ),
             Text(
               'Municipal Asset Registry & Health',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh Database',
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: isDark ? Colors.white : AppColors.textDark,
+              size: 22,
+            ),
+            tooltip: 'Refresh Assets',
             onPressed: _loadAssets,
           ),
+          const SizedBox(width: 2),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton.icon(
@@ -166,6 +206,19 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            height: 1.0,
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openRegisterModal,
+        backgroundColor: const Color(0xFFF97316),
+        icon: const Icon(Icons.add_business_rounded, color: Colors.white),
+        label: const Text('Register Asset', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: RefreshIndicator(
         onRefresh: _loadAssets,
@@ -1047,6 +1100,13 @@ class _InfrastructureAssetsScreenState extends State<InfrastructureAssetsScreen>
 // REGISTER ASSET MODAL (Photo 3 Reference)
 // ═════════════════════════════════════════════════════════════════════════════
 
+const Map<String, String> _conditionLabels = {
+  'Good': '🟢 Good (Operational)',
+  'Moderate': '🟡 Moderate (Fair)',
+  'Poor': '🟠 Poor (Degraded)',
+  'Critical': '🔴 Critical (Hazard)',
+};
+
 class RegisterAssetModal extends StatefulWidget {
   final VoidCallback onAssetRegistered;
   const RegisterAssetModal({super.key, required this.onAssetRegistered});
@@ -1064,6 +1124,9 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
   final _lngCtrl = TextEditingController(text: '79.8612');
   final _customIdCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
+  final _installDateCtrl = TextEditingController(
+    text: DateTime.now().toIso8601String().split('T')[0],
+  );
 
   String _selectedType = 'Water';
   String _selectedStatus = 'Active';
@@ -1073,6 +1136,18 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
   final List<String> _types = ['Water', 'Electrical', 'Civil', 'Roads & Bridges', 'Sanitation', 'Telecom'];
   final List<String> _statuses = ['Active', 'Under Maintenance', 'Inactive', 'Decommissioned'];
   final List<String> _conditions = ['Good', 'Moderate', 'Poor', 'Critical'];
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _locationCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    _installDateCtrl.dispose();
+    _customIdCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -1127,6 +1202,7 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
         location: _locationCtrl.text.trim(),
         latitude: double.tryParse(_latCtrl.text),
         longitude: double.tryParse(_lngCtrl.text),
+        installationDate: _installDateCtrl.text.trim().isNotEmpty ? _installDateCtrl.text.trim() : null,
         customId: _customIdCtrl.text.trim(),
         description: _descCtrl.text.trim(),
       );
@@ -1255,8 +1331,11 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
               const Text('Asset Condition *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                value: _selectedCondition,
-                items: _conditions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                initialValue: _selectedCondition,
+                items: _conditions.map((c) => DropdownMenuItem(
+                  value: c,
+                  child: Text(_conditionLabels[c] ?? c),
+                )).toList(),
                 onChanged: (val) => setState(() => _selectedCondition = val!),
               ),
 
@@ -1411,14 +1490,57 @@ class _RegisterAssetModalState extends State<RegisterAssetModal> {
 
               const SizedBox(height: 14),
 
-              // Custom Asset ID (Optional)
-              const Text('Custom Asset ID (Optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _customIdCtrl,
-                decoration: const InputDecoration(
-                  hintText: 'Leave blank for auto AST-xxx',
-                ),
+              // Installation Date & Custom Asset ID
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Installation Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _installDateCtrl,
+                          readOnly: true,
+                          decoration: const InputDecoration(
+                            hintText: 'YYYY-MM-DD',
+                            suffixIcon: Icon(Icons.calendar_month_rounded, size: 18),
+                          ),
+                          onTap: () async {
+                            final current = DateTime.tryParse(_installDateCtrl.text) ?? DateTime.now();
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: current,
+                              firstDate: DateTime(1980),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _installDateCtrl.text = picked.toIso8601String().split('T')[0];
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Custom ID (Optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _customIdCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'e.g. AST-101',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 14),
@@ -1664,8 +1786,11 @@ class _EditAssetModalState extends State<EditAssetModal> {
               const Text('Asset Condition *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                value: _selectedCondition,
-                items: _conditions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                initialValue: _selectedCondition,
+                items: _conditions.map((c) => DropdownMenuItem(
+                  value: c,
+                  child: Text(_conditionLabels[c] ?? c),
+                )).toList(),
                 onChanged: (val) => setState(() => _selectedCondition = val!),
               ),
 

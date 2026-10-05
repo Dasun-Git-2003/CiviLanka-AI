@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class RepairHistoryScreen extends StatelessWidget {
   const RepairHistoryScreen({super.key});
@@ -40,7 +41,46 @@ class RepairHistoryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('Repair History & Maintenance'),
+        automaticallyImplyLeading: false,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        leadingWidth: 52,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? Colors.white : AppColors.textDark,
+              size: 22,
+            ),
+            tooltip: 'Back',
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).maybePop();
+              }
+            },
+          ),
+        ),
+        titleSpacing: 0,
+        title: Text(
+          'Repair History & Maintenance',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : AppColors.textDark,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            height: 1.0,
+          ),
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),

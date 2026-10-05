@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/contractor.dart';
 import '../services/api_service.dart';
 import '../services/contractor_service.dart';
+import '../theme/app_colors.dart';
 
 class ContractorsDirectoryScreen extends StatefulWidget {
   const ContractorsDirectoryScreen({super.key});
@@ -99,37 +100,63 @@ class _ContractorsDirectoryScreenState extends State<ContractorsDirectoryScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        leadingWidth: 52,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? Colors.white : AppColors.textDark,
+              size: 22,
+            ),
+            tooltip: 'Back',
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).maybePop();
+              }
+            },
+          ),
+        ),
+        titleSpacing: 0,
+        title: Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.business_center_rounded, color: Color(0xFFF97316), size: 18),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Contractor Directory',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.business_center_rounded, color: Color(0xFFF97316), size: 18),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Contractor Directory',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.textDark,
+              ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh',
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: isDark ? Colors.white : AppColors.textDark,
+              size: 22,
+            ),
+            tooltip: 'Refresh Contractors',
             onPressed: _loadContractors,
           ),
+          const SizedBox(width: 2),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton.icon(
@@ -146,6 +173,13 @@ class _ContractorsDirectoryScreenState extends State<ContractorsDirectoryScreen>
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            height: 1.0,
+          ),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFFF97316)))
@@ -944,9 +978,21 @@ class _ContractorsDirectoryScreenState extends State<ContractorsDirectoryScreen>
                       decoration: const InputDecoration(labelText: 'Operating District', border: OutlineInputBorder()),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
+                    TextFormField(
                       controller: phoneCtrl,
-                      decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      decoration: const InputDecoration(labelText: 'Phone Number (10 digits)', hintText: '0112345678', border: OutlineInputBorder()),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Phone is required';
+                        if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
+                          return 'Phone must be exactly 10 digits';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -1220,7 +1266,7 @@ class _RegisterContractorModalState extends State<RegisterContractorModal> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFieldLabel('Phone Number *', isDark),
+                        _buildFieldLabel('Phone Number (10 Digits) *', isDark),
                         TextFormField(
                           controller: _phoneController,
                           keyboardType: TextInputType.number,
@@ -1235,7 +1281,9 @@ class _RegisterContractorModalState extends State<RegisterContractorModal> {
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return 'Phone is required';
-                            if (v.trim().length != 10) return 'Phone number must be exactly 10 digits';
+                            if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
+                              return 'Phone number must be exactly 10 digits';
+                            }
                             return null;
                           },
                         ),
