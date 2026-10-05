@@ -238,21 +238,18 @@ jobs:
           name: civilanka-agent-bundle
           path: ./release/agent
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_30E04C46574C413490AC279FA82900D2 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C45DB3928E0546A3B077CEB06B1D4EF7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3A46B11914446D9801AA670D4080A7B }}
+
       - name: Deploy Backend to Azure App Service
         uses: azure/webapps-deploy@v3
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' || secrets.AZUREAPPSERVICE_PUBLISHPROFILE != '' }}
         with:
           app-name: 'CiviLanka'
           package: ./release/api
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-
-      - name: Deploy AI Agent to Azure App Service
-        uses: azure/webapps-deploy@v3
-        if: ${{ secrets.AZURE_AGENT_PUBLISH_PROFILE != '' || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CIVILANKA_AGENT != '' }}
-        with:
-          app-name: 'Civilanka-agent'
-          package: ./release/agent
-          publish-profile: ${{ secrets.AZURE_AGENT_PUBLISH_PROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CIVILANKA_AGENT }}
 
       - name: Generate Checksums & Deployment Manifest
         run: |
