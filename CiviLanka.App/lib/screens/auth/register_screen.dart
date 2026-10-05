@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 
@@ -389,15 +390,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // Phone Number
               const Text(
-                'PHONE NUMBER (OPTIONAL)',
+                'PHONE NUMBER (10 DIGITS)',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFCBD5E1), letterSpacing: 0.5),
               ),
               const SizedBox(height: 6),
               TextFormField(
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: _inputDecoration(hint: '+94 77 123 4567'),
+                decoration: _inputDecoration(
+                  hint: '07XXXXXXXX (10 digits)',
+                  prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF94A3B8), size: 18),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  final clean = val.trim();
+                  if (!RegExp(r'^\d{10}$').hasMatch(clean)) {
+                    return 'Phone number must be exactly 10 digits';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 14),
 
@@ -565,13 +583,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  InputDecoration _inputDecoration({required String hint, Widget? suffixIcon}) {
+  InputDecoration _inputDecoration({required String hint, Widget? prefixIcon, Widget? suffixIcon}) {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13.5),
       filled: true,
       fillColor: const Color(0xFF0F172A),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

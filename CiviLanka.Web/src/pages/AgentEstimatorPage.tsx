@@ -3,17 +3,13 @@ import { useLocation } from 'react-router-dom';
 import {
   Bot,
   Sparkles,
-  Search,
   CheckCircle2,
   AlertCircle,
   Clock,
   HardHat,
   Wrench,
-  DollarSign,
   FileText,
-  RotateCcw,
   Loader2,
-  Layers,
   Database,
   MapPin,
   ChevronDown,
@@ -278,7 +274,7 @@ export const AgentEstimatorPage: React.FC = () => {
       setEstimatorError(
         err.response?.data?.detail ||
           err.message ||
-          'Failed to connect to the agent service at http://localhost:8001. Ensure the Python FastAPI server is running.'
+          'Failed to connect to the agent service. Ensure the Azure agent service is running.'
       );
     } finally {
       setEstimating(false);
@@ -299,68 +295,27 @@ export const AgentEstimatorPage: React.FC = () => {
               <Bot className="w-7 h-7 text-cyan-400" />
               Sri Lanka Municipal Infrastructure Cost & Material Estimator
             </h1>
-            <p className="text-sm text-slate-400 max-w-3xl">
-              Powered by <strong>LangGraph</strong> stateful self-correcting graphs and{' '}
-              <strong>BM25 + ChromaDB Hybrid Search (Reciprocal Rank Fusion)</strong> grounded in
-              authentic Sri Lanka CIDA/BSR 2024–2026 schedule of rates.
-            </p>
           </div>
 
-          {/* Service Live Indicator */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                {health ? (
-                  <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-                  </>
-                ) : (
+          {/* Service Live Indicator - Green / Red Dot Only */}
+          <div
+            onClick={checkAgentHealth}
+            className="flex items-center justify-center p-2.5 rounded-full bg-slate-800/80 border border-slate-700/60 shadow-xs cursor-pointer hover:bg-slate-800 transition-colors"
+            title={healthLoading ? 'Checking Agent Status…' : health ? 'Agent Online (Click to refresh)' : 'Agent Offline (Click to refresh)'}
+          >
+            <span className="relative flex h-3 w-3">
+              {health ? (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                </>
+              ) : (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-50" />
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
-                )}
-              </span>
-              <div>
-                <div className="text-xs font-bold leading-tight">
-                  {healthLoading
-                    ? 'Checking Status…'
-                    : health
-                    ? 'AGENT ONLINE (Port 8001)'
-                    : 'AGENT OFFLINE'}
-                </div>
-                <div className="text-[10px] text-slate-400">
-                  {health ? health.retrieval_mode : 'Run: uvicorn main:app --port 8001'}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={checkAgentHealth}
-              disabled={healthLoading}
-              title="Refresh connection status"
-              className="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 transition-colors"
-            >
-              <RotateCcw className={`w-3.5 h-3.5 ${healthLoading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Feature Highlights Pills */}
-        <div className="mt-5 pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Layers className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>LangGraph Multi-Step Workflow</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <Search className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>BM25 + Vector RRF Retrieval</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>CIDA/BSR 2024–2026 in LKR</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-300">
-            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>Pydantic Schema Validation</span>
+                </>
+              )}
+            </span>
           </div>
         </div>
       </div>
@@ -379,7 +334,7 @@ export const AgentEstimatorPage: React.FC = () => {
                   Click to prefill
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {PRESETS.map((p) => (
                   <button
                     key={p.name}
@@ -628,7 +583,7 @@ export const AgentEstimatorPage: React.FC = () => {
                 {estimating ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Executing LangGraph Workflow…</span>
+                    <span>Agent Running…</span>
                   </>
                 ) : (
                   <>
@@ -648,12 +603,8 @@ export const AgentEstimatorPage: React.FC = () => {
                   <Bot className="w-10 h-10" />
                 </div>
                 <h3 className="text-base font-bold text-slate-800">
-                  LangGraph Agentic State Machine Active
+                  Agent Running…
                 </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  1. Router classified intent &bull; 2. Querying BM25 + ChromaDB Vector Store &bull;
-                  3. Grading document relevance &bull; 4. Synthesizing Bill of Quantities in LKR…
-                </p>
                 <div className="w-48 mx-auto h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-cyan-600 rounded-full animate-indeterminate" />
                 </div>
@@ -666,7 +617,7 @@ export const AgentEstimatorPage: React.FC = () => {
                 <h3 className="text-sm font-bold text-slate-700">No Estimate Generated Yet</h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
                   Select one of the quick presets on the left or enter a custom asset defect, then
-                  click <strong>&ldquo;Generate CIDA BSR Cost Estimate&rdquo;</strong> to run the LangGraph agent.
+                  click <strong>&ldquo;Generate CIDA BSR Cost Estimate&rdquo;</strong> to run the estimation agent.
                 </p>
               </div>
             )}
@@ -706,7 +657,7 @@ export const AgentEstimatorPage: React.FC = () => {
                     <Wrench className="w-3.5 h-3.5 text-cyan-600" />
                     <span>Material Requirements (CIDA BSR Rates)</span>
                   </h3>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                         <tr>
@@ -747,7 +698,7 @@ export const AgentEstimatorPage: React.FC = () => {
                     <HardHat className="w-3.5 h-3.5 text-amber-600" />
                     <span>Labor & Plant Hire (Mandays & Equipment)</span>
                   </h3>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="border border-slate-200 rounded-xl overflow-x-auto">
                     <table className="w-full text-xs text-left">
                       <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                         <tr>

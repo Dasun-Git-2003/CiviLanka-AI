@@ -23,6 +23,8 @@ import {
   Wallet,
   ShieldAlert,
   Activity,
+  Menu,
+  X,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -82,7 +84,12 @@ import { normalizeRole, getRoleMeta } from './utils/rbac';
 // Autonomous Municipal Operations & Audit
 import SafetyAuditCenter from './pages/SafetyAuditCenter';
 
-function Sidebar() {
+interface SidebarContentProps {
+  onClose?: () => void;
+  isMobile?: boolean;
+}
+
+function SidebarContent({ onClose, isMobile }: SidebarContentProps) {
   const location = useLocation();
   const user = authService.getCurrentUser();
   const role = normalizeRole(user?.role);
@@ -257,20 +264,32 @@ function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-slate-900 text-slate-300 min-h-screen flex flex-col border-r border-slate-800 select-none">
-      <div className="p-6 border-b border-slate-800">
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-amber-500" />
-          CivitaGuard
-        </h1>
-        <div className="mt-2 flex items-center gap-1.5">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleMeta.badgeClass}`}>
-            {roleMeta.label}
-          </span>
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300 select-none">
+      <div className="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <Wrench className="w-6 h-6 text-amber-500" />
+            CivitaGuard
+          </h1>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleMeta.badgeClass}`}>
+              {roleMeta.label}
+            </span>
+          </div>
         </div>
+        {isMobile && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            aria-label="Close navigation menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+      <nav className="flex-1 p-3 sm:p-4 space-y-5 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.title}>
             <div className="text-[10px] font-bold tracking-wider uppercase text-slate-400 px-3 mb-2 font-gis">
@@ -285,6 +304,7 @@ function Sidebar() {
                   <Link
                     key={item.path}
                     to={item.path}
+                    onClick={() => onClose?.()}
                     className={twMerge(
                       clsx(
                         'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all',
@@ -319,45 +339,96 @@ function Sidebar() {
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false);
+  const location = useLocation();
   const user = authService.getCurrentUser();
   const roleMeta = getRoleMeta(user?.role);
   const { isSinhala } = useLanguage();
 
+  // Close mobile drawer on route change
+  React.useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile drawer on Escape key press
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 flex items-center justify-between transition-colors">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">CivitaGuard AI</span>
-            <span className="text-slate-300 dark:text-slate-600">&bull;</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors flex flex-col md:flex-row">
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 border-r border-slate-800 select-none shrink-0 sticky top-0 h-screen">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Drawer (visible when open) */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Dimmed backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          {/* Off-canvas sidebar */}
+          <aside className="relative z-10 w-72 max-w-[85vw] bg-slate-900 shadow-2xl flex flex-col h-full border-r border-slate-800 animate-in slide-in-from-left duration-200">
+            <SidebarContent isMobile onClose={() => setMobileSidebarOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      {/* Main View Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden min-h-screen">
+        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between transition-colors sticky top-0 z-30">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden p-2 -ml-1 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+              CivitaGuard AI
+            </span>
+            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">&bull;</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden sm:inline truncate">
               {isSinhala ? 'නාගරික කළමනාකරණ කොන්සෝලය' : 'Municipal Management Console'}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <LanguageToggle isScrolled={true} />
             <ThemeToggle />
             <span
-              className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${roleMeta.badgeClass}`}
+              className={`text-[10px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border hidden sm:inline-flex ${roleMeta.badgeClass}`}
             >
               {roleMeta.label}
             </span>
             <Link
               to="/profile"
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title={isSinhala ? 'මගේ පැතිකඩ බලන්න සහ සංස්කරණය කරන්න' : 'View & Edit My Profile'}
             >
               <div className="w-7 h-7 bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 rounded-full flex items-center justify-center font-bold text-xs shadow-2xs">
                 {user?.fullName ? user.fullName[0].toUpperCase() : 'M'}
               </div>
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden sm:inline">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 hidden md:inline">
                 {user?.fullName || (isSinhala ? 'නාගරික පරිශීලක' : 'Municipal User')}
               </span>
             </Link>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6">{children}</main>
       </div>
     </div>
   );

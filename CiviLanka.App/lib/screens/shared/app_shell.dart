@@ -65,7 +65,7 @@ class _AppShellState extends State<AppShell> {
       destinations = const [
         NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard, color: AppColors.warning), label: 'Dashboard'),
         NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: Icon(Icons.fact_check, color: AppColors.warning), label: 'Approvals'),
-        NavigationDestination(icon: Icon(Icons.construction_outlined), selectedIcon: Icon(Icons.construction, color: AppColors.warning), label: 'Work Orders'),
+        NavigationDestination(icon: Icon(Icons.construction_outlined), selectedIcon: Icon(Icons.construction, color: AppColors.warning), label: 'Orders'),
         NavigationDestination(icon: Icon(Icons.psychology_outlined), selectedIcon: Icon(Icons.psychology, color: AppColors.warning), label: 'AI Hub'),
         NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart, color: AppColors.warning), label: 'Analytics'),
       ];
@@ -83,9 +83,9 @@ class _AppShellState extends State<AppShell> {
       destinations = const [
         NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard, color: AppColors.purple), label: 'Dashboard'),
         NavigationDestination(icon: Icon(Icons.warning_amber_outlined), selectedIcon: Icon(Icons.warning, color: AppColors.purple), label: 'Hazards'),
-        NavigationDestination(icon: Icon(Icons.construction_outlined), selectedIcon: Icon(Icons.construction, color: AppColors.purple), label: 'Work Orders'),
+        NavigationDestination(icon: Icon(Icons.construction_outlined), selectedIcon: Icon(Icons.construction, color: AppColors.purple), label: 'Orders'),
         NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build, color: AppColors.purple), label: 'Maintenance'),
-        NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights, color: AppColors.purple), label: 'AI & Analytics'),
+        NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights, color: AppColors.purple), label: 'AI Hub'),
       ];
       indicatorColor = AppColors.purple;
       drawer = _buildSupervisorDrawer(context, user);
@@ -153,13 +153,32 @@ class _AppShellState extends State<AppShell> {
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _switchTab,
-        backgroundColor: Colors.white,
-        elevation: 8,
-        indicatorColor: indicatorColor.withValues(alpha: 0.12),
-        destinations: destinations,
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            final isSelected = states.contains(WidgetState.selected);
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected
+                  ? indicatorColor
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B)),
+            );
+          }),
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: _switchTab,
+          height: 64,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E293B)
+              : Colors.white,
+          elevation: 8,
+          indicatorColor: indicatorColor.withValues(alpha: 0.12),
+          destinations: destinations,
+        ),
       ),
       floatingActionButton: fab,
     );

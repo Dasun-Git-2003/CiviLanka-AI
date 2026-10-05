@@ -74,8 +74,8 @@ export const RegisterPage: React.FC = () => {
             alt="Colombo Night Building Top"
             className="w-full h-full object-cover filter brightness-[0.85] contrast-[1.1] animate-slow-pan"
           />
-          {/* Overlay of Large Red Crane in Night Skyline */}
-          <div className="absolute top-12 left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
+          {/* Overlay of Large Red Crane in Night Skyline (desktop only to prevent mobile text collision) */}
+          <div className="hidden md:block absolute top-12 left-10 w-44 md:w-60 pointer-events-none drop-shadow-[0_15px_30px_rgba(220,38,38,0.4)] opacity-95">
             <img
               src="https://images.unsplash.com/photo-1568732165911-51cf4bfd9b7c?auto=format&fit=crop&w=800&q=85"
               alt="Large Red Crane"

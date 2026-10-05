@@ -261,10 +261,10 @@ export default function LandingPage() {
             : 'bg-transparent border-b border-transparent text-white'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Wordmark with dynamic light/dark typography */}
-          <Link to="/" className="flex items-center gap-3 shrink-0">
-            <CiviLankaLogo size={40} showText={true} lightText={!isScrolled || isDark} />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <CiviLankaLogo size={36} showText={true} lightText={!isScrolled || isDark} />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -321,7 +321,7 @@ export default function LandingPage() {
           </nav>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Language Switcher (EN <-> සිං) */}
             <LanguageToggle isScrolled={isScrolled} />
 
@@ -344,17 +344,17 @@ export default function LandingPage() {
 
             <Link
               to="/citizen"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 shadow-md transition-all active:scale-[0.98]"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 shadow-md transition-all active:scale-[0.98]"
             >
               <AlertTriangle className="w-3.5 h-3.5 text-slate-950" />
               <span>{t.nav.report}</span>
             </Link>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - always visible and never clipped */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden p-2 rounded-xl transition-colors ${
+              className={`md:hidden p-2 rounded-xl transition-colors cursor-pointer ${
                 isScrolled
                   ? isDark
                     ? 'text-slate-200 hover:text-white hover:bg-slate-800'
@@ -456,11 +456,19 @@ export default function LandingPage() {
               <ThemeToggle />
             </div>
 
-            <div className={`pt-2 border-t sm:hidden ${isScrolled ? (isDark ? 'border-slate-800' : 'border-slate-100') : 'border-slate-800'}`}>
+            <div className={`pt-2 border-t space-y-2 sm:hidden ${isScrolled ? (isDark ? 'border-slate-800' : 'border-slate-100') : 'border-slate-800'}`}>
+              <Link
+                to="/citizen"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-transform active:scale-[0.98]"
+              >
+                <AlertTriangle className="w-4 h-4 text-slate-950" />
+                <span>{t.nav.report}</span>
+              </Link>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`w-full py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+                className={`w-full py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                   isScrolled
                     ? isDark
                       ? 'border-slate-700 text-slate-200 hover:bg-slate-800'

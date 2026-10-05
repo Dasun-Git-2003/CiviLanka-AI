@@ -29,7 +29,7 @@ class CiviLankaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<ApiService>(create: (_) => ApiService()),
+        ChangeNotifierProvider<ApiService>(create: (_) => ApiService()),
         ChangeNotifierProxyProvider<ApiService, AuthService>(
           create: (ctx) => AuthService(ctx.read<ApiService>()),
           update: (ctx, api, previous) => previous ?? AuthService(api),

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
 
+import '../core/constants/app_constants.dart';
 import '../models/infrastructure_asset.dart';
 import '../services/api_service.dart';
 import '../services/asset_service.dart';
@@ -54,13 +55,7 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
     'Critical (Immediate Hazard)',
   ];
 
-  String get _agentBaseUrl {
-    if (kIsWeb) return 'http://localhost:8001';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:8001';
-    } catch (_) {}
-    return 'http://localhost:8001';
-  }
+  String get _agentBaseUrl => ApiConstants.defaultAgentUrl;
 
   @override
   void initState() {

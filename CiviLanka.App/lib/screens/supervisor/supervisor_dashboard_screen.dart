@@ -13,6 +13,7 @@ import '../../services/work_order_service.dart';
 import '../../theme/app_colors.dart';
 import '../citizen/hazard_details_screen.dart';
 import '../create_work_order_screen.dart';
+import '../infrastructure_assets_screen.dart';
 import '../work_order_details_screen.dart';
 import '../shared/profile_screen.dart';
 import '../../widgets/municipal_app_drawer.dart';
@@ -219,6 +220,55 @@ class _SupervisorDashboardScreenState extends State<SupervisorDashboardScreen> {
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Quick Access to Infrastructure Assets & Registry
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const InfrastructureAssetsScreen()),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFEA580C), Color(0xFFF97316)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFF97316).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.location_city_rounded, color: Colors.white, size: 24),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Infrastructure Assets Registry',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                      Text(
+                                        'View GIS assets & register new municipal infrastructure',
+                                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+                              ],
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 24),

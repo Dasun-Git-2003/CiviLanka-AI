@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/widgets/civic_badge.dart';
 import '../../core/widgets/civic_button.dart';
 import '../../core/widgets/civic_card.dart';
@@ -242,7 +243,7 @@ class _HazardDetailsScreenState extends State<HazardDetailsScreen> {
                 child: Image.network(
                   h.imageUrl!.startsWith('http')
                       ? h.imageUrl!
-                      : 'http://localhost:5000${h.imageUrl}',
+                      : '${ApiConstants.defaultBaseUrl}${h.imageUrl}',
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,

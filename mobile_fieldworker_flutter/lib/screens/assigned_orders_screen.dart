@@ -143,7 +143,7 @@ class _AssignedOrdersScreenState extends State<AssignedOrdersScreen> {
                                       decoration: BoxDecoration(
                                         color: pColor.withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.parseBorder(Border.all(color: pColor.withOpacity(0.5))),
+                                        border: Border.all(color: pColor.withOpacity(0.5)),
                                       ),
                                       child: Text(
                                         order.priority,

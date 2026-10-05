@@ -3,8 +3,11 @@ import 'package:http/http.dart' as http;
 import '../models/work_order.dart';
 
 class ApiService {
-  // Configurable backend base URL (10.0.2.2 for Android emulator or LAN IP for physical device)
-  static const String baseUrl = 'http://10.0.2.2:5000/api';
+  // Hosted backend base URL
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'https://civilanka-a3gqebh7h4f0f6gy.indiasouthcentral-01.azurewebsites.net/api',
+  );
 
   static Future<List<WorkOrder>> getAssignedWorkOrders({String? workerName}) async {
     try {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/server_config_dialog.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -115,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Back Button & Mini Badge
+                // Back Button & Server Switcher Pill
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -139,20 +141,46 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.4)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.shield_outlined, size: 12, color: Color(0xFF22D3EE)),
-                          SizedBox(width: 4),
-                          Text('SMART OPERATIONS', style: TextStyle(color: Color(0xFF22D3EE), fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                        ],
+                    InkWell(
+                      onTap: () => ServerConfigDialog.show(context),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Consumer<ApiService>(
+                        builder: (context, api, _) {
+                          final isCloud = api.isUsingCloud;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isCloud
+                                    ? const Color(0xFF10B981).withValues(alpha: 0.6)
+                                    : const Color(0xFF3B82F6).withValues(alpha: 0.6),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isCloud ? Icons.cloud_done_rounded : Icons.computer_rounded,
+                                  color: isCloud ? const Color(0xFF10B981) : const Color(0xFF60A5FA),
+                                  size: 13,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  api.serverDisplayName,
+                                  style: TextStyle(
+                                    color: isCloud ? const Color(0xFF34D399) : const Color(0xFF93C5FD),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.settings_outlined, color: Colors.grey, size: 12),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
