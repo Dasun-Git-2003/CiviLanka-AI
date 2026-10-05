@@ -59,11 +59,20 @@ jobs:
           name: python-app
           path: ./agent-app
       
+      - name: Login to Azure
+        if: ${{ secrets.AZUREAPPSERVICE_CLIENTID_71954AF173C54E6D9C94DEB1D19C40C2 != '' }}
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_71954AF173C54E6D9C94DEB1D19C40C2 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7BDBC625DF9C471D921D83B8406AD6EC }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4E79AC1CAEE44497802DF0CE6F1CDCFE }}
+
       - name: 'Deploy to Azure Web App'
+        if: ${{ secrets.AZUREAPPSERVICE_CLIENTID_71954AF173C54E6D9C94DEB1D19C40C2 != '' || secrets.AZURE_AGENT_PUBLISH_PROFILE != '' }}
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'Civilanka-agent'
           slot-name: 'Production'
           package: ./agent-app
-          publish-profile: ${{ secrets.AZURE_AGENT_PUBLISH_PROFILE || secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CIVILANKA_AGENT }}
+          publish-profile: ${{ secrets.AZURE_AGENT_PUBLISH_PROFILE || '' }}
