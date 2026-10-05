@@ -1276,22 +1276,14 @@ class _RegisterContractorModalState extends State<RegisterContractorModal> {
                           ],
                           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           decoration: _buildInputDecoration(
-<<<<<<< HEAD
-                            hint: '0112345678',
-=======
                             hint: '0771234567',
->>>>>>> origin/main
                             isDark: isDark,
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return 'Phone is required';
-<<<<<<< HEAD
                             if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
                               return 'Phone must be exactly 10 digits';
                             }
-=======
-                            if (v.trim().length != 10) return 'Phone number must be exactly 10 digits';
->>>>>>> origin/main
                             return null;
                           },
                         ),
