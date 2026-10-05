@@ -101,21 +101,50 @@ namespace CiviLanka.API.Models
         public static readonly string[] EditableStates = { Submitted, PendingAIAnalysis, AnalysisComplete, UnderReview };
     }
 
-    /// <summary>Allowed hazard categories.</summary>
+    /// <summary>Allowed hazard categories across acute disasters and civic infrastructure.</summary>
     public static class HazardCategory
     {
+        // Standard categories
         public const string Pothole = "Pothole";
+        public const string LargePothole = "Large Pothole";
         public const string WaterLeak = "WaterLeak";
+        public const string WaterMainBurst = "Water Main Burst";
         public const string BrokenTrafficSignal = "BrokenTrafficSignal";
+        public const string DamagedTrafficSignal = "Damaged Traffic Signal";
         public const string DamagedRoad = "DamagedRoad";
         public const string FallenTree = "FallenTree";
         public const string DrainageProblem = "DrainageProblem";
+        public const string DrainageCoverCollapse = "Drainage Cover Collapse";
         public const string StreetLightProblem = "StreetLightProblem";
+        public const string BrokenStreetlightPole = "Broken Streetlight Pole";
+        public const string CollapsedRetainingWall = "Collapsed Retaining Wall";
+        public const string FloodedUnderpass = "Flooded Underpass";
+        public const string RoadsideLandslide = "Roadside Landslide";
+        public const string FallenUtilityPole = "Fallen Utility Pole";
+        public const string OilSpill = "Oil Spill on Roadway";
+
+        // Expanded acute disaster & infrastructure categories
+        public const string Sinkhole = "Sinkhole & Ground Subsidence";
+        public const string BridgeStructuralDamage = "Bridge Structural Damage";
+        public const string SewageOverflow = "Sewage & Wastewater Overflow";
+        public const string ExposedHighVoltageCable = "Exposed High-Voltage Cable";
+        public const string DamagedGuardrail = "Damaged Highway Guardrail";
+        public const string MissingManholeCover = "Missing Manhole Cover";
+        public const string HazardousWasteDump = "Hazardous Chemical & Waste Dump";
+        public const string PedestrianWalkwayCollapse = "Pedestrian Walkway Collapse";
+        public const string GasLeak = "Gas or Combustible Vapour Leak";
+        public const string CoastalErosion = "Coastal Erosion & Seawall Breach";
+        public const string ElectricalHazard = "Electrical Hazard";
+        public const string StructuralDamage = "Structural Damage";
         public const string Other = "Other";
 
         public static readonly string[] All = {
-            Pothole, WaterLeak, BrokenTrafficSignal, DamagedRoad,
-            FallenTree, DrainageProblem, StreetLightProblem, Other
+            Pothole, LargePothole, WaterLeak, WaterMainBurst, BrokenTrafficSignal, DamagedTrafficSignal,
+            DamagedRoad, FallenTree, DrainageProblem, DrainageCoverCollapse, StreetLightProblem,
+            BrokenStreetlightPole, CollapsedRetainingWall, FloodedUnderpass, RoadsideLandslide,
+            FallenUtilityPole, OilSpill, Sinkhole, BridgeStructuralDamage, SewageOverflow,
+            ExposedHighVoltageCable, DamagedGuardrail, MissingManholeCover, HazardousWasteDump,
+            PedestrianWalkwayCollapse, GasLeak, CoastalErosion, ElectricalHazard, StructuralDamage, Other
         };
     }
 }

@@ -507,8 +507,6 @@ void main() {
     test(
         'canApproveWorkOrders role mapping strictly enforces backend CanApproveWorkOrder policy',
         () {
-      final now = DateTime.now().add(const Duration(hours: 1));
-
       User createUser(String role) => User(
             userId: 'u-1',
             fullName: 'Test User',

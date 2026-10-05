@@ -242,39 +242,74 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
     setState(() {
       switch (index) {
         case 0:
-          _hazardTitleCtrl.text = 'School Zone Water Main Rupture';
-          _hazardDescCtrl.text = 'High-pressure 4-inch water main ruptured along Maradana Road. Flooding street opposite school gate during morning rush hour.';
+          _hazardTitleCtrl.text = 'Water Main Burst';
+          _hazardDescCtrl.text = 'A major underground water pipe has burst along Kandy Road near the Kiribathgoda junction, flooding two lanes and creating a deep sinkhole. Water is flowing rapidly across the roadway, causing severe traffic congestion and a risk of vehicles becoming trapped.';
           _hazardCategory = 'Water Leak';
-          _hazardLocCtrl.text = 'Maradana Road, Colombo 10';
-          _hazardZone = 'School Zone (0.1km)';
+          _hazardLocCtrl.text = 'Kandy Road near Kiribathgoda Junction';
+          _hazardZone = 'Major Arterial Highway';
           break;
         case 1:
-          _hazardTitleCtrl.text = 'CEB Live Cable & Fallen Branch';
-          _hazardDescCtrl.text = 'Severe thunderstorm snapped a 33kV high-voltage electrical cable. Live wires sparking on wet asphalt near bus stop.';
-          _hazardCategory = 'Electrical Hazard';
-          _hazardLocCtrl.text = 'Havelock Road, Colombo 05';
-          _hazardZone = 'Bus Terminal & Commercial Corridor';
+          _hazardTitleCtrl.text = 'Collapsed Retaining Wall';
+          _hazardDescCtrl.text = 'A concrete retaining wall has partially collapsed onto the roadside along High Level Road near Nugegoda, blocking one lane and scattering large concrete debris across the road. The remaining wall appears unstable and may collapse further.';
+          _hazardCategory = 'Structural Damage';
+          _hazardLocCtrl.text = 'High Level Road near Nugegoda';
+          _hazardZone = 'Primary Commuter Route';
           break;
         case 2:
-          _hazardTitleCtrl.text = 'Kelani Bridge Expansion Joint Fracture';
-          _hazardDescCtrl.text = 'Structural steel expansion joint fractured with a 15cm jagged cavity. Heavy lorries causing severe vibration and structural deflection.';
-          _hazardCategory = 'Structural Damage';
-          _hazardLocCtrl.text = 'New Kelani Bridge, Peliyagoda';
-          _hazardZone = 'Arterial Highway Corridor (A1)';
+          _hazardTitleCtrl.text = 'Damaged Traffic Signal';
+          _hazardDescCtrl.text = 'A traffic signal pole has been knocked down at the Rajagiriya junction, leaving exposed electrical cables near the intersection. Traffic signals are completely non-functional, creating a high risk of collisions during peak-hour traffic.';
+          _hazardCategory = 'Electrical Hazard';
+          _hazardLocCtrl.text = 'Rajagiriya Main Junction';
+          _hazardZone = 'Arterial Intersection';
           break;
         case 3:
-          _hazardTitleCtrl.text = 'Open Deep Manhole Cavity Near Hospital';
-          _hazardDescCtrl.text = 'Heavy cast iron drainage manhole cover shattered by passing container. 2.5m open drop next to emergency room entrance.';
+          _hazardTitleCtrl.text = 'Flooded Underpass';
+          _hazardDescCtrl.text = 'Heavy rainfall has caused severe flooding inside the Dehiwala railway underpass, with water reaching approximately 60 cm deep. Several vehicles are stranded, and traffic is unable to pass through either direction.';
           _hazardCategory = 'Drainage & Flooding';
-          _hazardLocCtrl.text = 'Regent Street, Colombo 08';
-          _hazardZone = 'Hospital Emergency Lane (50m)';
+          _hazardLocCtrl.text = 'Dehiwala Railway Underpass, Station Road';
+          _hazardZone = 'Railway Transit Underpass';
           break;
         case 4:
-          _hazardTitleCtrl.text = 'Canal Inundation & Culvert Blockage';
-          _hazardDescCtrl.text = 'St. Sebastian Canal canal bank overflow. Tree trunks and plastic silt blocking 80% culvert throat causing 40cm backwater into homes.';
+          _hazardTitleCtrl.text = 'Roadside Landslide';
+          _hazardDescCtrl.text = 'A section of the roadside embankment has collapsed onto the road near Kaduwela, covering one lane with mud, rocks, and tree branches. Further soil movement is visible on the slope following continuous rainfall.';
+          _hazardCategory = 'Other';
+          _hazardLocCtrl.text = 'Low Level Road near Kaduwela';
+          _hazardZone = 'Hilly Roadside Embankment';
+          break;
+        case 5:
+          _hazardTitleCtrl.text = 'Broken Streetlight Pole';
+          _hazardDescCtrl.text = 'A damaged streetlight pole is leaning dangerously over the pavement along Galle Road near Mount Lavinia. The electrical connection remains active, and exposed wiring is hanging close to pedestrians and passing vehicles.';
+          _hazardCategory = 'Electrical Hazard';
+          _hazardLocCtrl.text = 'Galle Road near Mount Lavinia';
+          _hazardZone = 'Pedestrian Walkway';
+          break;
+        case 6:
+          _hazardTitleCtrl.text = 'Large Pothole';
+          _hazardDescCtrl.text = 'A large pothole approximately one metre wide has developed in the left lane of Parliament Road near Battaramulla. The surrounding asphalt is cracked and deteriorating, forcing vehicles to suddenly change lanes and increasing the risk of accidents.';
+          _hazardCategory = 'Road Damage';
+          _hazardLocCtrl.text = 'Parliament Road, Battaramulla';
+          _hazardZone = 'VIP Highway Corridor';
+          break;
+        case 7:
+          _hazardTitleCtrl.text = 'Drainage Cover Collapse';
+          _hazardDescCtrl.text = 'A storm-drain cover has collapsed near Borella Junction, leaving a deep open drainage pit directly beside the pedestrian walkway. Several broken concrete pieces are scattered around the opening, creating a serious hazard for pedestrians and motorcycles.';
           _hazardCategory = 'Drainage & Flooding';
-          _hazardLocCtrl.text = 'Grandpass, Colombo 14';
-          _hazardZone = 'Dense Residential Lowland';
+          _hazardLocCtrl.text = 'Borella Junction, Colombo 08';
+          _hazardZone = 'Dense Commercial Pedestrian Zone';
+          break;
+        case 8:
+          _hazardTitleCtrl.text = 'Fallen Utility Pole';
+          _hazardDescCtrl.text = 'A wooden utility pole has fallen across a residential access road in Wattala, pulling down communication cables and partially blocking the entrance. Several cables are hanging at low height across the roadway.';
+          _hazardCategory = 'Other';
+          _hazardLocCtrl.text = 'Residential Access Road, Wattala';
+          _hazardZone = 'Residential Collector Road';
+          break;
+        case 9:
+          _hazardTitleCtrl.text = 'Oil Spill on Roadway';
+          _hazardDescCtrl.text = 'A large quantity of engine oil has leaked from a damaged truck onto the wet surface of Negombo Road near Peliyagoda. The affected section is highly slippery, particularly for motorcycles, and vehicles are losing traction while braking.';
+          _hazardCategory = 'Other';
+          _hazardLocCtrl.text = 'Negombo Road near Peliyagoda';
+          _hazardZone = 'Arterial Freight Corridor';
           break;
       }
     });
@@ -923,28 +958,6 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // Preset Scenarios Carousel
-          const Text('1-Click Incident Presets:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.slate700)),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildPresetButton(0, '💧 School Water Burst', Colors.blue),
-                const SizedBox(width: 8),
-                _buildPresetButton(1, '⚡ CEB Live Wire', Colors.amber),
-                const SizedBox(width: 8),
-                _buildPresetButton(2, '🌉 Kelani Bridge Defect', const Color(0xFFF43F5E)),
-                const SizedBox(width: 8),
-                _buildPresetButton(3, '🕳️ Open Manhole Hospital', Colors.purple),
-                const SizedBox(width: 8),
-                _buildPresetButton(4, '🌊 Canal Drainage Block', Colors.teal),
-              ],
-            ),
-          ),
-
           const SizedBox(height: 12),
 
           // Multilingual fast test chips
@@ -955,7 +968,15 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
               ActionChip(
                 label: const Text('English (EN)'),
                 labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                onPressed: () => _applyHazardPreset(0),
+                onPressed: () {
+                  setState(() {
+                    _hazardTitleCtrl.text = 'Water Main Burst';
+                    _hazardDescCtrl.text = 'A major underground water pipe has burst along Kandy Road near Kiribathgoda junction, flooding two lanes and creating a deep sinkhole.';
+                    _hazardCategory = 'Water Leak';
+                    _hazardLocCtrl.text = 'Kandy Road near Kiribathgoda Junction';
+                    _hazardZone = 'Major Arterial Highway';
+                  });
+                },
               ),
               const SizedBox(width: 6),
               ActionChip(
@@ -1225,7 +1246,14 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
     final r = _triageResult!;
     final isCritical = r.severity == 'CRITICAL';
     final isHigh = r.severity == 'HIGH';
-    final badgeColor = isCritical ? AppColors.critical : isHigh ? AppColors.warning : AppColors.teal;
+    final isMedium = r.severity == 'MEDIUM';
+    final badgeColor = isCritical
+        ? AppColors.critical
+        : isHigh
+            ? AppColors.warning
+            : isMedium
+                ? const Color(0xFF2563EB)
+                : const Color(0xFF10B981);
 
     return Container(
       decoration: BoxDecoration(
@@ -1329,29 +1357,204 @@ class _AIIntelligenceScreenState extends State<AIIntelligenceScreen>
 
           const SizedBox(height: 12),
 
-          // Action Recommendation
+          // Action Recommendations / Municipal Directives
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFA7F3D0)),
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF1E293B)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                // Authority & Statutory Badge Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.flash_on_rounded, size: 16, color: Color(0xFF059669)),
-                    SizedBox(width: 6),
-                    Text('Recommended Municipal Protocol', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF059669).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.shield_outlined, size: 16, color: Color(0xFF34D399)),
+                        ),
+                        const SizedBox(width: 8),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'MUNICIPAL OPERATIONAL DIRECTIVES',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            Text(
+                              'Enforced under Sri Lanka Municipal Councils Ordinance §14',
+                              style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF065F46),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'STATUTORY §14',
+                        style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFA7F3D0)),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  r.recommendedAction,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF047857), height: 1.3),
+
+                const SizedBox(height: 10),
+
+                // Authority Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF334155)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.account_balance_outlined, size: 14, color: Color(0xFF38BDF8)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          r.category.toLowerCase().contains('water')
+                              ? 'Enforcing Authority: National Water Supply & Drainage Board (NWSDB)'
+                              : r.category.toLowerCase().contains('electric') || r.category.toLowerCase().contains('light')
+                                  ? 'Enforcing Authority: Ceylon Electricity Board (CEB) / CMC Electrical'
+                                  : r.category.toLowerCase().contains('drain') || r.category.toLowerCase().contains('flood')
+                                      ? 'Enforcing Authority: CMC Drainage & Flood Control Division'
+                                      : r.category.toLowerCase().contains('tree')
+                                          ? 'Enforcing Authority: Disaster Management Centre (DMC) & CMC Lands'
+                                          : r.category.toLowerCase().contains('bridge') || r.category.toLowerCase().contains('structur')
+                                              ? 'Enforcing Authority: Road Development Authority (RDA) & CMC'
+                                              : r.category.toLowerCase().contains('road') || r.category.toLowerCase().contains('pothole')
+                                                  ? 'Enforcing Authority: CMC Engineering Department (Road Works)'
+                                                  : 'Enforcing Authority: Colombo Municipal Council (Zonal Works)',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFE2E8F0)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
+                const SizedBox(height: 12),
+
+                // Sequenced Directives List
+                ...(() {
+                  final rawActions = r.recommendedAction.contains(';')
+                      ? r.recommendedAction.split(';').map((a) => a.trim()).where((a) => a.isNotEmpty).toList()
+                      : [r.recommendedAction];
+
+                  return rawActions.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final actionText = entry.value;
+
+                    final phaseTitle = idx == 0
+                        ? 'PHASE 01 • IMMEDIATE CONTAINMENT'
+                        : idx == 1
+                            ? 'PHASE 02 • SPECIALIZED CREW DISPATCH'
+                            : idx == 2
+                                ? 'PHASE 03 • STATUTORY SLA RECTIFICATION'
+                                : 'PHASE 0${idx + 1} • VERIFICATION & MONITORING';
+
+                    final tagLabel = idx == 0
+                        ? (r.severity == 'CRITICAL' ? 'MANDATORY URGENT' : 'HIGH PRIORITY')
+                        : idx == 1
+                            ? 'TACTICAL DISPATCH'
+                            : '< ${r.estimatedResponseHours.toStringAsFixed(0)}H SLA';
+
+                    final tagColor = idx == 0
+                        ? (r.severity == 'CRITICAL' ? const Color(0xFFEF4444) : const Color(0xFFF59E0B))
+                        : idx == 1
+                            ? const Color(0xFF0EA5E9)
+                            : const Color(0xFF10B981);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF334155)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0F172A),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '0${idx + 1}',
+                                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF38BDF8), fontFamily: 'monospace'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    phaseTitle,
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFFCBD5E1), letterSpacing: 0.3),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: tagColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: tagColor.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  tagLabel,
+                                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: tagColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2, right: 6),
+                                child: Icon(Icons.check_circle_outline, size: 13, color: Color(0xFF10B981)),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  actionText,
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), height: 1.35),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                })(),
               ],
             ),
           ),
