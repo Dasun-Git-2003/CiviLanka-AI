@@ -96,26 +96,73 @@ Citizen Hazard Report:
 Retrieved Municipal Hazard Standards & SLA Rules:
 {docs}
 
-Instructions & Calibration Rules:
-1. Determine the exact Primary Category (e.g. Pothole & Asphalt Failure, Water Main Burst, Drain Blockage & Gully Overflow, Street Lighting Failure, Fallen Tree & Utility Obstruction, Structural Damage, Open Manhole, or Other).
-   - CATEGORY HANDLING & PRESERVING "Other": If the citizen classified the hazard as "Other" and the incident describes an unlisted, miscellaneous, or general municipal issue (or if the category is truly "Other"), PRESERVE "Other". Do NOT force-reclassify "Other" reports into arbitrary road or water categories. Only if the description clearly and unambiguously refers to a specific known utility (e.g., explicitly broken water pipe or fallen electric wire) should you reclassify it; otherwise retain "Other".
-2. Assign the responsible Municipal Authority: CMC Engineering Department, RDA (Road Development Authority), NWSDB (National Water Supply & Drainage Board), CEB/LECO (Electricity), CMC Public Health & General Administration, or Disaster Management Centre.
-3. Calibrate Severity to one of: CRITICAL, HIGH, MEDIUM, LOW.
-   - SCHOOL / SENSITIVE ZONE RISK MULTIPLIER: Hazards situated near Schools, Kindergartens, Hospitals, or Pedestrian Crossing Corridors present elevated public safety risk!
-   - Example: A burst water pipe near a school MUST be classified as HIGH risk (or CRITICAL if flooding the roadway) due to child foot-traffic hazards, slipping risks, and morning traffic gridlock.
-   - CRITICAL: Manhole open, main water burst (>100mm) on active road, live CEB wire fallen, tree blocking major arterial, bridge structural fracture, sinkhole, direct threat to life. SLA: 2 to 4 hours.
-   - HIGH: Water pipe rupture near school/hospital, pothole >100mm on bus route, blocked drain during rainy/monsoon season, low hanging wire, heavy public disruption. SLA: 12 to 24 hours.
-   - MEDIUM: Pothole 50-100mm on residential collector, minor water service leak, drain siltation, moderate sidewalk crack, standard municipal defect. SLA: 48 hours.
-   - LOW: Cosmetic pavement defect, burned street bulb, minor curb chip, general non-urgent civic complaint, minor "Other" report with no immediate danger. SLA: 72 to 168 hours (3 to 7 days).
-4. Calculate Urgency Score (0.0 to 100.0) factoring in Colombo Urban Risk Multipliers:
-   - Base score: Critical=85, High=65, Medium=45, Low=20.
-   - Proximity to school/hospital/religious site: +25
-   - Location on Class-A arterial corridor (Galle Rd, Baseline Rd, Kandy Rd, High Level Rd, Pettah): +20
-   - Monsoon or flood-prone drainage: +15
-   - Cap maximum score at 100.0.
-5. Identify immediate containment safety actions (e.g. reflective barrier cones, gully suction bowser, valve shutoff, field inspection dispatch, perimeter cordon). Provide actionable, category-specific suggestions.
-6. Recommend crew sizing and state whether Police Traffic Support is required.
-7. Flag monsoon flood risk and environmental risk factors.
+Instructions & Disaster Intelligence Rules:
+1. Identify the exact Primary Physical Hazard Category and Root Failure Mechanism:
+   - "Water Main Burst & Subsurface Sinkhole" / "Water Main Burst": Potable clean drinking water distribution pipe ruptured (NWSDB), underground high-pressure main break, carriageway flooding, deep sinkhole/erosion cavity. NEVER classify stormwater, rain puddles, or silted culverts as Water Main Burst or Water Leak.
+   - "Drain Blockage & Stormwater Inundation" / "Drainage Problem": Siltation, storm culvert blockages, clogged roadside gutters, surface rainwater accumulation after heavy rainfall, and stormwater backflow (Municipal Drainage & Flood Control Division).
+   - "Collapsed Retaining Wall & Slope Hazard" / "Collapsed Retaining Wall": Masonry/concrete wall collapse, debris scattered across lanes, unstable standing wall at risk of further collapse.
+   - "Damaged Traffic Signal & Junction Hazard" / "Damaged Traffic Signal": Traffic signal pole knocked down, exposed live 230V electrical cables, non-functional signals during rush hour, high collision risk.
+   - "Flooded Railway Underpass & Submerged Transit" / "Flooded Underpass": Inundation of underpasses (e.g., 50-60cm+ water depth), stranded vehicles, complete transit blockage, pump station failure.
+   - "Roadside Landslide & Active Slope Instability" / "Roadside Landslide": Embankment collapse, mud, rock, and vegetation debris across roadway, active soil movement following continuous rainfall.
+   - "Broken Streetlight Pole & Overhead Electrical Hazard" / "Broken Streetlight Pole": Damaged/leaning streetlight pole over walkway/carriageway, live electrical connection, exposed wiring hanging near pedestrians/vehicles.
+   - "Severe Asphalt Crater & Carriageway Pothole Defect" / "Large Pothole": Deep wide asphalt crater (>1m), deteriorating road base, sudden swerving/impact risk on arterial routes.
+   - "Open Storm Drain Cavity & Collapsed Cover" / "Drainage Cover Collapse": Collapsed storm-drain slab, deep open pit adjacent to pedestrian walkways/carriageway, severe fall hazard for pedestrians and motorcycles.
+   - "Fallen Utility Pole & Overhead Cable Hazard" / "Fallen Utility Pole": Fallen wooden/spun utility pole across road, low-hanging telecommunication or low-voltage cables blocking access.
+   - "Oil Spill & Hazardous Roadway Contaminant" / "Oil Spill on Roadway": Engine oil/diesel leak on wet road, high slipperiness, loss of braking traction, acute skidding hazard for two-wheelers and vehicles.
+   - "Sinkhole & Ground Subsidence": Sudden subterranean cavity collapse under asphalt, void swallowing vehicles or undermining structural foundations.
+   - "Bridge Structural Damage": Deck fracture, shear cracks, river pier scour, expansion joint displacement on bridges or elevated flyovers.
+   - "Sewage & Wastewater Overflow": Sewer trunk rupture, raw blackwater erupting from manhole onto pedestrian sidewalks or streets, pathogenic biohazard.
+   - "Exposed High-Voltage Cable": Snapped overhead 11kV/33kV power line lying on ground or in water, transformer explosion/sparking, immediate fatal electrocution threat.
+   - "Damaged Highway Guardrail": Smashed crash barrier or flyover parapet wall, exposed jagged steel pointing into traffic, edge plunge hazard.
+   - "Missing Manhole Cover": Uncovered deep circular utility chamber (2-3m depth) on active road or footpath without a lid, severe fall hazard.
+   - "Hazardous Chemical & Waste Dump": Leaking industrial chemical drums, toxic fumes, corrosive liquid spills, acute roadside dumping blocking waterways.
+   - "Pedestrian Walkway Collapse": Broken footbridge slabs, sunken pedestrian pavement, open utility trenches causing severe injury/fall risk.
+   - "Gas or Combustible Vapour Leak": Pressurized commercial LPG / fuel gas pipeline leak, strong mercaptan odour, explosive vapour cloud.
+   - "Coastal Erosion & Seawall Breach": Wave overtopping, revetment/seawall collapse along Marine Drive / coastal corridor threatening road collapse.
+   - "Fallen Tree & Roadway Obstruction" / "Fallen Tree": Storm-felled trees, large branch breaks, overhead obstruction.
+   - "Other": General unlisted municipal issues, public nuisances, or administrative complaints that do not exhibit acute physical civil engineering damage. PRESERVE "Other" whenever the report describes a general civic matter.
+
+2. Assign the exact Governing Sri Lankan Municipal Authority and Operational Division:
+   - NWSDB (National Water Supply & Drainage Board) -> Water main ruptures, distribution pipe breaks, sewer overflows.
+   - NBRO (National Building Research Organisation) & RDA -> Landslides, embankment slips, retaining wall stability.
+   - RDA (Road Development Authority) -> Bridge structural damage, highway guardrails, sinkholes, national highway craters.
+   - Sri Lanka Police Traffic HQ & RDA / CMC Traffic Engineering -> Damaged traffic signals, peak-hour intersection control.
+   - CMC Drainage & Flood Control Division & SLR (Sri Lanka Railways) -> Flooded railway underpasses, stormwater canals, subway pumps.
+   - CEB (Ceylon Electricity Board) / LECO -> Snapped high-voltage power lines, transformers, leaning streetlight poles.
+   - SLT-Mobitel & CEB Joint Infrastructure -> Fallen utility poles, low-hanging communication cables.
+   - CMC Fire & Rescue Service Department / Police Hazmat Unit -> Oil spills, chemical contaminants, combustible gas leaks.
+   - Central Environmental Authority (CEA) -> Hazardous toxic waste dumping, industrial chemical remediation.
+   - Coast Conservation Department (CCD) & RDA -> Coastal revetment breaches, Marine Drive seawall erosion.
+   - CMC Engineering Department (Asphalt & Pavements) -> Carriageway craters, deep potholes, road subsidence.
+   - CMC Engineering (Drainage & Zonal Works) -> Collapsed storm-drain covers, open manhole pits.
+   - DMC (Disaster Management Centre) -> Severe multi-hazard emergencies, widespread weather impacts.
+
+3. Calibrate Severity (CRITICAL, HIGH, MEDIUM, LOW):
+   - CRITICAL (SLA: 1-4 hours):
+     * Active oil spill on major roadway with vehicle skidding / loss of traction.
+     * Roadside landslide with ongoing soil movement / blocked lanes.
+     * Collapsed retaining wall with unstable remaining structure.
+     * Flooded underpass with trapped/stranded vehicles.
+     * Knocked-down traffic signal with exposed live electrical cables or severe junction collision danger.
+     * Open storm drain pit or manhole cavity without protection on pedestrian corridor.
+     * High-pressure water main burst with sinkhole development.
+     * Live fallen electrical cables or leaning pole with active current near pedestrians.
+   - HIGH (SLA: 4-12 hours):
+     * Water pipe leaks or large potholes adjacent to schools, hospitals, or transit hubs.
+     * Fallen utility pole blocking residential access roads.
+     * Large carriageway potholes (>1m) causing rapid vehicular swerving on arterial roads.
+     * Blocked stormwater drainage canals during heavy rain warnings.
+   - MEDIUM (SLA: 24-48 hours): Standard suburban potholes, minor non-potable leaks, broken bulbs, non-obstructive vegetation.
+   - LOW (SLA: 72-168 hours): Cosmetic defects, minor curb wear, general non-urgent "Other" inquiries.
+
+4. Calculate Urgency Score (0.0 to 100.0):
+   - Base score: Critical=88-98, High=70-85, Medium=45-65, Low=20-35.
+   - Add urban risk multipliers for arterial transit corridors (+15 to +20) and school/hospital zones (+15 to +25). Max 100.0.
+
+5. Prescribe Immediate Operational Containment Directives:
+   - Provide concrete, phased operational actions (e.g. cordon radius, police traffic diversion, sand/sawdust absorbent application, valve shutoff, shoring, high-capacity bowser deployment).
+
+6. Recommend Crew Sizing and Flag Traffic Police Support & Monsoon Flood Risks.
 """
 
 

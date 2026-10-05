@@ -6,6 +6,8 @@ import {
   Cpu,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
+  X,
   Play,
   RotateCw,
   Languages,
@@ -19,17 +21,13 @@ import {
   ArrowRight,
   Building2,
   Users,
-  CloudRain,
   School,
   Hospital,
   Compass,
-  AlertCircle,
   RefreshCw,
   Copy,
   Check,
   FileText,
-  Zap,
-  Waves,
   ShieldCheck,
 } from 'lucide-react';
 import { apiClient } from '../services/apiService';
@@ -48,93 +46,7 @@ interface SimpleHazard {
   longitude?: number;
 }
 
-interface PresetScenario {
-  id: string;
-  icon: any;
-  title: string;
-  badge: string;
-  zone: string;
-  categorySupplied: string;
-  description: string;
-  location: string;
-  weather: string;
-  traffic: string;
-  metadata: string;
-  photoUrl: string;
-}
 
-const PRESET_SCENARIOS: PresetScenario[] = [
-  {
-    id: 'school-water-burst',
-    icon: Waves,
-    title: 'School Zone Water Main Burst',
-    badge: 'High Public Risk',
-    zone: 'School Zone',
-    categorySupplied: 'Other',
-    description: 'A 110mm municipal water distribution pipe has ruptured outside Royal College, gushing high-pressure water onto Rajakeeya Mawatha sidewalk during the morning school arrival rush. Water is flooding the pedestrian pathway and causing student drop-off gridlock.',
-    location: 'Near Royal College, Rajakeeya Mawatha, Colombo 07',
-    weather: 'Heavy Monsoon Rain',
-    traffic: 'School Arrival Rush',
-    metadata: 'High student foot traffic, active water gushing, undermined road pavement',
-    photoUrl: 'https://images.unsplash.com/photo-1584463699039-3972c726a457?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'live-wire-tree',
-    icon: Zap,
-    title: 'Live CEB Cable & Collapsed Tree',
-    badge: 'Electrocution Danger',
-    zone: 'Primary Highway',
-    categorySupplied: 'Other',
-    description: 'A large roadside banyan tree has fallen across Baseline Road, dragging down 400V high-voltage power lines that are now sparking on the wet roadway near Dematagoda railway overpass. Traffic blocked in both lanes.',
-    location: 'Baseline Road near Dematagoda Bridge, Colombo 09',
-    weather: 'Severe Thunderstorm & Wind',
-    traffic: 'Major Arterial Highway',
-    metadata: 'Live high-voltage wire on road surface, full lane blockage, fire risk',
-    photoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'bridge-structural',
-    icon: Building2,
-    title: 'Kelani Bridge Joint Fracture',
-    badge: 'Structural Hazard',
-    zone: 'Primary Highway',
-    categorySupplied: 'BridgeDamage',
-    description: 'Deep transverse crack and exposed rusted rebar discovered along the northern abutment expansion joint of New Kelani Bridge approach. Concrete spalling onto roadway under heavy container lorry vibration.',
-    location: 'New Kelani River Bridge Approach, Peliyagoda (A1 Corridor)',
-    weather: 'Clear Daylight',
-    traffic: 'Heavy Freight Corridor',
-    metadata: 'Heavy freight corridor, structural vibration spalling, risk of structural failure',
-    photoUrl: 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'open-manhole-hospital',
-    icon: AlertCircle,
-    title: 'Open Manhole Cavity Near Hospital',
-    badge: 'Pedestrian Trap',
-    zone: 'Hospital / Clinic',
-    categorySupplied: 'Other',
-    description: 'Cast iron stormwater manhole cover has collapsed into the 2.5m deep sewer pit on the Galle Road sidewalk directly outside National Hospital entrance. Open pit is filled with murky water without any barrier.',
-    location: 'Galle Road outside Colombo South Teaching Hospital, Kalubowila',
-    weather: 'Light Rain',
-    traffic: 'Ambulance & Emergency Route',
-    metadata: 'Deep cavity on sidewalk, elderly and patient foot traffic, fall hazard',
-    photoUrl: 'https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'drainage-canal-clog',
-    icon: CloudRain,
-    title: 'Canal Inundation & Drain Blockage',
-    badge: 'Monsoon Flash Flood',
-    zone: 'Residential Area',
-    categorySupplied: 'DrainageProblem',
-    description: 'Subsurface culvert completely obstructed with solid plastic waste and fallen silt, causing torrential stormwater to overflow across Thimbirigasyaya Road into surrounding residential properties.',
-    location: 'Thimbirigasyaya Road canal crossing, Havelock Town, Colombo 05',
-    weather: 'Heavy Monsoon Rain',
-    traffic: 'Suburban Peak Traffic',
-    metadata: 'Culvert blocked, backflow into homes, water level rising 10cm/hr',
-    photoUrl: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80',
-  },
-];
 
 export const HazardClassificationAIPage: React.FC = () => {
   const navigate = useNavigate();
@@ -143,27 +55,81 @@ export const HazardClassificationAIPage: React.FC = () => {
   const [activeInputMode, setActiveInputMode] = useState<'custom' | 'existing'>('custom');
 
   // 4 Required Inputs: photo/description, location, category, and metadata
-  const [description, setDescription] = useState<string>(PRESET_SCENARIOS[0].description);
-  const [photoUrl, setPhotoUrl] = useState<string>(PRESET_SCENARIOS[0].photoUrl);
-  const [location, setLocation] = useState<string>(PRESET_SCENARIOS[0].location);
-  const [proximityZone, setProximityZone] = useState<string>(PRESET_SCENARIOS[0].zone);
-  const [categorySupplied, setCategorySupplied] = useState<string>(PRESET_SCENARIOS[0].categorySupplied);
-  const [weatherCondition, setWeatherCondition] = useState<string>(PRESET_SCENARIOS[0].weather);
-  const [trafficDensity, setTrafficDensity] = useState<string>(PRESET_SCENARIOS[0].traffic);
-  const [customMetadata, setCustomMetadata] = useState<string>(PRESET_SCENARIOS[0].metadata);
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [location, setLocation] = useState<string>('');
+  const [proximityZone, setProximityZone] = useState<string>('Primary Highway');
+  const [categorySupplied, setCategorySupplied] = useState<string>('Other');
+  const [weatherCondition, setWeatherCondition] = useState<string>('Clear Daylight');
+  const [trafficDensity, setTrafficDensity] = useState<string>('Moderate Flow');
+  const [customMetadata, setCustomMetadata] = useState<string>('');
 
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<HazardClassificationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<{
+    title: string;
+    message: string;
+    actionableTip?: string;
+    canRetry?: boolean;
+  } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    title?: string;
+    description?: string;
+    location?: string;
+    photoUrl?: string;
+    selectedHazardId?: string;
+  }>({});
   const [copiedTelemetry, setCopiedTelemetry] = useState(false);
+  const [copiedDirectives, setCopiedDirectives] = useState(false);
   const [activePipelineStep, setActivePipelineStep] = useState<number>(0);
 
   // Active architecture step tab for interactive exploration
   const [activeStep, setActiveStep] = useState<number>(1);
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(PRESET_SCENARIOS[0].id);
 
   // Checked safety checklist tasks in result
   const [checkedActions, setCheckedActions] = useState<Record<number, boolean>>({});
+
+  const isCategoryPreserved = (resCat?: string, inputCat?: string): boolean => {
+    if (!resCat || !inputCat) return false;
+    const cleanRes = resCat.replace(/[\s\-_&]/g, '').toLowerCase();
+    const cleanInput = inputCat.replace(/[\s\-_&]/g, '').toLowerCase();
+    if (cleanRes === cleanInput) return true;
+
+    // Strict semantic pairs to prevent cross-contamination
+    const isInputDrain = cleanInput.includes('drainage') || cleanInput.includes('drain');
+    const isResDrain = cleanRes.includes('drainage') || cleanRes.includes('drain');
+    if (isInputDrain || isResDrain) return isInputDrain && isResDrain;
+
+    const isInputSewage = cleanInput.includes('sewage') || cleanInput.includes('wastewater') || cleanInput.includes('blackwater');
+    const isResSewage = cleanRes.includes('sewage') || cleanRes.includes('wastewater') || cleanRes.includes('blackwater');
+    if (isInputSewage || isResSewage) return isInputSewage && isResSewage;
+
+    const isInputWater = cleanInput.includes('watermain') || cleanInput.includes('waterleak') || cleanInput.includes('pipeburst') || cleanInput.includes('waterpipe');
+    const isResWater = cleanRes.includes('watermain') || cleanRes.includes('waterleak') || cleanRes.includes('pipeburst') || cleanRes.includes('waterpipe');
+    if (isInputWater || isResWater) return isInputWater && isResWater;
+
+    if (cleanInput.includes('sinkhole') && cleanRes.includes('sinkhole')) return true;
+    if (cleanInput.includes('gas') && cleanRes.includes('gas')) return true;
+    if (cleanInput.includes('landslide') && cleanRes.includes('landslide')) return true;
+    if (cleanInput.includes('retaining') && cleanRes.includes('retaining')) return true;
+    if (cleanInput.includes('underpass') && cleanRes.includes('underpass')) return true;
+    if (cleanInput.includes('signal') && cleanRes.includes('signal')) return true;
+    if (cleanInput.includes('oil') && cleanRes.includes('oil')) return true;
+    if (cleanInput.includes('bridge') && cleanRes.includes('bridge')) return true;
+    if (cleanInput.includes('guardrail') && (cleanRes.includes('guardrail') || cleanRes.includes('crashbarrier'))) return true;
+    if (cleanInput.includes('manhole') && cleanRes.includes('manhole')) return true;
+    if ((cleanInput.includes('chemical') || cleanInput.includes('waste')) && (cleanRes.includes('chemical') || cleanRes.includes('waste'))) return true;
+    if ((cleanInput.includes('walkway') || cleanInput.includes('footpath')) && (cleanRes.includes('walkway') || cleanRes.includes('footpath'))) return true;
+    if ((cleanInput.includes('coastal') || cleanInput.includes('seawall')) && (cleanRes.includes('coastal') || cleanRes.includes('seawall'))) return true;
+    if (cleanInput.includes('voltage') && cleanRes.includes('voltage')) return true;
+    if (cleanInput.includes('streetlight') && cleanRes.includes('streetlight')) return true;
+    if (cleanInput.includes('utilitypole') && cleanRes.includes('utilitypole')) return true;
+    if (cleanInput.includes('pothole') && cleanRes.includes('pothole')) return true;
+    if (cleanInput.includes('tree') && cleanRes.includes('tree')) return true;
+    if (cleanInput === 'other' && cleanRes === 'other') return true;
+    return false;
+  };
 
   // Fetch hazards from backend for "From Reported Hazards" mode
   useEffect(() => {
@@ -173,6 +139,7 @@ export const HazardClassificationAIPage: React.FC = () => {
         setHazards(res.data || []);
         if (res.data?.length > 0) {
           setSelectedHazardId(res.data[0].id);
+          setCategorySupplied(res.data[0].category || 'Other');
         }
       } catch {
         const fallback: SimpleHazard[] = [
@@ -199,47 +166,39 @@ export const HazardClassificationAIPage: React.FC = () => {
         ];
         setHazards(fallback);
         setSelectedHazardId(fallback[0].id);
+        setCategorySupplied(fallback[0].category || 'Other');
       }
     };
     fetchHazards();
   }, []);
 
-  const handleSelectPreset = (preset: PresetScenario) => {
-    setSelectedPresetId(preset.id);
-    setDescription(preset.description);
-    setLocation(preset.location);
-    setProximityZone(preset.zone);
-    setCategorySupplied(preset.categorySupplied);
-    setWeatherCondition(preset.weather);
-    setTrafficDensity(preset.traffic);
-    setCustomMetadata(preset.metadata);
-    setPhotoUrl(preset.photoUrl);
-    setResult(null);
-    setError(null);
-  };
-
   const handleLanguageSample = (lang: 'en' | 'si' | 'ta') => {
     if (lang === 'si') {
+      setTitle('පාසල අසල ප්‍රධාන ජල නළය පුපුරා යාම');
       setDescription('පාසල අසල ප්‍රධාන ජල නළය පුපුරා ගොස් විශාල ජල කඳක් පාරට ගලා එයි. උදෑසන පාසල් ළමුන් සහ වාහන තදබදය නිසා අනතුරුදායක තත්වයක් උද්ගතව ඇත.');
       setLocation('රාජකීය විද්‍යාලය අසල, කොළඹ 07');
       setProximityZone('School Zone');
       setCategorySupplied('Other');
     } else if (lang === 'ta') {
+      setTitle('பாடசாலைக்கு அருகில் பிரதான நீர் குழாய் வெடிப்பு');
       setDescription('பாடசாலைக்கு அருகில் பிரதான நீர் விநியோக குழாய் வெடித்து வீதியிலும் நடைபாதையிலும் நீர் பாய்கிறது. காலை வேளையில் மாணவர்கள் செல்வதற்கு கடும் ஆபத்து ஏற்பட்டுள்ளது.');
-      setLocation('இராஜகீய மாவத்தை, கொழும்பு 07');
+      setLocation('இராஜகீய மாவத்தை, කොழुம்பு 07');
       setProximityZone('School Zone');
       setCategorySupplied('Other');
     } else {
-      setDescription(PRESET_SCENARIOS[0].description);
-      setLocation(PRESET_SCENARIOS[0].location);
-      setProximityZone(PRESET_SCENARIOS[0].zone);
-      setCategorySupplied(PRESET_SCENARIOS[0].categorySupplied);
+      setTitle('Water Main Burst with Deep Sinkhole');
+      setDescription('A major underground water pipe has burst along Kandy Road near Kiribathgoda junction, flooding two lanes and creating a deep sinkhole. Water is flowing rapidly across the roadway.');
+      setLocation('Kandy Road near Kiribathgoda Junction');
+      setProximityZone('Primary Highway');
+      setCategorySupplied('Water Main Burst');
     }
     setResult(null);
-    setError(null);
+    setErrorDetails(null);
+    setFieldErrors({});
   };
 
   const handleResetInputs = () => {
+    setTitle('');
     setDescription('');
     setLocation('');
     setProximityZone('School Zone');
@@ -247,18 +206,80 @@ export const HazardClassificationAIPage: React.FC = () => {
     setPhotoUrl('');
     setCustomMetadata('');
     setResult(null);
-    setError(null);
+    setErrorDetails(null);
+    setFieldErrors({});
     setCheckedActions({});
   };
 
+  const handleSwitchMode = (mode: 'custom' | 'existing') => {
+    setActiveInputMode(mode);
+    setFieldErrors({});
+    setErrorDetails(null);
+  };
+
+  const validateInputs = (): boolean => {
+    const errors: {
+      title?: string;
+      description?: string;
+      location?: string;
+      photoUrl?: string;
+      selectedHazardId?: string;
+    } = {};
+
+    if (activeInputMode === 'existing') {
+      if (hazards.length === 0) {
+        errors.selectedHazardId = 'No reported municipal tickets found in the database. Switch to "Interactive Multimodal Inputs" to evaluate custom scenarios.';
+      } else if (!selectedHazardId) {
+        errors.selectedHazardId = 'Please select a reported municipal hazard ticket from the dropdown.';
+      }
+    } else {
+      if (title.trim() && title.trim().length < 3) {
+        errors.title = 'Topic / Headline must be at least 3 characters.';
+      }
+
+      if (!description.trim()) {
+        errors.description = 'Citizen hazard report description is required.';
+      } else if (description.trim().length < 10) {
+        errors.description = 'Please enter at least 10 characters describing the physical damage (e.g. culvert silt, depth, affected lanes).';
+      } else if (description.length > 3000) {
+        errors.description = 'Description exceeds maximum allowed limit of 3,000 characters.';
+      }
+
+      if (!location.trim()) {
+        errors.location = 'Street address, intersection, or landmark is required for spatial buffer analysis.';
+      } else if (location.trim().length < 3) {
+        errors.location = 'Location name must be at least 3 characters.';
+      }
+
+      if (photoUrl.trim()) {
+        const isUrl = /^https?:\/\/.+/i.test(photoUrl.trim()) || /^data:image\//i.test(photoUrl.trim());
+        if (!isUrl) {
+          errors.photoUrl = 'Please provide a valid HTTP/HTTPS image URL (e.g. https://example.com/photo.jpg).';
+        }
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleRunClassification = async () => {
-    if (!description.trim()) {
-      setError('Please provide an incident description.');
+    setErrorDetails(null);
+
+    const isValid = validateInputs();
+    if (!isValid) {
+      setErrorDetails({
+        title: 'Form Validation Incomplete',
+        message: 'Please resolve the highlighted input fields above before running the LangGraph triage pipeline.',
+        actionableTip: activeInputMode === 'custom'
+          ? 'Ensure both incident description (min 10 chars) and municipal location are specified.'
+          : 'Select an active database hazard ticket to evaluate.',
+        canRetry: false,
+      });
       return;
     }
 
     setRunning(true);
-    setError(null);
     setResult(null);
     setActivePipelineStep(1);
 
@@ -269,22 +290,49 @@ export const HazardClassificationAIPage: React.FC = () => {
 
     try {
       if (activeInputMode === 'existing' && selectedHazardId) {
-        const res = await aiService.analyzeHazard(selectedHazardId);
-        setResult(res);
+        const matched = hazards.find((h) => h.id === selectedHazardId);
+        if (matched) {
+          setCategorySupplied(matched.category || 'Other');
+        }
+        try {
+          const res = await aiService.analyzeHazard(selectedHazardId);
+          setResult(res);
+        } catch (apiErr: any) {
+          // If analyzeHazard endpoint failed, classify using the selected ticket's details
+          if (matched) {
+            const res = await aiService.classifyLiveHazard({
+              title: `${matched.ticketNumber}: ${matched.category}`,
+              description: matched.description,
+              location: matched.address || 'Colombo Municipal Area',
+              categorySupplied: matched.category,
+              metadata: `Ticket: ${matched.ticketNumber}; Severity: ${matched.severity}`,
+            });
+            setResult(res);
+          } else {
+            throw apiErr;
+          }
+        }
       } else {
         const compiledMetadata = `Weather: ${weatherCondition}; Traffic: ${trafficDensity}; Context: ${customMetadata}`;
         const res = await aiService.classifyLiveHazard({
-          description,
-          location,
+          title: title.trim() || undefined,
+          description: description.trim(),
+          location: location.trim(),
           proximityZone,
           categorySupplied,
           metadata: compiledMetadata,
-          imageUrl: photoUrl || undefined,
+          imageUrl: photoUrl.trim() || undefined,
         });
         setResult(res);
       }
     } catch (err: any) {
-      setError(err?.message || 'AI Classification failed.');
+      const errMsg = err?.message || 'AI Classification failed.';
+      setErrorDetails({
+        title: 'AI Classification Pipeline Execution Failed',
+        message: errMsg,
+        actionableTip: 'Ensure backend API services on port 5000 and Agent on port 8001 are running, or try simplifying your input description.',
+        canRetry: true,
+      });
     } finally {
       clearInterval(stepInterval);
       setActivePipelineStep(4);
@@ -297,6 +345,224 @@ export const HazardClassificationAIPage: React.FC = () => {
     navigator.clipboard.writeText(JSON.stringify(result, null, 2));
     setCopiedTelemetry(true);
     setTimeout(() => setCopiedTelemetry(false), 2000);
+  };
+
+  const getResponsibleAuthority = (category: string) => {
+    const catLower = (category || '').toLowerCase();
+    if (catLower.includes('gas')) {
+      return {
+        name: 'CMC Fire & Rescue Service / Litro-Laugfs Gas Safety Unit',
+        division: 'Flammable Gas Emergency Response & Hazmat Suppression Wing',
+        hotline: 'Fire & Rescue Hotline: 110 / Police: 119',
+        badgeColor: 'border-rose-600/40 bg-rose-950/70 text-rose-300',
+        accentBg: 'bg-rose-600/10 text-rose-400 border-rose-600/30',
+      };
+    }
+    if (catLower.includes('voltage') || catLower.includes('live wire') || catLower.includes('high voltage')) {
+      return {
+        name: 'Ceylon Electricity Board (CEB) Emergency Response',
+        division: 'High-Voltage Transmission & Distribution Substation Safety Unit',
+        hotline: 'CEB Rapid Breakdown: 1987 / LECO Emergency: 1910',
+        badgeColor: 'border-yellow-500/40 bg-yellow-950/70 text-yellow-300',
+        accentBg: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+      };
+    }
+    if (catLower.includes('sinkhole') || catLower.includes('subsidence')) {
+      return {
+        name: 'Road Development Authority (RDA) Geotechnical Engineering',
+        division: 'Subsurface Cavity Investigation & Ground Stabilization Division',
+        hotline: 'RDA Emergency: 1968 / NBRO: 011-2588946',
+        badgeColor: 'border-red-600/40 bg-red-950/70 text-red-300',
+        accentBg: 'bg-red-600/10 text-red-400 border-red-600/30',
+      };
+    }
+    if (catLower.includes('sewage') || catLower.includes('wastewater') || catLower.includes('blackwater')) {
+      return {
+        name: 'NWSDB Sewerage Division & CMC Public Health Department',
+        division: 'Municipal Sewer Network & Biohazard Sanitation Unit',
+        hotline: 'NWSDB Sewerage: 1939 / CMC Health: 011-2691922',
+        badgeColor: 'border-emerald-700/40 bg-emerald-950/70 text-emerald-300',
+        accentBg: 'bg-emerald-700/10 text-emerald-400 border-emerald-700/30',
+      };
+    }
+    if (catLower.includes('guardrail') || catLower.includes('crash barrier')) {
+      return {
+        name: 'Road Development Authority (RDA) Expressway & Highway Safety',
+        division: 'Crash Barrier & Roadside Safety Infrastructure Wing',
+        hotline: 'RDA Highway Hotline: 1968 / Expressway Ops: 1969',
+        badgeColor: 'border-slate-500/40 bg-slate-950/70 text-slate-300',
+        accentBg: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+      };
+    }
+    if (catLower.includes('chemical') || catLower.includes('toxic') || catLower.includes('waste dump')) {
+      return {
+        name: 'Central Environmental Authority (CEA) & CMC Waste Management',
+        division: 'Industrial Chemical Safety & Hazardous Waste Remediation Unit',
+        hotline: 'CEA Hotline: 011-2872278 / DMC: 117',
+        badgeColor: 'border-purple-600/40 bg-purple-950/70 text-purple-300',
+        accentBg: 'bg-purple-600/10 text-purple-400 border-purple-600/30',
+      };
+    }
+    if (catLower.includes('coastal') || catLower.includes('seawall') || catLower.includes('revetment')) {
+      return {
+        name: 'Coast Conservation Department (CCD) & RDA Coastal Protection',
+        division: 'Marine Revetment & Coastal Infrastructure Protection Wing',
+        hotline: 'CCD Emergency: 011-2449754 / DMC: 117',
+        badgeColor: 'border-cyan-600/40 bg-cyan-950/70 text-cyan-300',
+        accentBg: 'bg-cyan-600/10 text-cyan-400 border-cyan-600/30',
+      };
+    }
+    if (catLower.includes('walkway') || catLower.includes('footpath')) {
+      return {
+        name: 'Municipal Council Civil Engineering & Urban Development (UDA)',
+        division: 'Non-Motorized Transport & Pedestrian Infrastructure Unit',
+        hotline: 'Municipal Civil Works: 011-2692225',
+        badgeColor: 'border-teal-600/40 bg-teal-950/70 text-teal-300',
+        accentBg: 'bg-teal-600/10 text-teal-400 border-teal-600/30',
+      };
+    }
+    if (catLower.includes('oil')) {
+      return {
+        name: 'CMC Fire & Rescue Service / Sri Lanka Police Hazmat',
+        division: 'Chemical Hazard Suppression & Hydrocarbon Remediation Unit',
+        hotline: 'CMC Fire Brigade: 011-2422222 / 110',
+        badgeColor: 'border-orange-500/40 bg-orange-950/70 text-orange-300',
+        accentBg: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+      };
+    }
+    if (catLower.includes('landslide') || catLower.includes('slope') || catLower.includes('retaining wall') || catLower.includes('wall')) {
+      return {
+        name: 'National Building Research Organisation (NBRO) & RDA',
+        division: 'Landslide Risk Management & Slope Geotechnical Assessment Wing',
+        hotline: 'NBRO Emergency: 011-2588946 / 117',
+        badgeColor: 'border-amber-600/40 bg-amber-950/70 text-amber-300',
+        accentBg: 'bg-amber-600/10 text-amber-400 border-amber-600/30',
+      };
+    }
+    if (catLower.includes('signal') || catLower.includes('traffic')) {
+      return {
+        name: 'Sri Lanka Police Traffic Headquarters & RDA Traffic Engineering',
+        division: 'Intersection Signal Control & Road Safety Traffic Management Division',
+        hotline: 'Police Traffic HQ: 011-2433333 / 119',
+        badgeColor: 'border-yellow-500/40 bg-yellow-950/70 text-yellow-300',
+        accentBg: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+      };
+    }
+    if (catLower.includes('underpass') || catLower.includes('rail')) {
+      return {
+        name: 'Sri Lanka Railways (SLR) & CMC Drainage Division',
+        division: 'Subway Drainage Infrastructure & Transit Corridor Safety Operations',
+        hotline: 'Railway Operations: 011-2434215 / CMC: 011-2684290',
+        badgeColor: 'border-teal-500/40 bg-teal-950/70 text-teal-300',
+        accentBg: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+      };
+    }
+    if (catLower.includes('utility') || catLower.includes('telecom') || catLower.includes('cable')) {
+      return {
+        name: 'Sri Lanka Telecom (SLT-Mobitel) & CEB Joint Infrastructure',
+        division: 'Overhead Telecom & Low-Voltage Cable Restoration Unit',
+        hotline: 'SLT Fault Helpline: 1212 / CEB: 1987',
+        badgeColor: 'border-sky-500/40 bg-sky-950/70 text-sky-300',
+        accentBg: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+      };
+    }
+    if (catLower.includes('drain') || catLower.includes('flood') || catLower.includes('culvert') || catLower.includes('silt')) {
+      return {
+        name: 'CMC Drainage & Flood Control Division',
+        division: 'Metro Stormwater Inundation & Culvert Jetting Operations',
+        hotline: 'CMC Flood Ops: 011-2684290 / 011-2696515',
+        badgeColor: 'border-blue-500/40 bg-blue-950/70 text-blue-300',
+        accentBg: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+      };
+    }
+    if (catLower.includes('water pipe') || catLower.includes('water main') || catLower.includes('water leak') || catLower.includes('potable') || catLower.includes('burst')) {
+      return {
+        name: 'National Water Supply & Drainage Board (NWSDB)',
+        division: 'Western Province Regional Production & Distribution Operations',
+        hotline: 'Emergency Hotline: 1939',
+        badgeColor: 'border-cyan-500/40 bg-cyan-950/70 text-cyan-300',
+        accentBg: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+      };
+    }
+    if (catLower.includes('electric') || catLower.includes('light')) {
+      return {
+        name: 'Ceylon Electricity Board (CEB) / CMC Electrical Division',
+        division: 'Colombo Distribution Maintenance & High-Voltage Grid Safety Unit',
+        hotline: 'CEB Emergency: 1987',
+        badgeColor: 'border-amber-500/40 bg-amber-950/70 text-amber-300',
+        accentBg: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+      };
+    }
+    if (catLower.includes('tree')) {
+      return {
+        name: 'Disaster Management Centre (DMC) & CMC Lands Division',
+        division: 'Emergency Road Clearance & Urban Forestry Operations',
+        hotline: 'DMC Hotline: 117 / 011-2696156',
+        badgeColor: 'border-emerald-500/40 bg-emerald-950/70 text-emerald-300',
+        accentBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+      };
+    }
+    if (catLower.includes('bridge') || catLower.includes('structur')) {
+      return {
+        name: 'Road Development Authority (RDA) National Bridge Division',
+        division: 'Bridge Assessment & Structural Integrity Wing',
+        hotline: 'RDA Maintenance Desk: 011-2862795 / 1968',
+        badgeColor: 'border-purple-500/40 bg-purple-950/70 text-purple-300',
+        accentBg: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+      };
+    }
+    if (catLower.includes('manhole') || catLower.includes('pit') || catLower.includes('cavity')) {
+      return {
+        name: 'CMC Engineering Department',
+        division: 'Subsurface Chambers & Pedestrian Cavity Safety Unit',
+        hotline: 'CMC Zonal Depot: 011-2692244',
+        badgeColor: 'border-rose-500/40 bg-rose-950/70 text-rose-300',
+        accentBg: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+      };
+    }
+    if (catLower.includes('road') || catLower.includes('pothole')) {
+      return {
+        name: 'CMC Engineering Department / RDA Provincial',
+        division: 'Asphalt Pavement & Carriageway Rapid Patching Unit',
+        hotline: 'CMC Works Depot: 011-2692244',
+        badgeColor: 'border-indigo-500/40 bg-indigo-950/70 text-indigo-300',
+        accentBg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30',
+      };
+    }
+    return {
+      name: 'Colombo Municipal Council (CMC)',
+      division: 'Zonal Public Works & Administrative Enforcement Division',
+      hotline: 'Government Citizen Hotline: 1919',
+      badgeColor: 'border-slate-500/40 bg-slate-900 text-slate-300',
+      accentBg: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+    };
+  };
+
+  const handleCopyDirectives = () => {
+    if (!result) return;
+    const auth = getResponsibleAuthority(result.category);
+    const actions = getActionList(result.recommendedAction);
+    const text = [
+      `🏛️ MUNICIPAL DISPATCH DIRECTIVE DOSSIER`,
+      `=============================================`,
+      `Incident Category: ${result.category}`,
+      `Calibrated Severity: ${result.severity} | Priority: ${result.priority}`,
+      `Statutory SLA Window: ${result.estimatedResponseHours} Hours`,
+      `Crew Allocation: ${result.recommendedCrewSize} Field Specialists`,
+      `Governing Authority: ${auth.name}`,
+      `Operational Division: ${auth.division}`,
+      `Emergency Contact: ${auth.hotline}`,
+      `Legal Grounding: Sri Lanka Municipal Councils Ordinance §14`,
+      ``,
+      `MANDATORY OPERATIONAL DIRECTIVES:`,
+      ...actions.map((act, idx) => `[DIRECTIVE-${String(idx + 1).padStart(2, '0')}] ${act}`),
+      `=============================================`,
+      `Generated by CiviLanka Multi-Agent AI System`,
+    ].join('\n');
+
+    navigator.clipboard.writeText(text);
+    setCopiedDirectives(true);
+    setTimeout(() => setCopiedDirectives(false), 2000);
   };
 
   const toggleAction = (idx: number) => {
@@ -371,61 +637,6 @@ export const HazardClassificationAIPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 1-Click Realistic Municipal Scenarios Bar ────────────────────────── */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-amber-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-              Quick Test Scenarios (1-Click Municipal Incident Presets)
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-            Select a verified Sri Lanka municipal case to test live AI reasoning
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {PRESET_SCENARIOS.map((preset) => {
-            const Icon = preset.icon;
-            const isSelected = selectedPresetId === preset.id && activeInputMode === 'custom';
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => {
-                  setActiveInputMode('custom');
-                  handleSelectPreset(preset);
-                }}
-                className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
-                  isSelected
-                    ? 'border-cyan-500 bg-cyan-50/50 shadow-sm ring-2 ring-cyan-200'
-                    : 'border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-cyan-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
-                      {preset.badge}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-2">
-                    {preset.title}
-                  </h4>
-                </div>
-                <div className="mt-2 text-[10px] text-cyan-700 font-medium flex items-center gap-1">
-                  <span>{preset.zone}</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ── Interactive Inference Workspace ─────────────────────────────────── */}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -442,7 +653,7 @@ export const HazardClassificationAIPage: React.FC = () => {
           {/* Mode Switcher */}
           <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 self-start sm:self-auto">
             <button
-              onClick={() => setActiveInputMode('custom')}
+              onClick={() => handleSwitchMode('custom')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeInputMode === 'custom'
                   ? 'bg-white text-slate-900 shadow-xs'
@@ -452,7 +663,7 @@ export const HazardClassificationAIPage: React.FC = () => {
               Interactive Multimodal Inputs
             </button>
             <button
-              onClick={() => setActiveInputMode('existing')}
+              onClick={() => handleSwitchMode('existing')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeInputMode === 'existing'
                   ? 'bg-white text-slate-900 shadow-xs'
@@ -513,16 +724,110 @@ export const HazardClassificationAIPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Citizen Hazard Report Text:
+                <label className="block text-[11px] font-bold text-slate-600 mb-1 flex items-center justify-between">
+                  <span>Custom Disaster Topic / Headline:</span>
+                  <span className="text-[10px] text-cyan-600 font-semibold">e.g. Drainage Problem, Water Main Burst, Landslide</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (fieldErrors.title) setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                  }}
+                  placeholder="e.g. Drainage Problem, Water Main Burst, Collapsed Retaining Wall..."
+                  className={`w-full text-xs p-2.5 rounded-xl border font-bold text-slate-900 transition-colors ${
+                    fieldErrors.title
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400 focus:outline-none'
+                      : 'border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500'
+                  }`}
+                />
+                {fieldErrors.title && (
+                  <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.title}</span>
+                  </p>
+                )}
+
+                <div className="mt-2 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                    ⚡ Quick Topic Selector (20+ Expanded Municipal Hazards):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1.5 bg-slate-100/70 rounded-xl border border-slate-200">
+                    {[
+                      'Water Main Burst',
+                      'Drainage Problem',
+                      'Drainage Cover Collapse',
+                      'Sinkhole & Ground Subsidence',
+                      'Roadside Landslide',
+                      'Collapsed Retaining Wall',
+                      'Flooded Underpass',
+                      'Damaged Traffic Signal',
+                      'Broken Streetlight Pole',
+                      'Fallen Utility Pole',
+                      'Oil Spill on Roadway',
+                      'Bridge Structural Damage',
+                      'Sewage & Wastewater Overflow',
+                      'Exposed High-Voltage Cable',
+                      'Damaged Highway Guardrail',
+                      'Missing Manhole Cover',
+                      'Hazardous Chemical & Waste Dump',
+                      'Pedestrian Walkway Collapse',
+                      'Gas or Combustible Vapour Leak',
+                      'Coastal Erosion & Seawall Breach',
+                      'Large Pothole',
+                      'Fallen Tree',
+                    ].map((topic) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => {
+                          setTitle(topic);
+                          setCategorySupplied(topic);
+                          if (fieldErrors.title) setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded-lg font-semibold border transition-all ${
+                          title === topic
+                            ? 'bg-cyan-600 text-white border-cyan-600 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-cyan-400 hover:text-cyan-700'
+                        }`}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1 flex items-center justify-between">
+                  <span>Citizen Hazard Report Text: <strong className="text-rose-500">*</strong></span>
+                  <span className={`text-[10px] font-mono ${description.length > 2800 ? 'text-amber-600 font-bold' : 'text-slate-400'}`}>
+                    {description.length} / 3000
+                  </span>
                 </label>
                 <textarea
                   rows={4}
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter detailed description in English, Sinhala, or Tamil..."
-                  className="w-full text-xs p-3.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-800 leading-relaxed font-medium"
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (fieldErrors.description) setFieldErrors((prev) => ({ ...prev, description: undefined }));
+                  }}
+                  placeholder="Enter detailed description in English, Sinhala, or Tamil (e.g. culvert silt accumulation, drain blockages, road water accumulation)..."
+                  className={`w-full text-xs p-3.5 rounded-xl border leading-relaxed font-medium transition-colors ${
+                    fieldErrors.description
+                      ? 'border-rose-400 bg-rose-50/20 text-slate-900 focus:ring-2 focus:ring-rose-400 focus:outline-none'
+                      : 'border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 text-slate-800'
+                  }`}
                 />
+                {fieldErrors.description ? (
+                  <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.description}</span>
+                  </p>
+                ) : (
+                  <span className="text-[10px] text-slate-400 mt-1 block">Min 10 characters required for accurate physical failure evaluation.</span>
+                )}
               </div>
 
               <div>
@@ -534,9 +839,16 @@ export const HazardClassificationAIPage: React.FC = () => {
                   <input
                     type="text"
                     value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    onChange={(e) => {
+                      setPhotoUrl(e.target.value);
+                      if (fieldErrors.photoUrl) setFieldErrors((prev) => ({ ...prev, photoUrl: undefined }));
+                    }}
                     placeholder="https://... photo url"
-                    className="flex-1 text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-slate-700"
+                    className={`flex-1 text-xs p-2.5 rounded-xl border font-mono text-slate-700 transition-colors ${
+                      fieldErrors.photoUrl
+                        ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400 focus:outline-none'
+                        : 'border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500'
+                    }`}
                   />
                   {photoUrl && (
                     <img
@@ -547,6 +859,12 @@ export const HazardClassificationAIPage: React.FC = () => {
                     />
                   )}
                 </div>
+                {fieldErrors.photoUrl && (
+                  <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.photoUrl}</span>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -567,15 +885,28 @@ export const HazardClassificationAIPage: React.FC = () => {
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Street Address or Municipal Landmark:
+                  Street Address or Municipal Landmark: <strong className="text-rose-500">*</strong>
                 </label>
                 <input
                   type="text"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    if (fieldErrors.location) setFieldErrors((prev) => ({ ...prev, location: undefined }));
+                  }}
                   placeholder="e.g. Near Royal College, Rajakeeya Mawatha, Colombo 07"
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 font-medium text-slate-800"
+                  className={`w-full text-xs p-2.5 rounded-xl border font-medium text-slate-800 transition-colors ${
+                    fieldErrors.location
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400 focus:outline-none'
+                      : 'border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500'
+                  }`}
                 />
+                {fieldErrors.location && (
+                  <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.location}</span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -640,12 +971,32 @@ export const HazardClassificationAIPage: React.FC = () => {
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-800"
                 >
                   <option value="Other">Other / Unclassified Municipal Issue</option>
-                  <option value="Pothole">Pothole</option>
-                  <option value="Water Leak">Water Leak</option>
-                  <option value="DrainageProblem">Drainage Problem</option>
-                  <option value="FallenTreeHazard">Fallen Tree / Vegetation Hazard</option>
-                  <option value="ElectricalHazard">Electrical Hazard / Broken Pole</option>
-                  <option value="BridgeDamage">Bridge Damage / Structural Joint</option>
+                  <option value="Water Main Burst">Water Main Burst (Underground High-Pressure)</option>
+                  <option value="Collapsed Retaining Wall">Collapsed Retaining Wall (Slope Failure)</option>
+                  <option value="Damaged Traffic Signal">Damaged Traffic Signal (Live Cables)</option>
+                  <option value="Flooded Underpass">Flooded Underpass (Submerged Transit)</option>
+                  <option value="Roadside Landslide">Roadside Landslide (Embankment Collapse)</option>
+                  <option value="Broken Streetlight Pole">Broken Streetlight Pole (Live Overhead Cable)</option>
+                  <option value="Large Pothole">Large Pothole (Carriageway Crater)</option>
+                  <option value="Drainage Cover Collapse">Drainage Cover Collapse (Open Pit Cavity)</option>
+                  <option value="Fallen Utility Pole">Fallen Utility Pole (Hanging Telecom Cables)</option>
+                  <option value="Oil Spill on Roadway">Oil Spill on Roadway (Severe Traction Loss)</option>
+                  <option value="Sinkhole & Ground Subsidence">Sinkhole &amp; Ground Subsidence (Asphalt Cavity)</option>
+                  <option value="Bridge Structural Damage">Bridge Structural Damage (Joint / Pier Scour)</option>
+                  <option value="Sewage & Wastewater Overflow">Sewage &amp; Wastewater Overflow (Biohazard)</option>
+                  <option value="Exposed High-Voltage Cable">Exposed High-Voltage Cable (11kV/33kV Arcing)</option>
+                  <option value="Damaged Highway Guardrail">Damaged Highway Guardrail (Edge Drop Hazard)</option>
+                  <option value="Missing Manhole Cover">Missing Manhole Cover (Open Deep Shaft)</option>
+                  <option value="Hazardous Chemical & Waste Dump">Hazardous Chemical &amp; Waste Dump (Toxic Fumes)</option>
+                  <option value="Pedestrian Walkway Collapse">Pedestrian Walkway Collapse (Footpath Cavity)</option>
+                  <option value="Gas or Combustible Vapour Leak">Gas or Combustible Vapour Leak (Explosive Hazard)</option>
+                  <option value="Coastal Erosion & Seawall Breach">Coastal Erosion &amp; Seawall Breach (Marine Drive)</option>
+                  <option value="Pothole">Pothole (Standard)</option>
+                  <option value="Water Leak">Water Leak (Potable Network)</option>
+                  <option value="DrainageProblem">Drainage Problem (Stormwater Silt / Culvert)</option>
+                  <option value="Fallen Tree">Fallen Tree / Vegetation Hazard</option>
+                  <option value="Electrical Hazard">Electrical Hazard / Low-Voltage Fault</option>
+                  <option value="Structural Damage">Structural Damage (General)</option>
                 </select>
                 <p className="text-[10px] text-slate-500 mt-1.5 italic">
                   Tip: The AI agent dynamically assesses the incident context, preserving &quot;Other&quot; for general civic matters or deducing root physical failures.
@@ -719,20 +1070,62 @@ export const HazardClassificationAIPage: React.FC = () => {
         ) : (
           /* Mode 2: From Existing Hazard Tickets */
           <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Select Reported Municipal Hazard Ticket:
-            </label>
-            <select
-              value={selectedHazardId}
-              onChange={(e) => setSelectedHazardId(e.target.value)}
-              className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold text-slate-800"
-            >
-              {hazards.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.ticketNumber} &mdash; [{h.category}] {h.description.slice(0, 90)}... ({h.address || 'Colombo'})
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Select Reported Municipal Hazard Ticket: <strong className="text-rose-500">*</strong>
+              </label>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {hazards.length} Ticket{hazards.length === 1 ? '' : 's'} Available
+              </span>
+            </div>
+
+            {hazards.length === 0 ? (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span>No municipal hazard tickets found in the database.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSwitchMode('custom')}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-bold text-[11px] hover:bg-amber-700 transition-colors"
+                >
+                  Switch to Custom Inputs
+                </button>
+              </div>
+            ) : (
+              <div>
+                <select
+                  value={selectedHazardId}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setSelectedHazardId(newId);
+                    if (fieldErrors.selectedHazardId) setFieldErrors((prev) => ({ ...prev, selectedHazardId: undefined }));
+                    const matched = hazards.find((h) => h.id === newId);
+                    if (matched) {
+                      setCategorySupplied(matched.category || 'Other');
+                    }
+                  }}
+                  className={`w-full text-xs p-3 rounded-xl border font-semibold text-slate-800 transition-colors ${
+                    fieldErrors.selectedHazardId
+                      ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400 focus:outline-none'
+                      : 'border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500'
+                  }`}
+                >
+                  {hazards.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {h.ticketNumber} &mdash; [{h.category}] {h.description.slice(0, 90)}... ({h.address || 'Colombo'})
+                    </option>
+                  ))}
+                </select>
+                {fieldErrors.selectedHazardId && (
+                  <p className="mt-1 text-[11px] font-semibold text-rose-600 flex items-center gap-1 animate-in fade-in">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    <span>{fieldErrors.selectedHazardId}</span>
+                  </p>
+                )}
+              </div>
+            )}
             <p className="text-[11px] text-slate-500">
               Evaluates the selected database record against the LangGraph multi-agent RAG workflow.
             </p>
@@ -812,10 +1205,67 @@ export const HazardClassificationAIPage: React.FC = () => {
           </div>
         )}
 
-        {error && (
-          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-600" />
-            <span>{error}</span>
+        {/* Error Alert Display with Actionable Recovery */}
+        {errorDetails && (
+          <div className="p-4 sm:p-5 bg-rose-50/95 border border-rose-200/90 rounded-2xl text-rose-900 shadow-xs space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-600 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-bold text-rose-900 uppercase tracking-wide">
+                    {errorDetails.title}
+                  </h4>
+                  <p className="text-xs text-rose-700 mt-1 font-medium leading-relaxed">
+                    {errorDetails.message}
+                  </p>
+                  {errorDetails.actionableTip && (
+                    <p className="text-[11px] text-rose-600 mt-1.5 flex items-center gap-1.5 font-medium">
+                      <Info className="w-3.5 h-3.5 flex-shrink-0 text-rose-500" />
+                      <span>{errorDetails.actionableTip}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorDetails(null);
+                }}
+                className="text-rose-400 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-100/60 transition-colors"
+                title="Dismiss alert"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="pt-2 flex items-center gap-2 border-t border-rose-200/60">
+              {errorDetails.canRetry && (
+                <button
+                  type="button"
+                  onClick={handleRunClassification}
+                  disabled={running}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-[11px] hover:bg-rose-700 transition-colors shadow-xs flex items-center gap-1.5"
+                >
+                  <RotateCw className="w-3 h-3" />
+                  <span>Retry AI Triage</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleResetInputs}
+                className="px-3 py-1.5 rounded-xl bg-white border border-rose-300 text-rose-700 font-semibold text-[11px] hover:bg-rose-50 transition-colors"
+              >
+                Reset Fields
+              </button>
+              {activeInputMode === 'existing' && (
+                <button
+                  type="button"
+                  onClick={() => handleSwitchMode('custom')}
+                  className="px-3 py-1.5 rounded-xl bg-rose-100/80 text-rose-800 font-bold text-[11px] hover:bg-rose-200 transition-colors"
+                >
+                  Switch to Custom Inputs
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -875,7 +1325,7 @@ export const HazardClassificationAIPage: React.FC = () => {
                 <div className="text-[10px] text-cyan-700 font-semibold flex items-center gap-1 pt-1">
                   <span>Input: &quot;{categorySupplied}&quot;</span>
                   <ArrowRight className="w-3 h-3 inline" />
-                  {result.category.toLowerCase() === categorySupplied.toLowerCase() || (categorySupplied === 'Other' && result.category === 'Other') ? (
+                  {isCategoryPreserved(result.category, categorySupplied) ? (
                     <span className="font-bold text-cyan-600">Preserved / Verified</span>
                   ) : (
                     <span className="font-bold text-emerald-600">Reclassified</span>
@@ -971,64 +1421,193 @@ export const HazardClassificationAIPage: React.FC = () => {
                 <div className="flex items-center gap-2 text-xs text-slate-700">
                   <Building2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-bold uppercase">Directive</span>
-                    <span className="font-medium text-slate-800 truncate block max-w-xs">{result.recommendedAction}</span>
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase">Enforcing Authority</span>
+                    <span className="font-bold text-slate-900 truncate block max-w-xs">{getResponsibleAuthority(result.category).name}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── IMMEDIATE SAFETY CHECKLIST & DISPATCH DIRECTIVE ──────────────── */}
-            <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                    Mandatory Immediate Safety Action Protocol
-                  </h4>
+            {/* ── MUNICIPAL OPERATIONAL DIRECTIVES & FIELD PROTOCOLS ──────────────── */}
+            <div className="p-6 rounded-3xl bg-slate-950 text-white space-y-5 border border-slate-800 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+
+              {/* Header with Authority Badge */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0 shadow-inner">
+                    <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-black uppercase tracking-wider text-white">
+                        Municipal Operational Directives &amp; Field Protocol
+                      </h4>
+                      <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">
+                        STATUTORY §14 ENFORCED
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Binding execution directives for zonal dispatchers, utility emergency units, and field engineers.
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800">
-                  Supervisor Checklist
-                </span>
+
+                {/* Responsible Agency Pill */}
+                <div className="flex items-center gap-2 self-start md:self-auto bg-slate-900/90 border border-slate-800 px-3.5 py-2 rounded-2xl shadow-xs">
+                  <Building2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <div className="text-left">
+                    <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Enforcing Authority</span>
+                    <span className="text-[11px] font-extrabold text-cyan-300 block leading-tight">{getResponsibleAuthority(result.category).name}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Agency Operations Banner */}
+              <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs relative z-10">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                    <strong>Operational Unit:</strong> {getResponsibleAuthority(result.category).division}
+                  </span>
+                  <span className="text-[11px] text-slate-400 border-l border-slate-700 pl-3">
+                    <strong>Direct Hotline:</strong> <span className="text-amber-300 font-mono font-bold">{getResponsibleAuthority(result.category).hotline}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700">
+                    Target SLA: <strong>&lt; {result.estimatedResponseHours} Hours</strong>
+                  </span>
+                  <span className="text-[10px] font-mono uppercase bg-cyan-950 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-800">
+                    Crew: <strong>{result.recommendedCrewSize} Specialists</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Structured Directives List */}
+              <div className="space-y-3 relative z-10">
                 {getActionList(result.recommendedAction).map((action, idx) => {
                   const isChecked = !!checkedActions[idx];
+                  const phaseLabel = idx === 0
+                    ? 'PHASE 01: IMMEDIATE CONTAINMENT & PERIMETER SAFETY'
+                    : idx === 1
+                    ? 'PHASE 02: SPECIALIZED CREW DISPATCH & UTILITY COORDINATION'
+                    : idx === 2
+                    ? 'PHASE 03: STATUTORY REMEDIATION & SLA CLOSEOUT'
+                    : `PHASE 0${idx + 1}: POST-REPAIR VERIFICATION & MONITORING`;
+
+                  const phaseTiming = idx === 0
+                    ? 'Immediate (T+0h to T+1h)'
+                    : idx === 1
+                    ? 'T+1h to T+2h'
+                    : `< ${result.estimatedResponseHours} Hours SLA`;
+
+                  const phasePriority = idx === 0
+                    ? (result.severity === 'CRITICAL' ? 'Mandatory Urgent' : 'High Priority')
+                    : idx === 1
+                    ? 'Tactical Dispatch'
+                    : 'Statutory Verification';
+
+                  const priorityStyle = idx === 0
+                    ? (result.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40')
+                    : idx === 1
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+
                   return (
-                    <button
+                    <div
                       key={idx}
-                      type="button"
-                      onClick={() => toggleAction(idx)}
-                      className={`p-3 rounded-xl border text-left flex items-start gap-2.5 text-xs transition-all ${
+                      className={`p-4 rounded-2xl border transition-all duration-200 ${
                         isChecked
-                          ? 'border-emerald-500/80 bg-emerald-950/30 text-emerald-200 line-through'
-                          : 'border-slate-800 bg-slate-800/80 text-slate-200 hover:border-slate-700'
+                          ? 'border-emerald-600/70 bg-emerald-950/25 opacity-90'
+                          : 'border-slate-800 bg-slate-900/95 hover:border-slate-700 shadow-sm'
                       }`}
                     >
-                      <div className={`w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        isChecked ? 'border-emerald-400 bg-emerald-500 text-slate-950' : 'border-slate-600'
-                      }`}>
-                        {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800/80">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-cyan-300 text-[10px] font-mono font-bold flex items-center justify-center">
+                            0{idx + 1}
+                          </span>
+                          <span className="text-[11px] font-extrabold tracking-wide text-slate-200 uppercase">
+                            {phaseLabel}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${priorityStyle}`}>
+                            {phasePriority}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700">
+                            {phaseTiming}
+                          </span>
+                        </div>
                       </div>
-                      <span className="leading-snug">{action}</span>
-                    </button>
+
+                      <div className="flex items-start justify-between gap-3 pt-1">
+                        <p className={`text-xs leading-relaxed flex-1 ${
+                          isChecked ? 'text-emerald-300/80 line-through' : 'text-slate-200 font-medium'
+                        }`}>
+                          {action}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => toggleAction(idx)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex-shrink-0 ${
+                            isChecked
+                              ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                              : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
+                          }`}
+                        >
+                          {isChecked ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                              <span>Directive Executed</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="w-2 h-2 rounded-full border border-slate-400 inline-block" />
+                              <span>Mark Executed</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
 
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 text-xs">
-                <span className="text-slate-400 text-[11px]">
-                  Directive validated for district execution under Sri Lanka Municipal Act.
+              {/* Action Toolbar */}
+              <div className="pt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 text-xs relative z-10">
+                <span className="text-slate-400 text-[11px] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  Directive authenticated under Sri Lanka Municipal Councils Ordinance §14 &bull; Audit logged
                 </span>
-                <button
-                  type="button"
-                  onClick={() => navigate('/work-orders/create')}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Create Work Order from AI Dispatch</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyDirectives}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition-colors"
+                  >
+                    {copiedDirectives ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-300">Copied Directives</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Copy Directives Dossier</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/work-orders/create')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-cyan-950/40 transition-all"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Create Work Order from AI Dispatch</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

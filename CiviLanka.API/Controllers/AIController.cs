@@ -34,9 +34,27 @@ namespace CiviLanka.API.Controllers
         [Authorize(Roles = "Citizen,FieldWorker,FieldMaintenanceSupervisor,PublicWorksDirector,Director,MunicipalStaff")]
         public async Task<IActionResult> AnalyzeHazard(Guid hazardId)
         {
-            var userId = GetUserId();
-            var result = await _orchestrator.AnalyzeHazardAsync(hazardId, userId);
-            return Ok(result);
+            if (hazardId == Guid.Empty)
+            {
+                return BadRequest(new { message = "A valid municipal hazard ticket ID is required." });
+            }
+
+            try
+            {
+                var userId = GetUserId();
+                var result = await _orchestrator.AnalyzeHazardAsync(hazardId, userId);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Hazard ticket {HazardId} not found for classification analysis", hazardId);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing AI triage classification on hazard {HazardId}", hazardId);
+                return StatusCode(500, new { message = "AI classification processing failed. " + ex.Message });
+            }
         }
 
         /// <summary>Trigger live interactive AI classification on custom multimodal hazard inputs (photo, description, location, category, metadata).</summary>
@@ -44,21 +62,48 @@ namespace CiviLanka.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ClassifyLiveHazard([FromBody] LiveHazardClassificationRequest request)
         {
+            if (request == null)
+            {
+                return BadRequest(new { message = "Request payload cannot be empty." });
+            }
+
             if (string.IsNullOrWhiteSpace(request.Description))
             {
                 return BadRequest(new { message = "Hazard description is required." });
             }
 
+            var trimmedDesc = request.Description.Trim();
+            if (trimmedDesc.Length < 5)
+            {
+                return BadRequest(new { message = "Hazard description must be at least 5 characters long for AI physical triage." });
+            }
+
+            if (trimmedDesc.Length > 4000)
+            {
+                return BadRequest(new { message = "Hazard description exceeds maximum allowed length (4,000 characters)." });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ImageUrl) &&
+                !Uri.TryCreate(request.ImageUrl, UriKind.Absolute, out var uriResult) &&
+                !request.ImageUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { message = "Photographic evidence must be a valid URL (http/https) or data URI." });
+            }
+
+            var cleanLocation = string.IsNullOrWhiteSpace(request.Location)
+                ? "Colombo Municipal Area"
+                : request.Location.Trim();
+
             var locationText = !string.IsNullOrWhiteSpace(request.ProximityZone)
-                ? $"{request.Location} (Proximity: {request.ProximityZone})"
-                : request.Location;
+                ? $"{cleanLocation} (Proximity: {request.ProximityZone})"
+                : cleanLocation;
 
             var input = new HazardClassificationInput
             {
                 HazardId = Guid.Empty,
                 TicketNumber = $"LIVE-{DateTime.UtcNow:MMddHHmm}",
                 CategorySupplied = string.IsNullOrWhiteSpace(request.CategorySupplied) ? "Other" : request.CategorySupplied,
-                Description = request.Description,
+                Description = trimmedDesc,
                 Address = locationText,
                 Latitude = request.Latitude ?? 6.9271,
                 Longitude = request.Longitude ?? 79.8612,
@@ -71,9 +116,17 @@ namespace CiviLanka.API.Controllers
                     : "Municipal Corridor"
             };
 
-            var userId = GetUserId();
-            var result = await _orchestrator.ClassifyLiveHazardAsync(input, userId);
-            return Ok(result);
+            try
+            {
+                var userId = GetUserId();
+                var result = await _orchestrator.ClassifyLiveHazardAsync(input, userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Live interactive hazard classification failed");
+                return StatusCode(500, new { message = "AI classification execution error: " + ex.Message });
+            }
         }
 
         /// <summary>Get the latest AI analysis for a hazard.</summary>
