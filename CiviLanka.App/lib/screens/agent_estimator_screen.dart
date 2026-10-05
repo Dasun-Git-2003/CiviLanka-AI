@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'dart:io' show Platform;
 
 import '../core/constants/app_constants.dart';
 import '../models/infrastructure_asset.dart';
@@ -38,6 +36,7 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
   // Result state
   Map<String, dynamic>? _estimateResult;
   String? _errorMessage;
+  bool _isFallbackEstimate = false;
 
   final List<String> _assetTypes = [
     'Water',
@@ -104,9 +103,14 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
   }
 
   Future<void> _checkAgentHealth() async {
+    if (!mounted) return;
     setState(() => _isCheckingHealth = true);
     try {
-      final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5)));
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 25),
+        receiveTimeout: const Duration(seconds: 25),
+        headers: {'Accept': 'application/json'},
+      ));
       final res = await dio.get('$_agentBaseUrl/health');
       if (mounted) {
         setState(() {
@@ -114,7 +118,28 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
           _isCheckingHealth = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AgentEstimatorScreen] Health check attempt 1 error: $e');
+      // Retry once after 1 second in case server was waking up from idle
+      try {
+        await Future.delayed(const Duration(seconds: 1));
+        final dio = Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 25),
+          receiveTimeout: const Duration(seconds: 25),
+          headers: {'Accept': 'application/json'},
+        ));
+        final res = await dio.get('$_agentBaseUrl/health');
+        if (mounted) {
+          setState(() {
+            _isAgentOnline = res.statusCode == 200;
+            _isCheckingHealth = false;
+          });
+          return;
+        }
+      } catch (e2) {
+        debugPrint('[AgentEstimatorScreen] Health check attempt 2 error: $e2');
+      }
+
       if (mounted) {
         setState(() {
           _isAgentOnline = false;
@@ -172,22 +197,36 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
       _isEstimating = true;
       _errorMessage = null;
       _estimateResult = null;
+      _isFallbackEstimate = false;
     });
 
     final payload = {
-      'asset_name': _assetNameController.text.trim(),
+      'asset_name': _assetNameController.text.trim().isNotEmpty
+          ? _assetNameController.text.trim()
+          : 'Main St Water Pipe',
       'asset_type': _selectedAssetType,
-      'hazard_type': _defectTypeController.text.trim(),
+      'hazard_type': _defectTypeController.text.trim().isNotEmpty
+          ? _defectTypeController.text.trim()
+          : 'Pipe Burst',
       'severity': _selectedSeverity.split(' ').first,
-      'location': _locationController.text.trim(),
-      'damage_description': _descriptionController.text.trim(),
+      'location': _locationController.text.trim().isNotEmpty
+          ? _locationController.text.trim()
+          : 'Colombo',
+      'damage_description': _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : 'Infrastructure defect requiring emergency material estimation and schedule of rates synthesis.',
     };
 
     try {
       final dio = Dio(BaseOptions(
         baseUrl: _agentBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 45),
+        // LangGraph multi-step Gemini pipeline can take 45-75s end-to-end on Azure
+        connectTimeout: const Duration(seconds: 25),
+        receiveTimeout: const Duration(seconds: 120),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
       ));
 
       final response = await dio.post('/api/agent/estimate', data: payload);
@@ -196,13 +235,26 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
       if (mounted) {
         setState(() {
           _estimateResult = data;
+          _isFallbackEstimate = false;
           _isEstimating = false;
         });
       }
     } on DioException catch (e) {
-      // Fallback to local intelligent CIDA BSR estimator if Python agent backend offline
+      final detail = e.response?.data?.toString() ?? e.message ?? 'Network error';
+      debugPrint('[AgentEstimatorScreen] Agent request error: $detail');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Agent timeout or unreachable: $detail\n\nGenerated offline estimate using local CIDA/BSR benchmarks.';
+        });
+      }
       _runFallbackLocalEstimate(payload);
     } catch (e) {
+      debugPrint('[AgentEstimatorScreen] Agent unexpected error: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Unexpected error: $e\n\nGenerated offline estimate using local CIDA/BSR benchmarks.';
+        });
+      }
       _runFallbackLocalEstimate(payload);
     }
   }
@@ -305,6 +357,7 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
     if (mounted) {
       setState(() {
         _estimateResult = mockEstimate;
+        _isFallbackEstimate = true;
         _isEstimating = false;
       });
     }
@@ -385,38 +438,40 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
                         ),
                       ),
 
-                      // Health Status Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _isAgentOnline
-                              ? const Color(0xFF10B981).withValues(alpha: 0.2)
-                              : Colors.red.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _isAgentOnline ? const Color(0xFF10B981) : Colors.red,
-                              ),
+                      // Health Status Badge (Clean Green/Red indicator dot)
+                      Tooltip(
+                        message: _isCheckingHealth
+                            ? 'Checking Agent status...'
+                            : (_isAgentOnline ? 'AI Agent Online (Azure Cloud)' : 'AI Agent Offline'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _isAgentOnline
+                                ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                                : Colors.red.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: _isAgentOnline
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                                  : Colors.red.withValues(alpha: 0.4),
                             ),
-                            const SizedBox(width: 5),
-                            Text(
-                              _isCheckingHealth
-                                  ? 'Checking...'
-                                  : (_isAgentOnline ? 'AGENT ONLINE' : 'AGENT OFFLINE'),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: _isAgentOnline ? const Color(0xFF34D399) : Colors.red.shade300,
-                              ),
+                          ),
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _isAgentOnline ? const Color(0xFF10B981) : Colors.red,
+                              boxShadow: [
+                                if (_isAgentOnline)
+                                  BoxShadow(
+                                    color: const Color(0xFF10B981).withValues(alpha: 0.7),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
@@ -672,7 +727,7 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
                             )
                           : const Icon(Icons.auto_awesome_rounded, size: 18),
                       label: Text(
-                        _isEstimating ? 'Synthesizing CIDA BSR Rates...' : 'Generate CIDA BSR Cost Estimate',
+                        _isEstimating ? 'Agent Running…' : 'Generate CIDA BSR Cost Estimate',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       onPressed: _isEstimating ? null : _generateEstimate,
@@ -683,10 +738,116 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
             ),
             const SizedBox(height: 20),
 
+            // ── Live Estimating Loading Card ─────────────────────────────────
+            if (_isEstimating) ...[
+              _buildEstimatingLoadingCard(context, isDark),
+              const SizedBox(height: 16),
+            ],
+
+            // ── Error / Warning Banner ───────────────────────────────────────
+            if (_errorMessage != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7C2D12).withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Color(0xFFFCA5A5), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFFCA5A5),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+
             // ── Generated Estimate Results Section ──────────────────────────
-            if (_estimateResult != null) _buildResultCard(context, isDark),
+            if (_estimateResult != null && !_isEstimating) _buildResultCard(context, isDark),
           ],
         ),
+      ),
+    );
+  }
+
+  // ── Animated Loading Card while AI Agent runs ──────────────────────────────
+  Widget _buildEstimatingLoadingCard(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: SizedBox(
+                width: 26,
+                height: 26,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Color(0xFF0D9488),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Agent Running…',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Grounded LangGraph multi-step reasoning with Chroma Vector + BM25 Hybrid RAG and Gemini AI. Synthesizing itemized Sri Lanka CIDA/BSR 2026 rates...',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: const LinearProgressIndicator(
+              minHeight: 4,
+              backgroundColor: Color(0xFFE2E8F0),
+              color: Color(0xFF0D9488),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -703,6 +864,10 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
     final materials = (est['materials'] as List<dynamic>?) ?? [];
     final labor = (est['labor_and_equipment'] as List<dynamic>?) ?? [];
     final sources = (est['cited_sources'] as List<dynamic>?) ?? [];
+    final safetyPreliminaries = (est['safety_and_preliminaries_lkr'] as num?)?.toDouble() ?? 0.0;
+    final contingencyCost = (est['contingency_cost_lkr'] as num?)?.toDouble() ?? 0.0;
+    final contingencyPct = (est['contingency_percentage'] as num?)?.toDouble() ?? 10.0;
+    final technicalNotes = est['technical_notes'] as String? ?? '';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -729,17 +894,23 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  color: _isFallbackEstimate
+                      ? const Color(0xFFF59E0B).withValues(alpha: 0.15)
+                      : const Color(0xFF10B981).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
-                    SizedBox(width: 5),
+                    Icon(
+                      _isFallbackEstimate ? Icons.offline_bolt_rounded : Icons.auto_awesome_rounded,
+                      color: _isFallbackEstimate ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 5),
                     Text(
-                      'ESTIMATE SYNTHESIZED',
+                      _isFallbackEstimate ? 'LOCAL ESTIMATE (OFFLINE)' : 'AI AGENT SYNTHESIZED',
                       style: TextStyle(
-                        color: Color(0xFF059669),
+                        color: _isFallbackEstimate ? const Color(0xFFF59E0B) : const Color(0xFF059669),
                         fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                       ),
@@ -828,8 +999,8 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
             ),
             const SizedBox(height: 8),
             ...materials.map((m) {
-              final mName = m['item_name'] ?? '';
-              final bsr = m['bsr_code'] ?? '';
+              final mName = m['item_name'] ?? 'Material Item';
+              final bsr = (m['bsr_code'] ?? '').toString().trim();
               final qty = m['quantity'] ?? 1;
               final unit = m['unit'] ?? 'Nos';
               final cost = (m['total_cost_lkr'] as num?)?.toDouble() ?? 0.0;
@@ -850,9 +1021,11 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(mName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          Text('BSR Code: $bsr • $qty $unit',
-                              style: const TextStyle(fontSize: 10.5, color: Colors.grey)),
+                          Text(mName.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text(
+                            bsr.isNotEmpty ? 'BSR Code: $bsr • $qty $unit' : '$qty $unit',
+                            style: const TextStyle(fontSize: 10.5, color: Colors.grey),
+                          ),
                         ],
                       ),
                     ),
@@ -875,8 +1048,9 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
             ),
             const SizedBox(height: 8),
             ...labor.map((l) {
-              final role = l['role_or_machine'] ?? '';
-              final days = l['days'] ?? 1;
+              final role = l['role_or_machine'] ?? 'Laborer';
+              final daysNum = l['days'] as num? ?? 1;
+              final daysStr = daysNum % 1 == 0 ? daysNum.toInt().toString() : daysNum.toString();
               final cost = (l['total_cost_lkr'] as num?)?.toDouble() ?? 0.0;
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
@@ -892,14 +1066,86 @@ class _AgentEstimatorScreenState extends State<AgentEstimatorScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(role, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      child: Text(role.toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    Text('$days Days • LKR ${cost.toStringAsFixed(0)}',
+                    Text('$daysStr Days • LKR ${cost.toStringAsFixed(0)}',
                         style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
                   ],
                 ),
               );
             }),
+            const SizedBox(height: 14),
+          ],
+
+          // Cost Summary Breakdown (Safety & Contingency)
+          if (safetyPreliminaries > 0 || contingencyCost > 0) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A).withValues(alpha: 0.6) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  if (safetyPreliminaries > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Safety & Preliminaries:', style: TextStyle(fontSize: 11.5, color: Colors.grey)),
+                        Text('LKR ${safetyPreliminaries.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  if (safetyPreliminaries > 0 && contingencyCost > 0) const SizedBox(height: 6),
+                  if (contingencyCost > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Contingency (${contingencyPct.toStringAsFixed(0)}%):',
+                            style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
+                        Text('LKR ${contingencyCost.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          // Technical Notes
+          if (technicalNotes.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.notes_rounded, color: Color(0xFF0284C7), size: 16),
+                      SizedBox(width: 6),
+                      Text('Engineering Technical Notes',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0284C7))),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    technicalNotes,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 14),
           ],
 
