@@ -4,6 +4,7 @@
 name: Build and deploy ASP.Net Core app to Azure Web App - CiviLanka
 
 on:
+  # Standalone manual trigger. Automated CI/CD deployments are handled by ci-cd.yml.
   workflow_dispatch:
 
 jobs:

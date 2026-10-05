@@ -23,7 +23,8 @@ namespace CiviLanka.API.Services
         public string GenerateToken(ApplicationUser user, IList<string>? additionalRoles = null)
         {
             var jwtSettings = _config.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
+            var secretKey = jwtSettings["SecretKey"] ?? "CiviLanka-SuperSecret-Key-Change-In-Production-2026!";
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -54,8 +55,8 @@ namespace CiviLanka.API.Services
                 double.Parse(jwtSettings["ExpiryHours"] ?? "24"));
 
             var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
+                issuer: jwtSettings["Issuer"] ?? "CiviLanka.API",
+                audience: jwtSettings["Audience"] ?? "CiviLanka.Clients",
                 claims: claims,
                 expires: expiry,
                 signingCredentials: creds);

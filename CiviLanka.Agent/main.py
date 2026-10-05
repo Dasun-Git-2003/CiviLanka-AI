@@ -21,7 +21,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # Load environment
 AGENT_DIR = Path(__file__).resolve().parent
@@ -89,6 +89,24 @@ class HazardClassifyRequest(BaseModel):
     metadata: Optional[Any] = Field(default="", description="Contextual flags like school hours, heavy rainfall, high pedestrian volume")
     image_url: Optional[str] = Field(default=None, description="Citizen uploaded photo URL")
     thread_id: Optional[str] = Field(default=None, description="Optional conversation thread ID")
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Hazard description cannot be empty.")
+        if len(v.strip()) < 5:
+            raise ValueError("Hazard description must be at least 5 characters.")
+        if len(v) > 4000:
+            raise ValueError("Hazard description cannot exceed 4000 characters.")
+        return v.strip()
+
+    @field_validator("location")
+    @classmethod
+    def validate_location(cls, v: str) -> str:
+        if not v or not v.strip():
+            return "Colombo Municipal Area"
+        return v.strip()
 
 
 class DispatchOptimizeRequest(BaseModel):

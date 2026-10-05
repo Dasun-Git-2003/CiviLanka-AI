@@ -1276,13 +1276,13 @@ class _RegisterContractorModalState extends State<RegisterContractorModal> {
                           ],
                           style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                           decoration: _buildInputDecoration(
-                            hint: '0112345678',
+                            hint: '0771234567',
                             isDark: isDark,
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return 'Phone is required';
                             if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
-                              return 'Phone must be exactly 10 digits';
+                              return 'Phone number must be exactly 10 digits';
                             }
                             return null;
                           },
