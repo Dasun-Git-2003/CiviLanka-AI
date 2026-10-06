@@ -81,7 +81,7 @@ namespace CiviLanka.API.Controllers
             var inspection = new AssetInspection
             {
                 AssetId = assetId,
-                InspectionDate = dto.InspectionDate,
+                InspectionDate = DateTime.SpecifyKind(dto.InspectionDate, DateTimeKind.Utc),
                 Condition = dto.Condition,
                 IssuesFound = dto.IssuesFound?.Trim(),
                 Notes = dto.Notes?.Trim(),

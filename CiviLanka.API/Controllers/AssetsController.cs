@@ -134,7 +134,9 @@ namespace CiviLanka.API.Controllers
                 Type = dto.Type.Trim(),
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status.Trim(),
                 Location = dto.Location.Trim(),
-                InstallationDate = dto.InstallationDate,
+                InstallationDate = dto.InstallationDate.HasValue
+                    ? DateTime.SpecifyKind(dto.InstallationDate.Value, DateTimeKind.Utc)
+                    : null,
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
                 Description = dto.Description?.Trim(),
@@ -184,7 +186,9 @@ namespace CiviLanka.API.Controllers
             asset.Type = dto.Type.Trim();
             asset.Status = dto.Status.Trim();
             asset.Location = dto.Location.Trim();
-            asset.InstallationDate = dto.InstallationDate;
+            asset.InstallationDate = dto.InstallationDate.HasValue
+                ? DateTime.SpecifyKind(dto.InstallationDate.Value, DateTimeKind.Utc)
+                : null;
             asset.Latitude = dto.Latitude;
             asset.Longitude = dto.Longitude;
             asset.Description = dto.Description?.Trim();
