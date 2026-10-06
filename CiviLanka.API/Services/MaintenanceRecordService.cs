@@ -81,10 +81,17 @@ namespace CiviLanka.API.Services
                             ? wo.AssignedCrew
                             : "worker@civilanka.gov.lk";
 
+                        string? syncAssetId = !string.IsNullOrWhiteSpace(wo.AssetId) ? wo.AssetId.Trim() : null;
+                        if (!string.IsNullOrWhiteSpace(syncAssetId))
+                        {
+                            bool assetExists = await _db.InfrastructureAssets.AnyAsync(a => a.Id == syncAssetId);
+                            if (!assetExists) syncAssetId = null;
+                        }
+
                         var mRecord = new MaintenanceRecord
                         {
                             WorkOrderId        = wo.Id,
-                            AssetId            = wo.AssetId,
+                            AssetId            = syncAssetId,
                             PerformedBy        = workerEmail,
                             MaintenanceType    = wo.Hazard?.Category ?? "Corrective",
                             Description        = wo.Title ?? wo.Description,
@@ -128,10 +135,24 @@ namespace CiviLanka.API.Services
             if (workOrder == null || workOrder.IsCancelled)
                 throw new ArgumentException($"Work order {dto.WorkOrderId} not found or is cancelled.");
 
+            string? targetAssetId = !string.IsNullOrWhiteSpace(dto.AssetId)
+                ? dto.AssetId.Trim()
+                : (!string.IsNullOrWhiteSpace(workOrder.AssetId) ? workOrder.AssetId.Trim() : null);
+
+            if (!string.IsNullOrWhiteSpace(targetAssetId))
+            {
+                bool assetExists = await _db.InfrastructureAssets.AnyAsync(a => a.Id == targetAssetId);
+                if (!assetExists)
+                {
+                    _logger.LogWarning("Asset ID '{AssetId}' specified for maintenance record was not found in InfrastructureAssets. Setting AssetId to null.", targetAssetId);
+                    targetAssetId = null;
+                }
+            }
+
             var record = new MaintenanceRecord
             {
                 WorkOrderId        = dto.WorkOrderId,
-                AssetId            = dto.AssetId ?? workOrder.AssetId,
+                AssetId            = targetAssetId,
                 PerformedBy        = userId,
                 MaintenanceType    = dto.MaintenanceType,
                 Description        = dto.Description,

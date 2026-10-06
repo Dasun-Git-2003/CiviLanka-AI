@@ -61,6 +61,11 @@ namespace CiviLanka.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error creating maintenance record.");
+                return StatusCode(500, new { message = "Failed to create maintenance record.", error = ex.InnerException?.Message ?? ex.Message });
+            }
         }
 
         private bool IsRecordAccessibleToWorker(MaintenanceRecordResponseDto record)
