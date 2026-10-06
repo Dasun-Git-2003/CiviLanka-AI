@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/server_config_dialog.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,20 +12,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'citizen@test.com');
-  final _passwordController = TextEditingController(text: 'Director123!');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _showPassword = false;
   bool _rememberMe = true;
   bool _loading = false;
   String? _errorMessage;
-
-  void _applyCredentials(String email, String role) {
-    setState(() {
-      _emailController.text = email;
-      _passwordController.text = 'Director123!';
-      _errorMessage = null;
-    });
-  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -117,73 +107,29 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Back Button & Server Switcher Pill
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFF334155)),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_back_ios_new_rounded, size: 12, color: Colors.white),
-                            SizedBox(width: 4),
-                            Text('Back', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
+                // Back Button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF334155)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_back_ios_new_rounded, size: 12, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text('Back', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
                       ),
                     ),
-                    InkWell(
-                      onTap: () => ServerConfigDialog.show(context),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Consumer<ApiService>(
-                        builder: (context, api, _) {
-                          final isCloud = api.isUsingCloud;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isCloud
-                                    ? const Color(0xFF10B981).withValues(alpha: 0.6)
-                                    : const Color(0xFF3B82F6).withValues(alpha: 0.6),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isCloud ? Icons.cloud_done_rounded : Icons.computer_rounded,
-                                  color: isCloud ? const Color(0xFF10B981) : const Color(0xFF60A5FA),
-                                  size: 13,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  api.serverDisplayName,
-                                  style: TextStyle(
-                                    color: isCloud ? const Color(0xFF34D399) : const Color(0xFF93C5FD),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.settings_outlined, color: Colors.grey, size: 12),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -678,128 +624,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
-
-        // ── Quick Demo Test Accounts (2x2 Grid Matching Website LoginPage.tsx) ─
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF1E293B)),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                'QUICK DEMO TEST ACCOUNTS',
-                style: TextStyle(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF64748B),
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  // 1. Citizen
-                  Expanded(
-                    child: _buildRoleCard(
-                      title: 'Citizen',
-                      email: 'citizen@test.com',
-                      bgColor: const Color(0xFF064E3B).withValues(alpha: 0.4),
-                      borderColor: const Color(0xFF059669).withValues(alpha: 0.4),
-                      textColor: const Color(0xFF34D399),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 2. Field Worker
-                  Expanded(
-                    child: _buildRoleCard(
-                      title: 'Field Worker',
-                      email: 'fieldworker@test.com',
-                      bgColor: const Color(0xFF78350F).withValues(alpha: 0.4),
-                      borderColor: const Color(0xFFD97706).withValues(alpha: 0.4),
-                      textColor: const Color(0xFFFBBF24),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  // 3. Supervisor
-                  Expanded(
-                    child: _buildRoleCard(
-                      title: 'Supervisor',
-                      email: 'supervisor@test.com',
-                      bgColor: const Color(0xFF1E3A8A).withValues(alpha: 0.4),
-                      borderColor: const Color(0xFF3B82F6).withValues(alpha: 0.4),
-                      textColor: const Color(0xFF60A5FA),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 4. Director
-                  Expanded(
-                    child: _buildRoleCard(
-                      title: 'Director',
-                      email: 'director@test.com',
-                      bgColor: const Color(0xFF581C87).withValues(alpha: 0.4),
-                      borderColor: const Color(0xFF9333EA).withValues(alpha: 0.4),
-                      textColor: const Color(0xFFC084FC),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Helper: Demo Role Card Button
-  Widget _buildRoleCard({
-    required String title,
-    required String email,
-    required Color bgColor,
-    required Color borderColor,
-    required Color textColor,
-  }) {
-    return InkWell(
-      onTap: () => _applyCredentials(email, title),
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: borderColor),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              email,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 9.5,
-                color: textColor.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ),
-      ),
+              ],
     );
   }
 }

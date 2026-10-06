@@ -297,15 +297,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ── Middleware Pipeline ────────────────────────────────────────────────────────
-if (app.Environment.IsDevelopment())
+// Enable Swagger UI in all environments (including Azure Production)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CivitaGuard AI v1");
-        c.RoutePrefix = string.Empty; // Serve Swagger at root
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CivitaGuard AI v1");
+    c.RoutePrefix = "swagger"; // Serves Swagger UI at /swagger
+});
 
 app.UseHttpsRedirection();
 
@@ -341,6 +339,9 @@ app.MapGet("/health", () => Results.Ok(new
     service = "CivitaGuard AI — Member 1",
     version = "1.0.0"
 }));
+
+// Root redirect to Swagger documentation
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
 
