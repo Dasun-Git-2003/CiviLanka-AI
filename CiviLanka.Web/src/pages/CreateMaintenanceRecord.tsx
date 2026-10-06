@@ -9,8 +9,10 @@ import {
 } from 'lucide-react';
 import { maintenanceService } from '../services/maintenanceService';
 import { workOrderService } from '../services/workOrderService';
+import { assetService } from '../services/assetService';
 import { authService } from '../services/authService';
 import type { WorkOrder } from '../types/workOrder';
+import type { InfrastructureAsset } from '../types/asset';
 import type { CreateMaintenanceRecordRequest } from '../types/maintenance';
 
 const MAINTENANCE_TYPES = [
@@ -55,6 +57,7 @@ export const CreateMaintenanceRecord: React.FC = () => {
   const preselectedWoId = searchParams.get('workOrderId');
 
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [assets, setAssets] = useState<InfrastructureAsset[]>([]);
   const [loadingWos, setLoadingWos] = useState(false);
 
   const currentUser = authService.getCurrentUser();
@@ -80,14 +83,18 @@ export const CreateMaintenanceRecord: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchWorkOrders = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoadingWos(true);
-        const wos = await workOrderService.getAll();
+        const [wos, assetList] = await Promise.all([
+          workOrderService.getAll().catch(() => []),
+          assetService.getAll().catch(() => []),
+        ]);
         setWorkOrders(wos);
+        setAssets(assetList);
 
         if (preselectedWoId) {
-          const matched = wos.find((w) => w.id === preselectedWoId);
+          const matched = wos.find((w: WorkOrder) => w.id === preselectedWoId);
           if (matched) {
             setFormData((prev) => ({
               ...prev,
@@ -102,12 +109,12 @@ export const CreateMaintenanceRecord: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error('Failed to load work orders:', err);
+        console.error('Failed to load initial work orders and assets:', err);
       } finally {
         setLoadingWos(false);
       }
     };
-    fetchWorkOrders();
+    fetchInitialData();
   }, [preselectedWoId]);
 
   const selectedWo = workOrders.find((w) => w.id === formData.workOrderId);
@@ -175,7 +182,14 @@ export const CreateMaintenanceRecord: React.FC = () => {
     try {
       setSubmitting(true);
       setError(null);
-      const created = await maintenanceService.create(formData);
+      const payload: CreateMaintenanceRecordRequest = {
+        ...formData,
+        assetId: formData.assetId && formData.assetId.trim() ? formData.assetId.trim() : undefined,
+        materialsUsed: formData.materialsUsed?.trim() || undefined,
+        equipmentUsed: formData.equipmentUsed?.trim() || undefined,
+        workerNotes: formData.workerNotes?.trim() || undefined,
+      };
+      const created = await maintenanceService.create(payload);
       navigate(`/maintenance/${created.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create field maintenance record.');
@@ -262,15 +276,25 @@ export const CreateMaintenanceRecord: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Infrastructure Asset ID (Optional)
+                Infrastructure Asset (Optional)
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.assetId || ''}
                 onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-                placeholder="e.g. AST-001 (auto-populated if linked)"
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800"
-              />
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-slate-800"
+              >
+                <option value="">-- None (General Roadway / Unlinked Site) --</option>
+                {assets.map((ast) => (
+                  <option key={ast.id} value={ast.id}>
+                    {ast.id} — {ast.name} ({ast.type} • {ast.location})
+                  </option>
+                ))}
+              </select>
+              {formData.assetId && !assets.some((a) => a.id === formData.assetId) && (
+                <p className="text-[10px] text-teal-700 mt-1">
+                  Linked Asset ID: <span className="font-mono font-bold">{formData.assetId}</span>
+                </p>
+              )}
             </div>
           </div>
 
