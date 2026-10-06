@@ -925,7 +925,12 @@ function RegisterAssetModal({
     }
     try {
       setSubmitting(true);
-      await onSubmit(form);
+      const payload: CreateAssetDto = {
+        ...form,
+        installationDate: form.installationDate ? form.installationDate : undefined,
+        id: form.id?.trim() ? form.id.trim() : undefined,
+      };
+      await onSubmit(payload);
     } finally {
       setSubmitting(false);
     }
